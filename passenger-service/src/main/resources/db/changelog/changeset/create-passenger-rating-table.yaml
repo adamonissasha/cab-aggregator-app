@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-passenger-rating
+      author: AlexandraA
+      changes:
+        - createTable:
+            tableName: passenger_rating
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: passenger_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: driver_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rating
+                  type: int
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: passenger_rating
+            baseColumnNames: passenger_id
+            referencedTableName: passenger
+            referencedColumnNames: id
+            constraintName: FK_passenger_rating_passenger
