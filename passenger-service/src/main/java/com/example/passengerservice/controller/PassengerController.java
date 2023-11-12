@@ -17,7 +17,7 @@ public class PassengerController {
         return passengerService.createPassenger(passengerRequest);
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public PassengerResponse editPassenger(@RequestBody PassengerRequest passengerRequest,
                                            @PathVariable("id") long id) {
         return passengerService.editPassenger(id, passengerRequest);
