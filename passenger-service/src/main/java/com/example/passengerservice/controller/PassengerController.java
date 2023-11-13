@@ -22,4 +22,9 @@ public class PassengerController {
                                            @PathVariable("id") long id) {
         return passengerService.editPassenger(id, passengerRequest);
     }
+
+    @GetMapping("/{id}")
+    public PassengerResponse getPassengerById(@PathVariable("id") long id) {
+        return passengerService.getPassengerById(id);
+    }
 }

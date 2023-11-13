@@ -39,13 +39,19 @@ public class PassengerServiceImpl implements PassengerService {
         Passenger updatedPassenger = mapPassengerRequestToPassenger(passengerRequest);
         Passenger existingPassenger = passengerRepository.findById(id)
                 .orElseThrow(() -> new PassengerNotFoundException(PASSENGER_NOT_FOUND));
-        passengerRepository.findPassengerByPhoneNumberAndIdIsNot(passengerRequest.getPhoneNumber(), id)
-                .ifPresent(p -> {
-                    throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
-                });
+        if (passengerRepository.findPassengerByPhoneNumberAndIdIsNot(passengerRequest.getPhoneNumber(), id).isPresent()) {
+            throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
+        }
         updatedPassenger.setId(existingPassenger.getId());
         updatedPassenger = passengerRepository.save(updatedPassenger);
         return mapPassengerToPassengerResponse(updatedPassenger);
+    }
+
+    @Override
+    public PassengerResponse getPassengerById(long id) {
+        return passengerRepository.findById(id)
+                .map(this::mapPassengerToPassengerResponse)
+                .orElseThrow(() -> new PassengerNotFoundException(PASSENGER_NOT_FOUND));
     }
 
 

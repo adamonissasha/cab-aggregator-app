@@ -7,4 +7,6 @@ public interface PassengerService {
     PassengerResponse createPassenger(PassengerRequest passengerRequest);
 
     PassengerResponse editPassenger(long id, PassengerRequest passengerRequest);
+
+    PassengerResponse getPassengerById(long id);
 }
