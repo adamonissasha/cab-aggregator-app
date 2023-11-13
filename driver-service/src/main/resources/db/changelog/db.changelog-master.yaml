@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changeset/create-car-table.yaml
   - include:
       file: db/changelog/changeset/create-driver-table.yaml
+  - include:
+      file: db/changelog/changeset/create-driver-rating-table.yaml

@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-driver-rating
+      author: AlexandraA
+      changes:
+        - createTable:
+            tableName: driver_rating
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: driver_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: passenger_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rating
+                  type: int
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: driver_rating
+            baseColumnNames: driver_id
+            referencedTableName: driver
+            referencedColumnNames: id
+            constraintName: FK_driver_rating_driver
