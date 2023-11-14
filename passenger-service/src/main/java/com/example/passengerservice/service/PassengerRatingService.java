@@ -7,9 +7,9 @@ import com.example.passengerservice.dto.response.PassengerRatingResponse;
 import java.util.List;
 
 public interface PassengerRatingService {
-    PassengerRatingResponse ratePassenger(PassengerRatingRequest passengerRatingRequest);
+    PassengerRatingResponse ratePassenger(long passengerId, PassengerRatingRequest passengerRatingRequest);
 
-    List<PassengerRatingResponse> getRatingsByPassengerId(long id);
+    List<PassengerRatingResponse> getRatingsByPassengerId(long passengerId);
 
-    AveragePassengerRatingResponse getAveragePassengerRating(long id);
+    AveragePassengerRatingResponse getAveragePassengerRating(long passengerId);
 }

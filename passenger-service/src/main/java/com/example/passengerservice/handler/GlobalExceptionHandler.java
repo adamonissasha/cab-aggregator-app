@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
         ValidationErrorResponse errorResponse = new ValidationErrorResponse();
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
         for (FieldError fieldError : fieldErrors) {
-            errorResponse.addValidationError(fieldError.getField());
+            errorResponse.addValidationError(fieldError.getDefaultMessage());
         }
         return errorResponse;
     }

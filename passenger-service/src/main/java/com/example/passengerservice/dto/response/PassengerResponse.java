@@ -8,7 +8,7 @@ import lombok.*;
 @Setter
 @Builder
 public class PassengerResponse {
-    private long id;
+    private Long id;
     private String firstName;
     private String lastName;
     private String email;
