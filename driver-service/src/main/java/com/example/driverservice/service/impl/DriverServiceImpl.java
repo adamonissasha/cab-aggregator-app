@@ -11,6 +11,10 @@ import com.example.driverservice.repository.DriverRepository;
 import com.example.driverservice.service.DriverService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -59,6 +63,13 @@ public class DriverServiceImpl implements DriverService {
         return driverRepository.findById(id)
                 .map(this::mapDriverToDriverResponse)
                 .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
+    }
+
+    @Override
+    public Page<DriverResponse> getAllDrivers(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return driverRepository.findAll(pageable)
+                .map(this::mapDriverToDriverResponse);
     }
 
 
