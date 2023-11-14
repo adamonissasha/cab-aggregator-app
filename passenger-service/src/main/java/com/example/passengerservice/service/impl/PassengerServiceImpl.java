@@ -9,6 +9,10 @@ import com.example.passengerservice.repository.PassengerRepository;
 import com.example.passengerservice.service.PassengerService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -52,6 +56,13 @@ public class PassengerServiceImpl implements PassengerService {
         return passengerRepository.findById(id)
                 .map(this::mapPassengerToPassengerResponse)
                 .orElseThrow(() -> new PassengerNotFoundException(PASSENGER_NOT_FOUND));
+    }
+
+    @Override
+    public Page<PassengerResponse> getAllPassengers(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return passengerRepository.findAll(pageable)
+                .map(this::mapPassengerToPassengerResponse);
     }
 
 

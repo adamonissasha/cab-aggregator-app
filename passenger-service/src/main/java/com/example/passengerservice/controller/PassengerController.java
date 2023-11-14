@@ -5,6 +5,7 @@ import com.example.passengerservice.dto.response.PassengerResponse;
 import com.example.passengerservice.service.PassengerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,5 +28,12 @@ public class PassengerController {
     @GetMapping("/{id}")
     public PassengerResponse getPassengerById(@PathVariable("id") long id) {
         return passengerService.getPassengerById(id);
+    }
+
+    @GetMapping()
+    public Page<PassengerResponse> getAllPassengers(@RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "10") int size,
+                                                    @RequestParam(defaultValue = "id") String sortBy) {
+        return passengerService.getAllPassengers(page, size, sortBy);
     }
 }
