@@ -9,6 +9,10 @@ import com.example.driverservice.repository.CarRepository;
 import com.example.driverservice.service.CarService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,7 +39,7 @@ public class CarServiceImpl implements CarService {
         Car updatedCar = mapCarRequestToCar(carRequest);
         Car existingCar = carRepository.findById(id)
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
-        if(carRepository.findCarByNumberAndIdIsNot(carRequest.getNumber(), id).isPresent()) {
+        if (carRepository.findCarByNumberAndIdIsNot(carRequest.getNumber(), id).isPresent()) {
             throw new CarNumberUniqueException(CAR_NUMBER_EXIST);
         }
         updatedCar.setId(existingCar.getId());
@@ -48,6 +52,13 @@ public class CarServiceImpl implements CarService {
         return carRepository.findById(id)
                 .map(this::mapCarToCarResponse)
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
+    }
+
+    @Override
+    public Page<CarResponse> getAllCars(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return carRepository.findAll(pageable)
+                .map(this::mapCarToCarResponse);
     }
 
 
