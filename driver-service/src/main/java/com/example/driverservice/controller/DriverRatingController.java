@@ -4,6 +4,7 @@ import com.example.driverservice.dto.request.DriverRatingRequest;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.DriverRatingResponse;
 import com.example.driverservice.service.DriverRatingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +17,7 @@ public class DriverRatingController {
     private final DriverRatingService driverRatingService;
 
     @PostMapping()
-    public DriverRatingResponse rateDriver(@RequestBody DriverRatingRequest driverRatingRequest,
+    public DriverRatingResponse rateDriver(@Valid @RequestBody DriverRatingRequest driverRatingRequest,
                                            @PathVariable("driverId") long driverId) {
         return driverRatingService.rateDriver(driverRatingRequest, driverId);
     }

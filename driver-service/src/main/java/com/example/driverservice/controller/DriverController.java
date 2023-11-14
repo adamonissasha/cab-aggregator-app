@@ -3,6 +3,7 @@ package com.example.driverservice.controller;
 import com.example.driverservice.dto.request.DriverRequest;
 import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.service.DriverService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,13 +14,13 @@ public class DriverController {
     private final DriverService driverService;
 
     @PostMapping()
-    public DriverResponse createPassenger(@RequestBody DriverRequest driverRequest) {
+    public DriverResponse createPassenger(@Valid @RequestBody DriverRequest driverRequest) {
         return driverService.createDriver(driverRequest);
     }
 
     @PutMapping("/{id}")
-    public DriverResponse editPassenger(@RequestBody DriverRequest driverRequest,
-                                           @PathVariable("id") long id) {
+    public DriverResponse editPassenger(@Valid @RequestBody DriverRequest driverRequest,
+                                        @PathVariable("id") long id) {
         return driverService.editPassenger(id, driverRequest);
     }
 

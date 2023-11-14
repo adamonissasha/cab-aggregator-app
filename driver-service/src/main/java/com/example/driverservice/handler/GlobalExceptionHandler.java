@@ -1,10 +1,16 @@
 package com.example.driverservice.handler;
 
 import com.example.driverservice.exception.*;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -36,5 +42,26 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleCarNumberUniqueException(CarNumberUniqueException ex) {
         return ex.getMessage();
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ValidationErrorResponse handleConstraintViolationException(ConstraintViolationException ex) {
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
+        for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+            errorResponse.addValidationError(violation.getMessage());
+        }
+        return errorResponse;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ValidationErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
+        List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
+        for (FieldError fieldError : fieldErrors) {
+            errorResponse.addValidationError(fieldError.getDefaultMessage());
+        }
+        return errorResponse;
     }
 }
