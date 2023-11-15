@@ -1,14 +1,13 @@
 package com.example.passengerservice.controller;
 
 import com.example.passengerservice.dto.request.PassengerRatingRequest;
+import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.PassengerRatingResponse;
 import com.example.passengerservice.service.PassengerRatingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/passenger/{passengerId}/rating")
@@ -23,7 +22,7 @@ public class PassengerRatingController {
     }
 
     @GetMapping()
-    public List<PassengerRatingResponse> getRatingsByPassengerId(@PathVariable("passengerId") long passengerId) {
+    public AllPassengerRatingsResponse getRatingsByPassengerId(@PathVariable("passengerId") long passengerId) {
         return passengerRatingService.getRatingsByPassengerId(passengerId);
     }
 

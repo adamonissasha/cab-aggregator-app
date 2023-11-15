@@ -1,7 +1,7 @@
 package com.example.driverservice.controller;
 
 import com.example.driverservice.dto.request.DriverRatingRequest;
-import com.example.driverservice.dto.response.AllDriversResponse;
+import com.example.driverservice.dto.response.AllDriverRatingsResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.DriverRatingResponse;
 import com.example.driverservice.service.DriverRatingService;
@@ -22,7 +22,7 @@ public class DriverRatingController {
     }
 
     @GetMapping()
-    public AllDriversResponse getRatingsByDriverId(@PathVariable("driverId") long driverId) {
+    public AllDriverRatingsResponse getRatingsByDriverId(@PathVariable("driverId") long driverId) {
         return driverRatingService.getRatingsByDriverId(driverId);
     }
 

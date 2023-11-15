@@ -7,8 +7,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/passenger_service_db
-    username:
-    password:
+    username: postgres
+    password: postgres
 
   jpa:
     properties:

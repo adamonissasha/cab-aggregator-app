@@ -1,7 +1,7 @@
 package com.example.driverservice.service.impl;
 
 import com.example.driverservice.dto.request.DriverRatingRequest;
-import com.example.driverservice.dto.response.AllDriversResponse;
+import com.example.driverservice.dto.response.AllDriverRatingsResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.DriverRatingResponse;
 import com.example.driverservice.exception.DriverNotFoundException;
@@ -36,13 +36,13 @@ public class DriverRatingServiceImpl implements DriverRatingService {
     }
 
     @Override
-    public AllDriversResponse getRatingsByDriverId(long driverId) {
+    public AllDriverRatingsResponse getRatingsByDriverId(long driverId) {
         validateDriverExists(driverId);
         List<DriverRatingResponse> driverRatings = driverRatingRepository.getDriverRatingsByDriverId(driverId)
                 .stream()
                 .map(this::mapDriverRatingToDriverRatingResponse)
                 .toList();
-        return AllDriversResponse.builder()
+        return AllDriverRatingsResponse.builder()
                 .driverRatings(driverRatings)
                 .build();
     }
@@ -65,9 +65,8 @@ public class DriverRatingServiceImpl implements DriverRatingService {
     }
 
     public void validateDriverExists(long driverId) {
-        if (!driverRepository.existsById(driverId)) {
-            throw new DriverNotFoundException(DRIVER_NOT_FOUND);
-        }
+        driverRepository.findById(driverId)
+                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
     }
 
     public DriverRating mapDriverRatingRequestToDriverRating(DriverRatingRequest driverRatingRequest) {

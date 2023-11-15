@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class AveragePassengerRatingResponse {
-    private long passengerId;
-    private double averageRating;
+public class ExceptionResponse {
+    private int statusCode;
+    private String message;
 }

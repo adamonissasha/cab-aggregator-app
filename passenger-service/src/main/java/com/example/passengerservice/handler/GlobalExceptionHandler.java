@@ -1,5 +1,7 @@
 package com.example.passengerservice.handler;
 
+import com.example.passengerservice.dto.response.ExceptionResponse;
+import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
 import com.example.passengerservice.exception.PassengerRatingNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
@@ -19,14 +21,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = PassengerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handlePassengerException(PassengerNotFoundException ex) {
-        return ex.getMessage();
+    public ExceptionResponse handlePassengerException(PassengerNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
     }
 
     @ExceptionHandler(value = PassengerRatingNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handlePassengerRatingException(PassengerRatingNotFoundException ex) {
-        return ex.getMessage();
+    public ExceptionResponse handlePassengerRatingException(PassengerRatingNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -41,8 +49,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = PhoneNumberUniqueException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handlePhoneNumberUniqueException(PhoneNumberUniqueException ex) {
-        return ex.getMessage();
+    public ExceptionResponse handlePhoneNumberUniqueException(PhoneNumberUniqueException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -56,9 +67,21 @@ public class GlobalExceptionHandler {
         return errorResponse;
     }
 
+    @ExceptionHandler(value = IncorrectFieldNameException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleIncorrectFieldNameException(IncorrectFieldNameException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
     @ExceptionHandler(value = IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleIllegalArgumentException(IllegalArgumentException ex) {
-        return ex.getMessage();
+    public ExceptionResponse handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .build();
     }
 }

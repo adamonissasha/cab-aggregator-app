@@ -30,7 +30,9 @@ public class CarServiceImpl implements CarService {
     @Override
     public CarResponse createCar(CarRequest carRequest) {
         carRepository.findCarByNumber(carRequest.getNumber())
-                .orElseThrow(() -> new CarNumberUniqueException(CAR_NUMBER_EXIST));
+                .ifPresent(car -> {
+                    throw new CarNumberUniqueException(CAR_NUMBER_EXIST);
+                });
         Car newCar = mapCarRequestToCar(carRequest);
         newCar = carRepository.save(newCar);
         return mapCarToCarResponse(newCar);
@@ -38,13 +40,13 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public CarResponse editCar(long id, CarRequest carRequest) {
-        Car updatedCar = mapCarRequestToCar(carRequest);
         Car existingCar = carRepository.findById(id)
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
         Optional<Car> optionalCar = carRepository.findCarByNumber(carRequest.getNumber());
         if (optionalCar.isPresent() && optionalCar.get().getId() != id) {
             throw new CarNumberUniqueException(CAR_NUMBER_EXIST);
         }
+        Car updatedCar = mapCarRequestToCar(carRequest);
         updatedCar.setId(existingCar.getId());
         updatedCar = carRepository.save(updatedCar);
         return mapCarToCarResponse(updatedCar);

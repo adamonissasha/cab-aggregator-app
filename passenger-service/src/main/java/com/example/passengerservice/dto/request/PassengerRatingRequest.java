@@ -13,12 +13,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PassengerRatingRequest {
-    @NotNull(message = "Driver ID is required")
+    @NotNull(message = "{passenger-rating.driver-id.not-null}")
     private Long driverId;
 
-    @NotNull(message = "Rating is required")
-    @Min(value = 1, message = "Rating must be at least 1")
-    @Max(value = 5, message = "Rating cannot be greater than 5")
-
+    @NotNull(message = "{passenger-rating.rating.required}")
+    @Min(value = 1, message = "{passenger-rating.rating.min}")
+    @Max(value = 5, message = "{passenger-rating.rating.max}")
     private Integer rating;
 }

@@ -13,20 +13,21 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PassengerRequest {
-    @NotBlank(message = "First name is required")
+    @NotBlank(message = "{passenger.first-name.required}")
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
+    @NotBlank(message = "{passenger.last-name.required}")
     private String lastName;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+    @NotBlank(message = "{passenger.email.required}")
+    @Email(message = "{passenger.email.format}")
     private String email;
 
-    @Pattern(regexp = "^\\+375\\d{9}$", message = "Phone number must match the format: +375xxxxxxxxx")
+    @NotBlank(message = "{passenger.phone-number.required}")
+    @Pattern(regexp = "^\\+375\\d{9}$", message = "{passenger.phone-number.format}")
     private String phoneNumber;
 
-    @NotBlank(message = "Password is required")
-    @Pattern(regexp = "^(?=.*\\d).{8,}$", message = "Password must contain at least one digit and be at least 8 characters long")
+    @NotBlank(message = "{passenger.password.required}")
+    @Pattern(regexp = "^(?=.*\\d).{8,}$", message = "{passenger.password.format}")
     private String password;
 }

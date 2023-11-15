@@ -9,6 +9,6 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class AllDriversResponse {
+public class AllDriverRatingsResponse {
     private List<DriverRatingResponse> driverRatings;
 }

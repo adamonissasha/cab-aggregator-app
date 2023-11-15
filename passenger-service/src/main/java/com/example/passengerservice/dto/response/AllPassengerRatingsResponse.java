@@ -2,12 +2,13 @@ package com.example.passengerservice.dto.response;
 
 import lombok.*;
 
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
-public class AveragePassengerRatingResponse {
-    private long passengerId;
-    private double averageRating;
+public class AllPassengerRatingsResponse {
+    private List<PassengerRatingResponse> passengerRatings;
 }
