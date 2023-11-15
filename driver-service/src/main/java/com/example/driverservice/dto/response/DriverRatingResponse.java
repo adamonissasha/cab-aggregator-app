@@ -10,8 +10,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DriverRatingResponse {
-    private Long id;
-    private Long passengerId;
-    private Long driverId;
-    private Integer rating;
+    private long id;
+    private long passengerId;
+    private long driverId;
+    private int rating;
 }

@@ -4,6 +4,7 @@ import com.example.driverservice.dto.request.DriverRequest;
 import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.DriverNotFoundException;
+import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
 import com.example.driverservice.model.Driver;
 import com.example.driverservice.repository.CarRepository;
@@ -17,6 +18,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
@@ -29,33 +33,27 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse createDriver(DriverRequest driverRequest) {
-        return carRepository.findById(driverRequest.getCarId())
-                .map(car -> {
-                    Driver newDriver = mapDriverRequestToDriver(driverRequest);
-                    if (driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber()).isPresent()) {
-                        throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
-                    }
-                    newDriver = driverRepository.save(newDriver);
-                    return mapDriverToDriverResponse(newDriver);
-                })
+        carRepository.findById(driverRequest.getCarId())
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
+        driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())
+                .orElseThrow(() -> new PhoneNumberUniqueException(PHONE_NUMBER_EXIST));
+        Driver newDriver = mapDriverRequestToDriver(driverRequest);
+        newDriver = driverRepository.save(newDriver);
+        return mapDriverToDriverResponse(newDriver);
     }
 
     @Override
-    public DriverResponse editPassenger(long id, DriverRequest driverRequest) {
-        return carRepository.findById(driverRequest.getCarId())
-                .map(car -> {
-                    Driver updatedDriver = mapDriverRequestToDriver(driverRequest);
-                    Driver existingDriver = driverRepository.findById(id)
-                            .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
-                    if (driverRepository.findDriverByPhoneNumberAndIdIsNot(driverRequest.getPhoneNumber(), id).isPresent()) {
-                        throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
-                    }
-                    updatedDriver.setId(existingDriver.getId());
-                    updatedDriver = driverRepository.save(updatedDriver);
-                    return mapDriverToDriverResponse(updatedDriver);
-                })
+    public DriverResponse editDriver(long id, DriverRequest driverRequest) {
+        carRepository.findById(driverRequest.getCarId())
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
+        driverRepository.findDriverByPhoneNumberAndIdIsNot(driverRequest.getPhoneNumber(), id)
+                .orElseThrow(() -> new PhoneNumberUniqueException(PHONE_NUMBER_EXIST));
+        Driver existingDriver = driverRepository.findById(id)
+                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
+        Driver updatedDriver = mapDriverRequestToDriver(driverRequest);
+        updatedDriver.setId(existingDriver.getId());
+        updatedDriver = driverRepository.save(updatedDriver);
+        return mapDriverToDriverResponse(updatedDriver);
     }
 
     @Override
@@ -67,6 +65,11 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public Page<DriverResponse> getAllDrivers(int page, int size, String sortBy) {
+        List<String> allowedSortFields =
+                Arrays.asList("id", "firstName", "lastName", "phoneNumber", "email", "carId");
+        if (!allowedSortFields.contains(sortBy)) {
+            throw new IncorrectFieldNameException("Invalid sortBy field. Allowed fields: " + allowedSortFields);
+        }
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         return driverRepository.findAll(pageable)
                 .map(this::mapDriverToDriverResponse);

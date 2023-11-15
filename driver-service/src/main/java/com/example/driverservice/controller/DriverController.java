@@ -23,7 +23,7 @@ public class DriverController {
     @PutMapping("/{id}")
     public DriverResponse editPassenger(@Valid @RequestBody DriverRequest driverRequest,
                                         @PathVariable("id") long id) {
-        return driverService.editPassenger(id, driverRequest);
+        return driverService.editDriver(id, driverRequest);
     }
 
     @GetMapping("/{id}")

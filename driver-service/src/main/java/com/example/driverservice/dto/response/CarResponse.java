@@ -8,7 +8,7 @@ import lombok.*;
 @Setter
 @Builder
 public class CarResponse {
-    private Long id;
+    private long id;
     private String number;
     private String color;
     private String carMake;

@@ -15,6 +15,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
@@ -25,13 +29,11 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public CarResponse createCar(CarRequest carRequest) {
+        carRepository.findCarByNumber(carRequest.getNumber())
+                .orElseThrow(() -> new CarNumberUniqueException(CAR_NUMBER_EXIST));
         Car newCar = mapCarRequestToCar(carRequest);
-        if (carRepository.findCarByNumber(carRequest.getNumber()).isPresent()) {
-            throw new CarNumberUniqueException(CAR_NUMBER_EXIST);
-        } else {
-            newCar = carRepository.save(newCar);
-            return mapCarToCarResponse(newCar);
-        }
+        newCar = carRepository.save(newCar);
+        return mapCarToCarResponse(newCar);
     }
 
     @Override
@@ -39,7 +41,8 @@ public class CarServiceImpl implements CarService {
         Car updatedCar = mapCarRequestToCar(carRequest);
         Car existingCar = carRepository.findById(id)
                 .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
-        if (carRepository.findCarByNumberAndIdIsNot(carRequest.getNumber(), id).isPresent()) {
+        Optional<Car> optionalCar = carRepository.findCarByNumber(carRequest.getNumber());
+        if (optionalCar.isPresent() && optionalCar.get().getId() != id) {
             throw new CarNumberUniqueException(CAR_NUMBER_EXIST);
         }
         updatedCar.setId(existingCar.getId());
@@ -57,6 +60,10 @@ public class CarServiceImpl implements CarService {
     @Override
     public Page<CarResponse> getAllCars(int page, int size, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        List<String> allowedSortFields = Arrays.asList("id", "number", "color", "carMake");
+        if (!allowedSortFields.contains(sortBy)) {
+            throw new IllegalArgumentException("Invalid sortBy field. Allowed fields: " + allowedSortFields);
+        }
         return carRepository.findAll(pageable)
                 .map(this::mapCarToCarResponse);
     }

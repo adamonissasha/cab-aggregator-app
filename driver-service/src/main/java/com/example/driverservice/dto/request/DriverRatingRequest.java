@@ -7,17 +7,19 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.context.annotation.PropertySource;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@PropertySource("classpath:messages.properties")
 public class DriverRatingRequest {
-    @NotNull(message = "Passenger ID is required")
+    @NotNull(message = "{driver-rating.passenger-id.not-null}")
     private Long passengerId;
 
-    @NotNull(message = "Rating is required")
-    @Min(value = 1, message = "Rating must be at least 1")
-    @Max(value = 5, message = "Rating cannot be greater than 5")
+    @NotNull(message = "{driver-rating.rating.required}")
+    @Min(value = 1, message = "{driver-rating.rating.min}")
+    @Max(value = 5, message = "{driver-rating.rating.max}")
     private Integer rating;
 }

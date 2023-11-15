@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 public interface DriverService {
     DriverResponse createDriver(DriverRequest driverRequest);
 
-    DriverResponse editPassenger(long id, DriverRequest driverRequest);
+    DriverResponse editDriver(long id, DriverRequest driverRequest);
 
     DriverResponse getDriverById(long id);
 

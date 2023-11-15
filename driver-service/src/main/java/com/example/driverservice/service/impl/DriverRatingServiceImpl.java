@@ -1,6 +1,7 @@
 package com.example.driverservice.service.impl;
 
 import com.example.driverservice.dto.request.DriverRatingRequest;
+import com.example.driverservice.dto.response.AllDriversResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.DriverRatingResponse;
 import com.example.driverservice.exception.DriverNotFoundException;
@@ -22,7 +23,7 @@ public class DriverRatingServiceImpl implements DriverRatingService {
     private final DriverRepository driverRepository;
     private final ModelMapper modelMapper;
     private static final String DRIVER_NOT_FOUND = "Driver not found!";
-    private static final String DRIVER_RATINGS_NOT_FOUND = "Driver ratings not found!";
+    private static final String NO_DRIVER_RATING = "There is no rating of this driver!";
 
 
     @Override
@@ -35,34 +36,32 @@ public class DriverRatingServiceImpl implements DriverRatingService {
     }
 
     @Override
-    public List<DriverRatingResponse> getRatingsByDriverId(long driverId) {
+    public AllDriversResponse getRatingsByDriverId(long driverId) {
         validateDriverExists(driverId);
-        List<DriverRating> driverRatings = driverRatingRepository.getDriverRatingsByDriverId(driverId);
-        if (driverRatings.isEmpty()) {
-            throw new DriverRatingNotFoundException(DRIVER_RATINGS_NOT_FOUND);
-        } else {
-            return driverRatings.stream()
-                    .map(this::mapDriverRatingToDriverRatingResponse)
-                    .toList();
-        }
+        List<DriverRatingResponse> driverRatings = driverRatingRepository.getDriverRatingsByDriverId(driverId)
+                .stream()
+                .map(this::mapDriverRatingToDriverRatingResponse)
+                .toList();
+        return AllDriversResponse.builder()
+                .driverRatings(driverRatings)
+                .build();
     }
+
 
     @Override
     public AverageDriverRatingResponse getAverageDriverRating(long driverId) {
         validateDriverExists(driverId);
         List<DriverRating> driverRatings = driverRatingRepository.getDriverRatingsByDriverId(driverId);
         if (driverRatings.isEmpty())
-            throw new DriverRatingNotFoundException(DRIVER_RATINGS_NOT_FOUND);
-        else {
-            double averageRating = driverRatings.stream()
-                    .mapToDouble(DriverRating::getRating)
-                    .average()
-                    .orElse(0.0);
-            return AverageDriverRatingResponse.builder()
-                    .averageRating(Math.round(averageRating * 100.0) / 100.0)
-                    .passengerId(driverId)
-                    .build();
-        }
+            throw new DriverRatingNotFoundException(NO_DRIVER_RATING);
+        double averageRating = driverRatings.stream()
+                .mapToDouble(DriverRating::getRating)
+                .average()
+                .orElse(0.0);
+        return AverageDriverRatingResponse.builder()
+                .averageRating(Math.round(averageRating * 100.0) / 100.0)
+                .passengerId(driverId)
+                .build();
     }
 
     public void validateDriverExists(long driverId) {

@@ -2,12 +2,13 @@ package com.example.driverservice.dto.response;
 
 import lombok.*;
 
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
-public class AverageDriverRatingResponse {
-    private long passengerId;
-    private double averageRating;
+public class AllDriversResponse {
+    private List<DriverRatingResponse> driverRatings;
 }

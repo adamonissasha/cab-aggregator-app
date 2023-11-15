@@ -8,10 +8,10 @@ import lombok.*;
 @Setter
 @Builder
 public class DriverResponse {
-    private Long id;
+    private long id;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
-    private Long carId;
+    private long carId;
 }

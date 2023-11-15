@@ -5,18 +5,20 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.context.annotation.PropertySource;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@PropertySource("classpath:messages.properties")
 public class CarRequest {
-    @NotBlank(message = "Car number is required")
+    @NotBlank(message = "{car.number.required}")
     private String number;
 
-    @NotBlank(message = "Car color is required")
+    @NotBlank(message = "{car.color.required}")
     private String color;
 
-    @NotBlank(message = "Car make is required")
+    @NotBlank(message = "{car.make.required}")
     private String carMake;
 }

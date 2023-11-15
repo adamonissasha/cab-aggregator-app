@@ -1,14 +1,13 @@
 package com.example.driverservice.controller;
 
 import com.example.driverservice.dto.request.DriverRatingRequest;
+import com.example.driverservice.dto.response.AllDriversResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.DriverRatingResponse;
 import com.example.driverservice.service.DriverRatingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/driver/{driverId}/rating")
@@ -23,7 +22,7 @@ public class DriverRatingController {
     }
 
     @GetMapping()
-    public List<DriverRatingResponse> getRatingsByDriverId(@PathVariable("driverId") long driverId) {
+    public AllDriversResponse getRatingsByDriverId(@PathVariable("driverId") long driverId) {
         return driverRatingService.getRatingsByDriverId(driverId);
     }
 
