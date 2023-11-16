@@ -51,8 +51,9 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     public AveragePassengerRatingResponse getAveragePassengerRating(long passengerId) {
         validatePassengerExists(passengerId);
         List<PassengerRating> passengerRatings = passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId);
-        if (passengerRatings.isEmpty())
+        if (passengerRatings.isEmpty()) {
             throw new PassengerRatingNotFoundException(PASSENGER_RATINGS_NOT_FOUND);
+        }
         double averageRating = passengerRatings.stream()
                 .mapToDouble(PassengerRating::getRating)
                 .average()
@@ -65,8 +66,9 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
 
 
     public void validatePassengerExists(long passengerId) {
-        passengerRepository.findById(passengerId)
-                .orElseThrow(() -> new PassengerNotFoundException(PASSENGER_NOT_FOUND));
+        if (!passengerRepository.existsById(passengerId)) {
+            throw new PassengerNotFoundException(PASSENGER_NOT_FOUND);
+        }
     }
 
     public PassengerRating mapPassengerRatingRequestToPassengerRating(PassengerRatingRequest passengerRatingRequest) {

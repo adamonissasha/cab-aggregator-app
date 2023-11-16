@@ -18,7 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,12 +29,6 @@ public class DriverServiceImpl implements DriverService {
     private static final String CAR_NOT_FOUND = "Car with this id not found!";
     private static final String PHONE_NUMBER_EXIST = "Driver with this phone number already exist!";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_FIRST_NAME = "firstName";
-    private static final String FIELD_LAST_NAME = "lastName";
-    private static final String FIELD_PHONE_NUMBER = "phoneNumber";
-    private static final String FIELD_EMAIL = "email";
-    private static final String FIELD_CAR_ID = "carId";
     private final DriverRepository driverRepository;
     private final CarRepository carRepository;
     private final ModelMapper modelMapper;
@@ -76,16 +71,30 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public Page<DriverResponse> getAllDrivers(int page, int size, String sortBy) {
-        List<String> allowedSortFields =
-                Arrays.asList(FIELD_ID, FIELD_FIRST_NAME, FIELD_LAST_NAME, FIELD_PHONE_NUMBER, FIELD_EMAIL, FIELD_CAR_ID);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
+        checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         return driverRepository.findAll(pageable)
                 .map(this::mapDriverToDriverResponse);
     }
 
+
+    public void checkSortField(String sortBy) {
+        List<String> allowedSortFields = new ArrayList<>();
+        getFieldNamesRecursive(Driver.class, allowedSortFields);
+        if (!allowedSortFields.contains(sortBy)) {
+            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
+        }
+    }
+
+    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
+        if (myClass != null) {
+            Field[] fields = myClass.getDeclaredFields();
+            for (Field field : fields) {
+                fieldNames.add(field.getName());
+            }
+            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
+        }
+    }
 
     public Driver mapDriverRequestToDriver(DriverRequest driverRequest) {
         return modelMapper.map(driverRequest, Driver.class);

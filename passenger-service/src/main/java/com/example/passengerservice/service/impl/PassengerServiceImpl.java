@@ -16,7 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -25,11 +26,6 @@ public class PassengerServiceImpl implements PassengerService {
     private static final String PASSENGER_NOT_FOUND = "Passenger not found!";
     private static final String PHONE_NUMBER_EXIST = "Passenger with this phone number already exist!";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_FIRST_NAME = "firstName";
-    private static final String FIELD_LAST_NAME = "lastName";
-    private static final String FIELD_PHONE_NUMBER = "phoneNumber";
-    private static final String FIELD_EMAIL = "email";
     private final PassengerRepository passengerRepository;
     private final ModelMapper modelMapper;
 
@@ -67,16 +63,30 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public Page<PassengerResponse> getAllPassengers(int page, int size, String sortBy) {
-        List<String> allowedSortFields =
-                Arrays.asList(FIELD_ID, FIELD_FIRST_NAME, FIELD_LAST_NAME, FIELD_PHONE_NUMBER, FIELD_EMAIL);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
+        checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         return passengerRepository.findAll(pageable)
                 .map(this::mapPassengerToPassengerResponse);
     }
 
+
+    public void checkSortField(String sortBy) {
+        List<String> allowedSortFields = new ArrayList<>();
+        getFieldNamesRecursive(Passenger.class, allowedSortFields);
+        if (!allowedSortFields.contains(sortBy)) {
+            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
+        }
+    }
+
+    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
+        if (myClass != null) {
+            Field[] fields = myClass.getDeclaredFields();
+            for (Field field : fields) {
+                fieldNames.add(field.getName());
+            }
+            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
+        }
+    }
 
     public Passenger mapPassengerRequestToPassenger(PassengerRequest passengerRequest) {
         return modelMapper.map(passengerRequest, Passenger.class);
