@@ -9,6 +9,4 @@ import java.util.Optional;
 @Repository
 public interface DriverRepository extends JpaRepository<Driver, Long> {
     Optional<Driver> findDriverByPhoneNumber(String phoneNumber);
-    Optional<Driver> findDriverByPhoneNumberAndIdIsNot(String phoneNumber, long id);
-
 }
