@@ -32,9 +32,9 @@ public class PromoCodeServiceImpl implements PromoCodeService {
         if (startDate.isBefore(LocalDate.now()) || endDate.isBefore(startDate)) {
             throw new IncorrectDateException(INCORRECT_DATE);
         }
-        Optional<PromoCode> existingPromoCodes =
-                promoCodeRepository.findByNameAndEndDateAfter(promoCodeRequest.getName(), startDate);
-        if (existingPromoCodes.isPresent()) {
+        Optional<PromoCode> optionalPromoCode =
+                promoCodeRepository.findByName(promoCodeRequest.getName());
+        if (optionalPromoCode.isPresent() && optionalPromoCode.get().getEndDate().isAfter(startDate)) {
             throw new PromoCodeAlreadyExistsException(PROMO_CODE_ALREADY_EXISTS);
         }
         PromoCode newPromoCode = mapPromoCodeRequestToPromoCode(promoCodeRequest);
@@ -50,12 +50,11 @@ public class PromoCodeServiceImpl implements PromoCodeService {
             throw new IncorrectDateException(INCORRECT_DATE);
         }
         PromoCode existingPromoCode = promoCodeRepository.findById(id)
-                .orElseThrow(() -> {
-                    throw new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND);
-                });
+                .orElseThrow(() -> new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND));
         Optional<PromoCode> optionalPromoCode =
-                promoCodeRepository.findByNameAndEndDateAfter(promoCodeRequest.getName(), startDate);
-        if (optionalPromoCode.isPresent() && !optionalPromoCode.get().getId().equals(id)) {
+                promoCodeRepository.findByName(promoCodeRequest.getName());
+        if (optionalPromoCode.isPresent() && !optionalPromoCode.get().getId().equals(id)
+                && optionalPromoCode.get().getEndDate().isAfter(startDate)) {
             throw new PromoCodeAlreadyExistsException(PROMO_CODE_ALREADY_EXISTS);
         }
         PromoCode updatedPromoCode = mapPromoCodeRequestToPromoCode(promoCodeRequest);
@@ -68,9 +67,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     public PromoCodeResponse getPromoCodeById(long id) {
         return promoCodeRepository.findById(id)
                 .map(this::mapPromoCodeToPromoCodeResponse)
-                .orElseThrow(() -> {
-                    throw new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND);
-                });
+                .orElseThrow(() -> new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND));
     }
 
     @Override

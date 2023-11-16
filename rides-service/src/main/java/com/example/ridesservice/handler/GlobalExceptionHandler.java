@@ -1,6 +1,8 @@
 package com.example.ridesservice.handler;
 
+import com.example.ridesservice.dto.response.ExceptionResponse;
 import com.example.ridesservice.exception.IncorrectDateException;
+import com.example.ridesservice.exception.IncorrectPaymentMethodException;
 import com.example.ridesservice.exception.PromoCodeAlreadyExistsException;
 import com.example.ridesservice.exception.PromoCodeNotFoundException;
 import jakarta.validation.ConstraintViolation;
@@ -18,20 +20,38 @@ import java.util.List;
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = PromoCodeNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handlePromoCodeNotFoundException(PromoCodeNotFoundException ex) {
-        return ex.getMessage();
+    public ExceptionResponse handlePromoCodeNotFoundException(PromoCodeNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
     }
 
     @ExceptionHandler(value = PromoCodeAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handlePromoCodeAlreadyExistsException(PromoCodeAlreadyExistsException ex) {
-        return ex.getMessage();
+    public ExceptionResponse handlePromoCodeAlreadyExistsException(PromoCodeAlreadyExistsException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
     }
 
     @ExceptionHandler(value = IncorrectDateException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleIncorrectDateException(IncorrectDateException ex) {
-        return ex.getMessage();
+    public ExceptionResponse handleIncorrectDateException(IncorrectDateException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = IncorrectPaymentMethodException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleIncorrectPaymentMethodException(IncorrectPaymentMethodException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .build();
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
