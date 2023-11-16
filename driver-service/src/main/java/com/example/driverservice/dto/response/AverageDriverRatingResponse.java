@@ -1,4 +1,4 @@
-package com.example.passengerservice.dto.response;
+package com.example.driverservice.dto.response;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class AveragePassengerRatingResponse {
+public class AverageDriverRatingResponse {
     private long passengerId;
     private double averageRating;
 }

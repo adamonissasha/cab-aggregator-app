@@ -1,12 +1,12 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   application:
-    name: passenger-service
+    name: driver-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/passenger_service_db
+    url: jdbc:postgresql://localhost:5432/driver_service_db
     username: postgres
     password: postgres
 

@@ -1,4 +1,4 @@
-package com.example.passengerservice.model;
+package com.example.driverservice.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,8 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
-public class Passenger {
+public class Driver {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -25,4 +24,8 @@ public class Passenger {
     private String phoneNumber;
 
     private String password;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "car_id")
+    private Car car;
 }

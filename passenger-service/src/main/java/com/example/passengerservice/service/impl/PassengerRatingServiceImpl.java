@@ -1,6 +1,7 @@
 package com.example.passengerservice.service.impl;
 
 import com.example.passengerservice.dto.request.PassengerRatingRequest;
+import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.PassengerRatingResponse;
 import com.example.passengerservice.exception.PassengerNotFoundException;
@@ -14,7 +15,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,41 +26,42 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     private static final String PASSENGER_NOT_FOUND = "Passenger not found!";
 
     @Override
-    public PassengerRatingResponse ratePassenger(PassengerRatingRequest passengerRatingRequest) {
-        validatePassengerExists(passengerRatingRequest.getPassengerId());
+    public PassengerRatingResponse ratePassenger(long passengerId, PassengerRatingRequest passengerRatingRequest) {
         PassengerRating newPassengerRating = mapPassengerRatingRequestToPassengerRating(passengerRatingRequest);
+        newPassengerRating.setPassenger(passengerRepository.findById(passengerId)
+                .orElseThrow(() -> new PassengerNotFoundException(PASSENGER_NOT_FOUND)));
         newPassengerRating = passengerRatingRepository.save(newPassengerRating);
         return mapPassengerRatingToPassengerRatingResponse(newPassengerRating);
     }
 
     @Override
-    public List<PassengerRatingResponse> getRatingsByPassengerId(long id) {
-        validatePassengerExists(id);
-        List<PassengerRating> passengerRatings = passengerRatingRepository.getPassengerRatingsByPassengerId(id);
-        if (passengerRatings.isEmpty())
-            throw new PassengerRatingNotFoundException(PASSENGER_RATINGS_NOT_FOUND);
-        else
-            return passengerRatings.stream()
-                    .map(this::mapPassengerRatingToPassengerRatingResponse)
-                    .collect(Collectors.toList());
+    public AllPassengerRatingsResponse getRatingsByPassengerId(long passengerId) {
+        validatePassengerExists(passengerId);
+        List<PassengerRatingResponse> passengerRatings =
+                passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId)
+                        .stream()
+                        .map(this::mapPassengerRatingToPassengerRatingResponse)
+                        .toList();
+        return AllPassengerRatingsResponse.builder()
+                .passengerRatings(passengerRatings)
+                .build();
     }
 
     @Override
-    public AveragePassengerRatingResponse getAveragePassengerRating(long id) {
-        validatePassengerExists(id);
-        List<PassengerRating> passengerRatings = passengerRatingRepository.getPassengerRatingsByPassengerId(id);
-        if (passengerRatings.isEmpty())
+    public AveragePassengerRatingResponse getAveragePassengerRating(long passengerId) {
+        validatePassengerExists(passengerId);
+        List<PassengerRating> passengerRatings = passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId);
+        if (passengerRatings.isEmpty()) {
             throw new PassengerRatingNotFoundException(PASSENGER_RATINGS_NOT_FOUND);
-        else {
-            double averageRating = passengerRatings.stream()
-                    .mapToDouble(PassengerRating::getRating)
-                    .average()
-                    .orElse(0.0);
-            return AveragePassengerRatingResponse.builder()
-                    .averageRating(Math.round(averageRating * 100.0) / 100.0)
-                    .passengerId(id)
-                    .build();
         }
+        double averageRating = passengerRatings.stream()
+                .mapToDouble(PassengerRating::getRating)
+                .average()
+                .orElse(0.0);
+        return AveragePassengerRatingResponse.builder()
+                .averageRating(Math.round(averageRating * 100.0) / 100.0)
+                .passengerId(passengerId)
+                .build();
     }
 
 
@@ -71,7 +72,6 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     }
 
     public PassengerRating mapPassengerRatingRequestToPassengerRating(PassengerRatingRequest passengerRatingRequest) {
-        modelMapper.getConfiguration().setAmbiguityIgnored(true);
         return modelMapper.map(passengerRatingRequest, PassengerRating.class);
     }
 
