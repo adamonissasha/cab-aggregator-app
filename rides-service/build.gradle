@@ -15,14 +15,26 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    versions = [
+            'modelMapper'       : '3.1.1',
+            'postgresql'        : '42.6.0',
+            'liquibase'         : '4.24.0',
+            'hibernateValidator': '8.0.1.Final',
+            'lombok'            : '1.18.26'
+    ]
+}
+
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.modelmapper:modelmapper:3.1.1'
-    implementation 'org.postgresql:postgresql:42.6.0'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    compileOnly 'org.projectlombok:lombok:1.18.26'
-    annotationProcessor 'org.projectlombok:lombok:1.18.26'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation "org.springframework.boot:spring-boot-starter"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.modelmapper:modelmapper:${versions.modelMapper}"
+    implementation "org.postgresql:postgresql:${versions.postgresql}"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.hibernate.validator:hibernate-validator:${versions.hibernateValidator}"
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
 
 tasks.named('bootBuildImage') {
