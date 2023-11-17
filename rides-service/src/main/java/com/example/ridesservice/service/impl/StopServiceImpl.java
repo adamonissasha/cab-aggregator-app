@@ -48,6 +48,14 @@ public class StopServiceImpl implements StopService {
                 .toList();
     }
 
+    @Override
+    public List<StopResponse> getRideReservationStops(RideReservation rideReservation) {
+        return stopRepository.findByRideReservation(rideReservation)
+                .stream()
+                .map(this::mapStopToStopResponse)
+                .toList();
+    }
+
     public StopResponse mapStopToStopResponse(Stop stop) {
         return modelMapper.map(stop, StopResponse.class);
     }

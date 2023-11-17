@@ -7,4 +7,6 @@ public interface RideReservationService {
     RideReservationResponse createRideReservation(RideReservationRequest rideReservationRequest, Long passengerId);
 
     RideReservationResponse editRideReservation(Long id, Long passengerId, RideReservationRequest rideReservationRequest);
+
+    RideReservationResponse canselReservation(Long id, Long passengerId);
 }

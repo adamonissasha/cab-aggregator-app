@@ -1,10 +1,7 @@
 package com.example.ridesservice.handler;
 
 import com.example.ridesservice.dto.response.ExceptionResponse;
-import com.example.ridesservice.exception.IncorrectDateException;
-import com.example.ridesservice.exception.IncorrectPaymentMethodException;
-import com.example.ridesservice.exception.PromoCodeAlreadyExistsException;
-import com.example.ridesservice.exception.PromoCodeNotFoundException;
+import com.example.ridesservice.exception.*;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -41,6 +38,15 @@ public class GlobalExceptionHandler {
     public ExceptionResponse handleIncorrectDateException(IncorrectDateException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = ReservationStatusException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleReservationStatusException(ReservationStatusException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
                 .build();
     }

@@ -30,6 +30,7 @@ public class RideReservation {
 
     private Double price;
 
+    @Enumerated(value = EnumType.STRING)
     private RideReservationStatus status;
 
     private PaymentMethod paymentMethod;

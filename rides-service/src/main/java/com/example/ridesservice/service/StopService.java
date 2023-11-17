@@ -10,4 +10,6 @@ public interface StopService {
     List<StopResponse> createStops(List<StopRequest> stopRequests, RideReservation rideReservation);
 
     List<StopResponse> editStops(List<StopRequest> stops, RideReservation rideReservation);
+
+    List<StopResponse> getRideReservationStops(RideReservation rideReservation);
 }

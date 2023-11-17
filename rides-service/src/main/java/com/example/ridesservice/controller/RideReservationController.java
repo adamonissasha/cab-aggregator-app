@@ -24,4 +24,10 @@ public class RideReservationController {
                                                        @RequestBody RideReservationRequest rideReservationRequest) {
         return rideReservationService.editRideReservation(id, passengerId, rideReservationRequest);
     }
+
+    @PutMapping("/cancel/{id}")
+    public RideReservationResponse canselReservation(@PathVariable("passengerId") Long passengerId,
+                                                     @PathVariable("id") Long id) {
+        return rideReservationService.canselReservation(id, passengerId);
+    }
 }

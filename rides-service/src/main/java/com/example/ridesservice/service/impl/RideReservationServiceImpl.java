@@ -5,6 +5,7 @@ import com.example.ridesservice.dto.response.RideReservationResponse;
 import com.example.ridesservice.dto.response.StopResponse;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
 import com.example.ridesservice.exception.PromoCodeNotFoundException;
+import com.example.ridesservice.exception.ReservationStatusException;
 import com.example.ridesservice.exception.RideReservationNotFoundException;
 import com.example.ridesservice.model.PromoCode;
 import com.example.ridesservice.model.RideReservation;
@@ -29,6 +30,8 @@ public class RideReservationServiceImpl implements RideReservationService {
     private static final String INCORRECT_PAYMENT_METHOD = "Incorrect payment method";
     private static final String PROMO_CODE_NOT_FOUND = "Promo code not found!";
     private static final String RIDE_RESERVATION_NOT_FOUND = "Ride reservation not found!";
+    private static final String RIDE_RESERVATION_COMPLETED = "Cannot change the status since the ride is completed!";
+    private static final String RIDE_RESERVATION_CANCELED = "Cannot change the status since the ride is canceled!";
     private final StopService stopService;
     private final PromoCodeRepository promoCodeRepository;
     private final RideReservationRepository rideReservationRepository;
@@ -69,6 +72,8 @@ public class RideReservationServiceImpl implements RideReservationService {
     public RideReservationResponse editRideReservation(Long id, Long passengerId, RideReservationRequest rideReservationRequest) {
         PaymentMethod paymentMethod = getPaymentMethod(rideReservationRequest.getPaymentMethod());
         RideReservation existingRideReservation = getExistingRideReservation(id);
+        checkReservationStatusNotEquals(existingRideReservation, RideReservationStatus.COMPLETED, RIDE_RESERVATION_COMPLETED);
+        checkReservationStatusNotEquals(existingRideReservation, RideReservationStatus.CANCELED, RIDE_RESERVATION_CANCELED);
         PromoCode promoCode = getPromoCode(rideReservationRequest.getPromoCode());
         Double price = existingRideReservation.getPrice();
         if (!existingRideReservation.getStartAddress().equals(rideReservationRequest.getStartAddress())
@@ -93,6 +98,27 @@ public class RideReservationServiceImpl implements RideReservationService {
         return rideReservationResponse;
     }
 
+    @Override
+    public RideReservationResponse canselReservation(Long id, Long passengerId) {
+        RideReservation rideReservation = getExistingRideReservation(id);
+        checkReservationStatusNotEquals(rideReservation, RideReservationStatus.COMPLETED, RIDE_RESERVATION_COMPLETED);
+        rideReservation.setStatus(RideReservationStatus.CANCELED);
+        rideReservationRepository.save(rideReservation);
+        List<StopResponse> stops = stopService.getRideReservationStops(rideReservation);
+        RideReservationResponse rideReservationResponse = mapRideReservationToRideReservationResponse(rideReservation);
+        rideReservationResponse.setStops(stops);
+        rideReservationResponse.setPromoCode(rideReservation.getPromoCode().getName());
+        return rideReservationResponse;
+    }
+
+
+    private void checkReservationStatusNotEquals(RideReservation rideReservation,
+                                                 RideReservationStatus rideReservationStatus,
+                                                 String message) {
+        if (rideReservation.getStatus().equals(rideReservationStatus)) {
+            throw new ReservationStatusException(message);
+        }
+    }
 
     private PaymentMethod getPaymentMethod(String paymentMethod) {
         if (!PaymentMethod.isValidPaymentMethod(paymentMethod)) {
