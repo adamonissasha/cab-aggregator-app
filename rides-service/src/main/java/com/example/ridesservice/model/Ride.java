@@ -25,6 +25,7 @@ public class Ride {
 
     private Long passengerId;
 
+    @Enumerated(value = EnumType.STRING)
     private PaymentMethod paymentMethod;
 
     @ManyToOne(fetch = FetchType.LAZY)
