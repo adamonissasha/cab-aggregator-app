@@ -1,12 +1,11 @@
 package com.example.ridesservice.model;
 
 import com.example.ridesservice.model.enums.PaymentMethod;
-import com.example.ridesservice.model.enums.RideReservationStatus;
+import com.example.ridesservice.model.enums.RideStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 
 @Entity
 @Builder
@@ -14,30 +13,34 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Getter
 @Setter
-@Table(name = "ride_reservation")
-public class RideReservation {
+@Table(name = "ride")
+public class Ride {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private LocalDate dateOfCreation;
-
-    private LocalTime timeOfCreation;
 
     private String startAddress;
 
     private String endAddress;
 
-    private Double price;
-
-    @Enumerated(value = EnumType.STRING)
-    private RideReservationStatus status;
+    private Long passengerId;
 
     private PaymentMethod paymentMethod;
-
-    private Long passengerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "promo_code_id")
     private PromoCode promoCode;
+
+    private Double price;
+
+    @Enumerated(value = EnumType.STRING)
+    private RideStatus status;
+
+    private LocalDateTime creationDateTime;
+
+    private Long driverId;
+
+    private LocalDateTime startDateTime;
+
+    private LocalDateTime endDateTime;
 }

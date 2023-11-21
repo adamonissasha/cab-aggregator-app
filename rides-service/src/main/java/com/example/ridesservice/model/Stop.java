@@ -19,6 +19,6 @@ public class Stop {
     private String address;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ride_reservation_id")
-    private RideReservation rideReservation;
+    @JoinColumn(name = "ride_id")
+    private Ride ride;
 }

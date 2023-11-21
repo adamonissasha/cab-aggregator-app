@@ -42,9 +42,9 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(value = ReservationStatusException.class)
+    @ExceptionHandler(value = RideStatusException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ExceptionResponse handleReservationStatusException(ReservationStatusException ex) {
+    public ExceptionResponse handleRideStatusException(RideStatusException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())

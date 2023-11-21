@@ -2,8 +2,7 @@ package com.example.ridesservice.dto.response;
 
 import lombok.*;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @NoArgsConstructor
@@ -11,16 +10,18 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class RideReservationResponse {
-    private long id;
+public class RideResponse {
+    private long rideId;
     private long passengerId;
-    private LocalDate dateOfCreation;
-    private LocalTime timeOfCreation;
+    private long driverId;
+    private LocalDateTime creationDateTime;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
     private String status;
     private double price;
+    private String promoCode;
+    private String paymentMethod;
     private String startAddress;
     private String endAddress;
-    private String paymentMethod;
-    private String promoCode;
     private List<StopResponse> stops;
 }

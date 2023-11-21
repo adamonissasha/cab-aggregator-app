@@ -78,6 +78,19 @@ public class PromoCodeServiceImpl implements PromoCodeService {
                 .toList();
     }
 
+    @Override
+    public PromoCode getPromoCodeByName(String promoCodeName) {
+        if (promoCodeName == null) {
+            return null;
+        }
+        PromoCode promoCode = promoCodeRepository.findByName(promoCodeName)
+                .orElseThrow(() -> new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND));
+        if (LocalDate.now().isAfter(promoCode.getEndDate()) && LocalDate.now().isBefore(promoCode.getStartDate())) {
+            throw new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND);
+        }
+        return promoCode;
+    }
+
 
     public PromoCode mapPromoCodeRequestToPromoCode(PromoCodeRequest promoCodeRequest) {
         return modelMapper.map(promoCodeRequest, PromoCode.class);

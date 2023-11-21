@@ -2,7 +2,7 @@ package com.example.ridesservice.service.impl;
 
 import com.example.ridesservice.dto.request.StopRequest;
 import com.example.ridesservice.dto.response.StopResponse;
-import com.example.ridesservice.model.RideReservation;
+import com.example.ridesservice.model.Ride;
 import com.example.ridesservice.model.Stop;
 import com.example.ridesservice.repository.StopRepository;
 import com.example.ridesservice.service.StopService;
@@ -19,12 +19,12 @@ public class StopServiceImpl implements StopService {
     private final ModelMapper modelMapper;
 
     @Override
-    public List<StopResponse> createStops(List<StopRequest> stopRequests, RideReservation rideReservation) {
+    public List<StopResponse> createStops(List<StopRequest> stopRequests, Ride ride) {
         return stopRequests.stream()
                 .map(stopRequest -> Stop.builder()
                         .number(stopRequests.indexOf(stopRequest) + 1)
                         .address(stopRequest.getAddress())
-                        .rideReservation(rideReservation)
+                        .ride(ride)
                         .build())
                 .map(stopRepository::save)
                 .map(this::mapStopToStopResponse)
@@ -32,14 +32,14 @@ public class StopServiceImpl implements StopService {
     }
 
     @Override
-    public List<StopResponse> editStops(List<StopRequest> stops, RideReservation rideReservation) {
-        List<Stop> existingStops = stopRepository.findByRideReservation(rideReservation);
+    public List<StopResponse> editStops(List<StopRequest> stops, Ride ride) {
+        List<Stop> existingStops = stopRepository.findByRide(ride);
         stopRepository.deleteAll(existingStops);
         List<Stop> newStops = stops.stream()
                 .map(stopRequest -> Stop.builder()
                         .number(stops.indexOf(stopRequest) + 1)
                         .address(stopRequest.getAddress())
-                        .rideReservation(rideReservation)
+                        .ride(ride)
                         .build())
                 .toList();
         List<Stop> savedStops = stopRepository.saveAll(newStops);
@@ -49,8 +49,8 @@ public class StopServiceImpl implements StopService {
     }
 
     @Override
-    public List<StopResponse> getRideReservationStops(RideReservation rideReservation) {
-        return stopRepository.findByRideReservation(rideReservation)
+    public List<StopResponse> getRideStops(Ride ride) {
+        return stopRepository.findByRide(ride)
                 .stream()
                 .map(this::mapStopToStopResponse)
                 .toList();

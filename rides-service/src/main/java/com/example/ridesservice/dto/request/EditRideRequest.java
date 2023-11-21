@@ -11,10 +11,9 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-public class RideReservationRequest {
+public class EditRideRequest {
     private String startAddress;
     private String endAddress;
     private String paymentMethod;
-    private String promoCode;
     private List<StopRequest> stops;
 }
