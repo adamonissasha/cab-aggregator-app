@@ -1,5 +1,6 @@
 package com.example.ridesservice.service;
 
+import com.example.ridesservice.dto.request.ConfirmRideRequest;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.response.RideResponse;
@@ -12,7 +13,7 @@ public interface RideService {
 
     RideResponse canselRide(Long rideId);
 
-    RideResponse confirmRide(Long rideId, Long driverId);
+    RideResponse confirmRide(Long rideId, ConfirmRideRequest confirmRideRequest);
 
     RideResponse startRide(Long rideId);
 

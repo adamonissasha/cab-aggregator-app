@@ -14,6 +14,10 @@ public class RideResponse {
     private long rideId;
     private long passengerId;
     private long driverId;
+    private String driverName;
+    private String carNumber;
+    private String carMake;
+    private String carColor;
     private LocalDateTime creationDateTime;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;

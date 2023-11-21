@@ -40,6 +40,14 @@ public class Ride {
 
     private Long driverId;
 
+    private String driverName;
+
+    private String carNumber;
+
+    private String carMake;
+
+    private String carColor;
+
     private LocalDateTime startDateTime;
 
     private LocalDateTime endDateTime;

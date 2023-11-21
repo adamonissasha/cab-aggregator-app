@@ -1,5 +1,6 @@
 package com.example.ridesservice.service.impl;
 
+import com.example.ridesservice.dto.request.ConfirmRideRequest;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.response.RideResponse;
@@ -110,7 +111,7 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public RideResponse confirmRide(Long rideId, Long driverId) {
+    public RideResponse confirmRide(Long rideId, ConfirmRideRequest confirmRideRequest) {
         Ride ride = getExistingRide(rideId);
 
         checkRideStatusNotEquals(ride, RideStatus.COMPLETED, RIDE_COMPLETED);
@@ -119,7 +120,11 @@ public class RideServiceImpl implements RideService {
         checkRideStatusNotEquals(ride, RideStatus.STARTED, RIDE_STARTED);
 
         ride.setStatus(RideStatus.CONFIRMED);
-        ride.setDriverId(driverId);
+        ride.setDriverId(confirmRideRequest.getDriverId());
+        ride.setDriverName(confirmRideRequest.getDriverName());
+        ride.setCarNumber(confirmRideRequest.getCarNumber());
+        ride.setCarColor(confirmRideRequest.getCarColor());
+        ride.setCarMake(confirmRideRequest.getCarMake());
         rideRepository.save(ride);
 
         return mapRideToRideResponse(ride, stopService.getRideStops(ride));

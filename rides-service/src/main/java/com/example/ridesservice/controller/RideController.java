@@ -1,5 +1,6 @@
 package com.example.ridesservice.controller;
 
+import com.example.ridesservice.dto.request.ConfirmRideRequest;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.response.RideResponse;
@@ -30,10 +31,10 @@ public class RideController {
         return rideService.canselRide(rideId);
     }
 
-    @PutMapping("/confirm/{rideId}/{driverId}")
+    @PutMapping("/confirm/{rideId}")
     public RideResponse confirmRide(@PathVariable("rideId") Long rideId,
-                                    @PathVariable("driverId") Long driverId) {
-        return rideService.confirmRide(rideId, driverId);
+                                    @RequestBody ConfirmRideRequest confirmRideRequest) {
+        return rideService.confirmRide(rideId, confirmRideRequest);
     }
 
     @PutMapping("/start/{rideId}")
