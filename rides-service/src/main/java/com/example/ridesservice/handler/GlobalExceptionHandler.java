@@ -60,6 +60,24 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
+    @ExceptionHandler(value = IncorrectFieldNameException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleIncorrectFieldNameException(IncorrectFieldNameException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = RideNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleRideNotFoundException(RideNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleConstraintViolationException(ConstraintViolationException ex) {

@@ -4,6 +4,7 @@ import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.dto.response.StopResponse;
+import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
@@ -17,9 +18,15 @@ import com.example.ridesservice.service.RideService;
 import com.example.ridesservice.service.StopService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -34,6 +41,7 @@ public class RideServiceImpl implements RideService {
     private static final String RIDE_NOT_CONFIRMED = "The ride hasn't confirmed!";
     private static final String RIDE_STARTED = "The ride has already started!";
     private static final String RIDE_NOT_STARTED = "The ride hasn't started!";
+    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final StopService stopService;
     private final PromoCodeService promoCodeService;
     private final RideRepository rideRepository;
@@ -158,6 +166,30 @@ public class RideServiceImpl implements RideService {
         return mapRideToRideResponse(ride, stopService.getRideStops(ride));
     }
 
+    @Override
+    public Page<RideResponse> getAvailableRides(int page, int size, String sortBy) {
+        checkSortField(sortBy);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return rideRepository.findAllByStatus(RideStatus.CREATED, pageable)
+                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)));
+    }
+
+    @Override
+    public Page<RideResponse> getPassengerRides(Long passengerId, int page, int size, String sortBy) {
+        checkSortField(sortBy);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return rideRepository.findAllByPassengerId(passengerId, pageable)
+                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)));
+    }
+
+    @Override
+    public Page<RideResponse> getDriverRides(Long driverId, int page, int size, String sortBy) {
+        checkSortField(sortBy);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        return rideRepository.findAllByDriverId(driverId, pageable)
+                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)));
+    }
+
 
     private PaymentMethod getPaymentMethod(String paymentMethod) {
         if (!PaymentMethod.isValidPaymentMethod(paymentMethod)) {
@@ -199,6 +231,24 @@ public class RideServiceImpl implements RideService {
     private void checkRideStatusNotEquals(Ride ride, RideStatus rideStatus, String message) {
         if (ride.getStatus().equals(rideStatus)) {
             throw new RideStatusException(message);
+        }
+    }
+
+    public void checkSortField(String sortBy) {
+        List<String> allowedSortFields = new ArrayList<>();
+        getFieldNamesRecursive(Ride.class, allowedSortFields);
+        if (!allowedSortFields.contains(sortBy)) {
+            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
+        }
+    }
+
+    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
+        if (myClass != null) {
+            Field[] fields = myClass.getDeclaredFields();
+            for (Field field : fields) {
+                fieldNames.add(field.getName());
+            }
+            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
         }
     }
 }

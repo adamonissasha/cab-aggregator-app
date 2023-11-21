@@ -5,6 +5,7 @@ import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.service.RideService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -48,5 +49,29 @@ public class RideController {
     @GetMapping("/{rideId}")
     public RideResponse getRideByRideId(@PathVariable("rideId") Long rideId) {
         return rideService.getRideByRideId(rideId);
+    }
+
+
+    @GetMapping("/available")
+    public Page<RideResponse> getAvailableRides(@RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size,
+                                                @RequestParam(defaultValue = "id") String sortBy) {
+        return rideService.getAvailableRides(page, size, sortBy);
+    }
+
+    @GetMapping("/passenger/{passengerId}")
+    public Page<RideResponse> getPassengerRides(@PathVariable("passengerId") Long passengerId,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size,
+                                                @RequestParam(defaultValue = "id") String sortBy) {
+        return rideService.getPassengerRides(passengerId, page, size, sortBy);
+    }
+
+    @GetMapping("/driver/{driverId}")
+    public Page<RideResponse> getDriverRides(@PathVariable("driverId") Long driverId,
+                                             @RequestParam(defaultValue = "0") int page,
+                                             @RequestParam(defaultValue = "10") int size,
+                                             @RequestParam(defaultValue = "id") String sortBy) {
+        return rideService.getDriverRides(driverId, page, size, sortBy);
     }
 }

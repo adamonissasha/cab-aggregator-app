@@ -3,6 +3,7 @@ package com.example.ridesservice.service;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.response.RideResponse;
+import org.springframework.data.domain.Page;
 
 public interface RideService {
     RideResponse createRide(CreateRideRequest createRideRequest);
@@ -18,4 +19,10 @@ public interface RideService {
     RideResponse completeRide(Long rideId);
 
     RideResponse getRideByRideId(Long rideId);
+
+    Page<RideResponse> getAvailableRides(int page, int size, String sortBy);
+
+    Page<RideResponse> getPassengerRides(Long passengerId, int page, int size, String sortBy);
+
+    Page<RideResponse> getDriverRides(Long driverId, int page, int size, String sortBy);
 }
