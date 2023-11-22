@@ -1,7 +1,13 @@
 package com.example.ridesservice.handler;
 
 import com.example.ridesservice.dto.response.ExceptionResponse;
-import com.example.ridesservice.exception.*;
+import com.example.ridesservice.exception.IncorrectDateException;
+import com.example.ridesservice.exception.IncorrectFieldNameException;
+import com.example.ridesservice.exception.IncorrectPaymentMethodException;
+import com.example.ridesservice.exception.PromoCodeAlreadyExistsException;
+import com.example.ridesservice.exception.PromoCodeNotFoundException;
+import com.example.ridesservice.exception.RideNotFoundException;
+import com.example.ridesservice.exception.RideStatusException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
