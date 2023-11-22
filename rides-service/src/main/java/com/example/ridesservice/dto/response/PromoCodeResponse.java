@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @Builder
 public class PromoCodeResponse {
     private Long id;
-    private String name;
+    private String code;
     private LocalDate startDate;
     private LocalDate endDate;
     private Integer discountPercent;

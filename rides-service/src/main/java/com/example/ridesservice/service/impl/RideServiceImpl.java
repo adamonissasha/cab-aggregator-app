@@ -26,6 +26,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +55,7 @@ public class RideServiceImpl implements RideService {
     public RideResponse createRide(CreateRideRequest createRideRequest) {
         PaymentMethod paymentMethod = getPaymentMethod(createRideRequest.getPaymentMethod());
         PromoCode promoCode = promoCodeService.getPromoCodeByName(createRideRequest.getPromoCode());
-        double price = calculatePrice(promoCode);
+        BigDecimal price = calculatePrice(promoCode);
 
         Ride newRide = Ride.builder()
                 .passengerId(createRideRequest.getPassengerId())
@@ -203,18 +205,19 @@ public class RideServiceImpl implements RideService {
         return PaymentMethod.valueOf(paymentMethod);
     }
 
-    private Double calculatePrice(PromoCode promoCode) {
+    private BigDecimal calculatePrice(PromoCode promoCode) {
         int minPrice = 5;
         int maxPrice = 50;
-        double price = minPrice + (maxPrice - minPrice) * random.nextDouble();
+        BigDecimal price = BigDecimal.valueOf(minPrice + (maxPrice - minPrice) * random.nextDouble());
         if (promoCode != null) {
             price = applyPromoCode(price, promoCode);
         }
-        return Math.round(price * 10.0) / 10.0;
+        return price.setScale(1, RoundingMode.HALF_UP);
     }
 
-    private Double applyPromoCode(double price, PromoCode promoCode) {
-        price -= price * (promoCode.getDiscountPercent() / 100.0);
+    private BigDecimal applyPromoCode(BigDecimal price, PromoCode promoCode) {
+        BigDecimal discount = BigDecimal.valueOf(promoCode.getDiscountPercent() / 100.0);
+        price = price.subtract(price.multiply(discount));
         return price;
     }
 
@@ -222,7 +225,7 @@ public class RideServiceImpl implements RideService {
         RideResponse rideResponse = modelMapper.map(ride, RideResponse.class);
         PromoCode promoCode = ride.getPromoCode();
         if (promoCode != null) {
-            rideResponse.setPromoCode(promoCode.getName());
+            rideResponse.setPromoCode(promoCode.getCode());
         }
         rideResponse.setStops(stops);
         return rideResponse;

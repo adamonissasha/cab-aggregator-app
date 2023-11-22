@@ -17,8 +17,8 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class PromoCodeRequest {
-    @NotBlank(message = "{promo-code.name.required}")
-    private String name;
+    @NotBlank(message = "{promo-code.code.required}")
+    private String code;
 
     @NotNull(message = "{promo-code.start-sate.not-null}")
     @Future(message = "{promo-code.start-date.future}")

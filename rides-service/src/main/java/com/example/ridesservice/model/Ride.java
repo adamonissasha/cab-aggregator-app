@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -45,7 +46,7 @@ public class Ride {
     @JoinColumn(name = "promo_code_id")
     private PromoCode promoCode;
 
-    private Double price;
+    private BigDecimal price;
 
     @Enumerated(value = EnumType.STRING)
     private RideStatus status;

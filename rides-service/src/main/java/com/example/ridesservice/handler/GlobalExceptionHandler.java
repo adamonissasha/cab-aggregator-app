@@ -31,19 +31,19 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = PromoCodeAlreadyExistsException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handlePromoCodeAlreadyExistsException(PromoCodeAlreadyExistsException ex) {
         return ExceptionResponse.builder()
-                .statusCode(HttpStatus.NOT_FOUND.value())
+                .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
                 .build();
     }
 
     @ExceptionHandler(value = IncorrectDateException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleIncorrectDateException(IncorrectDateException ex) {
         return ExceptionResponse.builder()
-                .statusCode(HttpStatus.NOT_FOUND.value())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
                 .build();
     }
@@ -76,10 +76,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = RideNotFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleRideNotFoundException(RideNotFoundException ex) {
         return ExceptionResponse.builder()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
                 .build();
     }

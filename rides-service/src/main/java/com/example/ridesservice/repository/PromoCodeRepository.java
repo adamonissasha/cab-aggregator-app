@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface PromoCodeRepository extends JpaRepository<PromoCode, Long> {
-    Optional<PromoCode> findByName(String name);
+    Optional<PromoCode> findByCode(String code);
 }

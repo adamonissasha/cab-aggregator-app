@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class RideResponse {
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
     private String status;
-    private double price;
+    private BigDecimal price;
     private String promoCode;
     private String paymentMethod;
     private String startAddress;

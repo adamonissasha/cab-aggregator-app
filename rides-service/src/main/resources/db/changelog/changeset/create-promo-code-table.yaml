@@ -8,13 +8,12 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigint
-                  autoIncrement: true
+                  type: bigserial
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: name
+                  name: code
                   type: varchar(20)
                   constraints:
                     unique: true
