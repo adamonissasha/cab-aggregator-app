@@ -24,7 +24,7 @@ public class Stop {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int number;
+    private Integer number;
 
     private String address;
 

@@ -22,7 +22,7 @@ public class StopServiceImpl implements StopService {
     public List<StopResponse> createStops(List<StopRequest> stopRequests, Ride ride) {
         return stopRequests.stream()
                 .map(stopRequest -> Stop.builder()
-                        .number(stopRequests.indexOf(stopRequest) + 1)
+                        .number(stopRequest.getNumber())
                         .address(stopRequest.getAddress())
                         .ride(ride)
                         .build())
@@ -37,7 +37,7 @@ public class StopServiceImpl implements StopService {
         stopRepository.deleteAll(existingStops);
         List<Stop> newStops = stops.stream()
                 .map(stopRequest -> Stop.builder()
-                        .number(stops.indexOf(stopRequest) + 1)
+                        .number(stopRequest.getNumber())
                         .address(stopRequest.getAddress())
                         .ride(ride)
                         .build())
