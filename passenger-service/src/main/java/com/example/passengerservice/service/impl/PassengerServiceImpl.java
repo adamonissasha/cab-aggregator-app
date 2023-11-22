@@ -1,6 +1,7 @@
 package com.example.passengerservice.service.impl;
 
 import com.example.passengerservice.dto.request.PassengerRequest;
+import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
 import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
@@ -62,11 +63,22 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public Page<PassengerResponse> getAllPassengers(int page, int size, String sortBy) {
+    public PassengerPageResponse getAllPassengers(int page, int size, String sortBy) {
         checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return passengerRepository.findAll(pageable)
-                .map(this::mapPassengerToPassengerResponse);
+        Page<Passenger> passengerPage = passengerRepository.findAll(pageable);
+        List<PassengerResponse> passengerResponses = passengerPage.getContent()
+                .stream()
+                .map(this::mapPassengerToPassengerResponse)
+                .toList();
+
+        return PassengerPageResponse.builder()
+                .passengers(passengerResponses)
+                .totalPages(passengerPage.getTotalPages())
+                .totalElements(passengerPage.getTotalElements())
+                .currentPage(passengerPage.getNumber())
+                .pageSize(passengerPage.getSize())
+                .build();
     }
 
 

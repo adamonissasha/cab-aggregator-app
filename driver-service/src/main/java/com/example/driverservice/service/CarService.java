@@ -1,8 +1,8 @@
 package com.example.driverservice.service;
 
 import com.example.driverservice.dto.request.CarRequest;
+import com.example.driverservice.dto.response.CarPageResponse;
 import com.example.driverservice.dto.response.CarResponse;
-import org.springframework.data.domain.Page;
 
 public interface CarService {
     CarResponse createCar(CarRequest carRequest);
@@ -11,5 +11,5 @@ public interface CarService {
 
     CarResponse getCarById(long id);
 
-    Page<CarResponse> getAllCars(int page, int size, String sortBy);
+    CarPageResponse getAllCars(int page, int size, String sortBy);
 }

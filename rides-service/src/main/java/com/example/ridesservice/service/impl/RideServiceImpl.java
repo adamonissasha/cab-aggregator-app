@@ -4,6 +4,7 @@ import com.example.ridesservice.dto.request.ConfirmRideRequest;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.response.RideResponse;
+import com.example.ridesservice.dto.response.RidesPageResponse;
 import com.example.ridesservice.dto.response.StopResponse;
 import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
@@ -174,27 +175,27 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public Page<RideResponse> getAvailableRides(int page, int size, String sortBy) {
+    public RidesPageResponse getAvailableRides(int page, int size, String sortBy) {
         checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return rideRepository.findAllByStatus(RideStatus.CREATED, pageable)
-                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)));
+        Page<Ride> ridesPage = rideRepository.findAllByStatus(RideStatus.CREATED, pageable);
+        return mapRidesPageToResponse(ridesPage);
     }
 
     @Override
-    public Page<RideResponse> getPassengerRides(Long passengerId, int page, int size, String sortBy) {
+    public RidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy) {
         checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return rideRepository.findAllByPassengerId(passengerId, pageable)
-                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)));
+        Page<Ride> ridesPage = rideRepository.findAllByPassengerId(passengerId, pageable);
+        return mapRidesPageToResponse(ridesPage);
     }
 
     @Override
-    public Page<RideResponse> getDriverRides(Long driverId, int page, int size, String sortBy) {
+    public RidesPageResponse getDriverRides(Long driverId, int page, int size, String sortBy) {
         checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return rideRepository.findAllByDriverId(driverId, pageable)
-                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)));
+        Page<Ride> ridesPage = rideRepository.findAllByDriverId(driverId, pageable);
+        return mapRidesPageToResponse(ridesPage);
     }
 
 
@@ -258,5 +259,20 @@ public class RideServiceImpl implements RideService {
             }
             getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
         }
+    }
+
+    private RidesPageResponse mapRidesPageToResponse(Page<Ride> ridesPage) {
+        List<RideResponse> rideResponses = ridesPage.getContent()
+                .stream()
+                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)))
+                .toList();
+
+        return RidesPageResponse.builder()
+                .rides(rideResponses)
+                .totalPages(ridesPage.getTotalPages())
+                .totalElements(ridesPage.getTotalElements())
+                .currentPage(ridesPage.getNumber())
+                .pageSize(ridesPage.getSize())
+                .build();
     }
 }

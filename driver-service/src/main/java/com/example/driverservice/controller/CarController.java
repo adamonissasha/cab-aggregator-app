@@ -1,12 +1,12 @@
 package com.example.driverservice.controller;
 
 import com.example.driverservice.dto.request.CarRequest;
+import com.example.driverservice.dto.response.CarPageResponse;
 import com.example.driverservice.dto.response.CarResponse;
 import com.example.driverservice.service.CarService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,9 +39,9 @@ public class CarController {
     }
 
     @GetMapping
-    public Page<CarResponse> getAllCars(@RequestParam(defaultValue = "0") @Min(0) int page,
-                                        @RequestParam(defaultValue = "10") @Min(1) int size,
-                                        @RequestParam(defaultValue = "id") String sortBy) {
+    public CarPageResponse getAllCars(@RequestParam(defaultValue = "0") @Min(0) int page,
+                                      @RequestParam(defaultValue = "10") @Min(1) int size,
+                                      @RequestParam(defaultValue = "id") String sortBy) {
         return carService.getAllCars(page, size, sortBy);
     }
 }

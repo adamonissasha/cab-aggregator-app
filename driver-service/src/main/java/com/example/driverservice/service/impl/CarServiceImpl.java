@@ -1,6 +1,7 @@
 package com.example.driverservice.service.impl;
 
 import com.example.driverservice.dto.request.CarRequest;
+import com.example.driverservice.dto.response.CarPageResponse;
 import com.example.driverservice.dto.response.CarResponse;
 import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.CarNumberUniqueException;
@@ -63,11 +64,23 @@ public class CarServiceImpl implements CarService {
     }
 
     @Override
-    public Page<CarResponse> getAllCars(int page, int size, String sortBy) {
+    public CarPageResponse getAllCars(int page, int size, String sortBy) {
         checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return carRepository.findAll(pageable)
-                .map(this::mapCarToCarResponse);
+        Page<Car> carPage = carRepository.findAll(pageable);
+
+        List<CarResponse> carResponses = carPage.getContent()
+                .stream()
+                .map(this::mapCarToCarResponse)
+                .toList();
+
+        return CarPageResponse.builder()
+                .cars(carResponses)
+                .totalPages(carPage.getTotalPages())
+                .totalElements(carPage.getTotalElements())
+                .currentPage(carPage.getNumber())
+                .pageSize(carPage.getSize())
+                .build();
     }
 
 
