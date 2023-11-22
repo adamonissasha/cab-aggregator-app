@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CarController {
     private final CarService carService;
 
-    @PostMapping()
+    @PostMapping
     public CarResponse createCar(@Valid @RequestBody CarRequest carRequest) {
         return carService.createCar(carRequest);
     }
@@ -38,7 +38,7 @@ public class CarController {
         return carService.getCarById(id);
     }
 
-    @GetMapping()
+    @GetMapping
     public Page<CarResponse> getAllCars(@RequestParam(defaultValue = "0") @Min(0) int page,
                                         @RequestParam(defaultValue = "10") @Min(1) int size,
                                         @RequestParam(defaultValue = "id") String sortBy) {

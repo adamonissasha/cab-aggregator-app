@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PassengerController {
     private final PassengerService passengerService;
 
-    @PostMapping()
+    @PostMapping
     public PassengerResponse createPassenger(@Valid @RequestBody PassengerRequest passengerRequest) {
         return passengerService.createPassenger(passengerRequest);
     }
@@ -38,7 +38,7 @@ public class PassengerController {
         return passengerService.getPassengerById(id);
     }
 
-    @GetMapping()
+    @GetMapping
     public Page<PassengerResponse> getAllPassengers(@RequestParam(defaultValue = "0") @Min(0) int page,
                                                     @RequestParam(defaultValue = "10") @Min(1) int size,
                                                     @RequestParam(defaultValue = "id") String sortBy) {

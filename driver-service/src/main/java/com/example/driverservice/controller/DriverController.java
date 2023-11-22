@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class DriverController {
     private final DriverService driverService;
 
-    @PostMapping()
+    @PostMapping
     public DriverResponse createPassenger(@Valid @RequestBody DriverRequest driverRequest) {
         return driverService.createDriver(driverRequest);
     }
@@ -38,7 +38,7 @@ public class DriverController {
         return driverService.getDriverById(id);
     }
 
-    @GetMapping()
+    @GetMapping
     public Page<DriverResponse> getAllDrivers(@RequestParam(defaultValue = "0") @Min(0) int page,
                                               @RequestParam(defaultValue = "10") @Min(1) int size,
                                               @RequestParam(defaultValue = "id") String sortBy) {

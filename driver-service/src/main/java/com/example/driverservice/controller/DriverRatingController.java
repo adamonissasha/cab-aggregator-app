@@ -20,13 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class DriverRatingController {
     private final DriverRatingService driverRatingService;
 
-    @PostMapping()
+    @PostMapping
     public DriverRatingResponse rateDriver(@Valid @RequestBody DriverRatingRequest driverRatingRequest,
                                            @PathVariable("driverId") long driverId) {
         return driverRatingService.rateDriver(driverRatingRequest, driverId);
     }
 
-    @GetMapping()
+    @GetMapping
     public AllDriverRatingsResponse getRatingsByDriverId(@PathVariable("driverId") long driverId) {
         return driverRatingService.getRatingsByDriverId(driverId);
     }

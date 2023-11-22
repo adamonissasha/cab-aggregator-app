@@ -21,7 +21,7 @@ import java.util.List;
 public class PromoCodeController {
     private final PromoCodeService promoCodeService;
 
-    @PostMapping()
+    @PostMapping
     public PromoCodeResponse createPromoCode(@Valid @RequestBody PromoCodeRequest promoCodeRequest) {
         return promoCodeService.createPromoCode(promoCodeRequest);
     }
@@ -37,7 +37,7 @@ public class PromoCodeController {
         return promoCodeService.getPromoCodeById(id);
     }
 
-    @GetMapping()
+    @GetMapping
     public List<PromoCodeResponse> getAllPromoCodes() {
         return promoCodeService.getAllPromoCodes();
     }

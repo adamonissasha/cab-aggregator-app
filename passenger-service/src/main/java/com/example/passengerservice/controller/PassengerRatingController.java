@@ -20,13 +20,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class PassengerRatingController {
     private final PassengerRatingService passengerRatingService;
 
-    @PostMapping()
+    @PostMapping
     public PassengerRatingResponse ratePassenger(@PathVariable("passengerId") long passengerId,
                                                  @Valid @RequestBody PassengerRatingRequest passengerRatingRequest) {
         return passengerRatingService.ratePassenger(passengerId, passengerRatingRequest);
     }
 
-    @GetMapping()
+    @GetMapping
     public AllPassengerRatingsResponse getRatingsByPassengerId(@PathVariable("passengerId") long passengerId) {
         return passengerRatingService.getRatingsByPassengerId(passengerId);
     }
