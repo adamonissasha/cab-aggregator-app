@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -39,11 +40,7 @@ import java.util.Random;
 public class RideServiceImpl implements RideService {
     private static final String INCORRECT_PAYMENT_METHOD = "Incorrect payment method!";
     private static final String RIDE_NOT_FOUND = "Ride not found!";
-    private static final String RIDE_COMPLETED = "The ride has already been completed!";
-    private static final String RIDE_CANCELED = "The ride has already been canceled!";
-    private static final String RIDE_CONFIRMED = "The ride has already been confirmed!";
     private static final String RIDE_NOT_CONFIRMED = "The ride hasn't confirmed!";
-    private static final String RIDE_STARTED = "The ride has already started!";
     private static final String RIDE_NOT_STARTED = "The ride hasn't started!";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final StopService stopService;
@@ -79,8 +76,10 @@ public class RideServiceImpl implements RideService {
     public RideResponse editRide(Long rideId, EditRideRequest editRideRequest) {
         Ride existingRide = getExistingRide(rideId);
 
-        checkRideStatusNotEquals(existingRide, RideStatus.COMPLETED, RIDE_COMPLETED);
-        checkRideStatusNotEquals(existingRide, RideStatus.CANCELED, RIDE_CANCELED);
+        checkRideStatusNotEquals(existingRide, Arrays.asList(
+                RideStatus.COMPLETED,
+                RideStatus.CANCELED)
+        );
 
         String newStartAddress = editRideRequest.getStartAddress();
         String newEndAddress = editRideRequest.getEndAddress();
@@ -103,9 +102,11 @@ public class RideServiceImpl implements RideService {
     public RideResponse canselRide(Long rideId) {
         Ride existingRide = getExistingRide(rideId);
 
-        checkRideStatusNotEquals(existingRide, RideStatus.CANCELED, RIDE_CANCELED);
-        checkRideStatusNotEquals(existingRide, RideStatus.COMPLETED, RIDE_COMPLETED);
-        checkRideStatusNotEquals(existingRide, RideStatus.STARTED, RIDE_STARTED);
+        checkRideStatusNotEquals(existingRide, Arrays.asList(
+                RideStatus.COMPLETED,
+                RideStatus.CANCELED,
+                RideStatus.STARTED)
+        );
 
         existingRide.setStatus(RideStatus.CANCELED);
         rideRepository.save(existingRide);
@@ -117,10 +118,12 @@ public class RideServiceImpl implements RideService {
     public RideResponse confirmRide(Long rideId, ConfirmRideRequest confirmRideRequest) {
         Ride ride = getExistingRide(rideId);
 
-        checkRideStatusNotEquals(ride, RideStatus.COMPLETED, RIDE_COMPLETED);
-        checkRideStatusNotEquals(ride, RideStatus.CANCELED, RIDE_CANCELED);
-        checkRideStatusNotEquals(ride, RideStatus.CONFIRMED, RIDE_CONFIRMED);
-        checkRideStatusNotEquals(ride, RideStatus.STARTED, RIDE_STARTED);
+        checkRideStatusNotEquals(ride, Arrays.asList(
+                RideStatus.COMPLETED,
+                RideStatus.CANCELED,
+                RideStatus.STARTED,
+                RideStatus.CONFIRMED)
+        );
 
         ride.setStatus(RideStatus.CONFIRMED);
         ride.setDriverId(confirmRideRequest.getDriverId());
@@ -137,12 +140,12 @@ public class RideServiceImpl implements RideService {
     public RideResponse startRide(Long rideId) {
         Ride ride = getExistingRide(rideId);
 
-        checkRideStatusNotEquals(ride, RideStatus.COMPLETED, RIDE_COMPLETED);
-        checkRideStatusNotEquals(ride, RideStatus.CANCELED, RIDE_CANCELED);
-        checkRideStatusNotEquals(ride, RideStatus.STARTED, RIDE_STARTED);
-        if (!ride.getStatus().equals(RideStatus.CONFIRMED)) {
-            throw new RideStatusException(RIDE_NOT_CONFIRMED);
-        }
+        checkRideStatusNotEquals(ride, Arrays.asList(
+                RideStatus.COMPLETED,
+                RideStatus.CANCELED,
+                RideStatus.STARTED)
+        );
+        checkRideStatusEquals(ride, RideStatus.CONFIRMED, RIDE_NOT_CONFIRMED);
 
         ride.setStatus(RideStatus.STARTED);
         ride.setStartDateTime(LocalDateTime.now());
@@ -155,11 +158,11 @@ public class RideServiceImpl implements RideService {
     public RideResponse completeRide(Long rideId) {
         Ride ride = getExistingRide(rideId);
 
-        checkRideStatusNotEquals(ride, RideStatus.COMPLETED, RIDE_COMPLETED);
-        checkRideStatusNotEquals(ride, RideStatus.CANCELED, RIDE_CANCELED);
-        if (!ride.getStatus().equals(RideStatus.STARTED)) {
-            throw new RideStatusException(RIDE_NOT_STARTED);
-        }
+        checkRideStatusNotEquals(ride, Arrays.asList(
+                RideStatus.COMPLETED,
+                RideStatus.CANCELED)
+        );
+        checkRideStatusEquals(ride, RideStatus.STARTED, RIDE_NOT_STARTED);
 
         ride.setStatus(RideStatus.COMPLETED);
         ride.setEndDateTime(LocalDateTime.now());
@@ -237,8 +240,16 @@ public class RideServiceImpl implements RideService {
                 .orElseThrow(() -> new RideNotFoundException(RIDE_NOT_FOUND));
     }
 
-    private void checkRideStatusNotEquals(Ride ride, RideStatus rideStatus, String message) {
-        if (ride.getStatus().equals(rideStatus)) {
+    private void checkRideStatusNotEquals(Ride ride, List<RideStatus> rideStatusList) {
+        for (RideStatus status : rideStatusList) {
+            if (ride.getStatus().equals(status)) {
+                throw new RideStatusException(status.getMessage());
+            }
+        }
+    }
+
+    private void checkRideStatusEquals(Ride ride, RideStatus rideStatus, String message) {
+        if (!ride.getStatus().equals(rideStatus)) {
             throw new RideStatusException(message);
         }
     }

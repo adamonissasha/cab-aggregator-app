@@ -80,15 +80,13 @@ public class PromoCodeServiceImpl implements PromoCodeService {
 
     @Override
     public PromoCode getPromoCodeByName(String promoCodeName) {
-        if (promoCodeName == null) {
-            return null;
-        }
-        PromoCode promoCode = promoCodeRepository.findByCode(promoCodeName)
-                .orElseThrow(() -> new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND));
-        if (LocalDate.now().isAfter(promoCode.getEndDate()) && LocalDate.now().isBefore(promoCode.getStartDate())) {
-            throw new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND);
-        }
-        return promoCode;
+        return Optional.ofNullable(promoCodeName)
+                .map(code -> promoCodeRepository.findByCode(code)
+                        .filter(promoCode ->
+                                LocalDate.now().isAfter(promoCode.getEndDate()) &&
+                                        LocalDate.now().isBefore(promoCode.getStartDate()))
+                        .orElseThrow(() -> new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND)))
+                .orElse(null);
     }
 
 
