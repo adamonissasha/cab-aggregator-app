@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RideController {
     private final RideService rideService;
 
-    @PostMapping()
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RideResponse createRide(@Valid @RequestBody CreateRideRequest createRideRequest) {
         return rideService.createRide(createRideRequest);

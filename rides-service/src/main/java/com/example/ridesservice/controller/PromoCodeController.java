@@ -1,6 +1,7 @@
 package com.example.ridesservice.controller;
 
 import com.example.ridesservice.dto.request.PromoCodeRequest;
+import com.example.ridesservice.dto.response.AllPromoCodesResponse;
 import com.example.ridesservice.dto.response.PromoCodeResponse;
 import com.example.ridesservice.service.PromoCodeService;
 import jakarta.validation.Valid;
@@ -14,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/ride/promo-code")
@@ -44,7 +43,7 @@ public class PromoCodeController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<PromoCodeResponse> getAllPromoCodes() {
+    public AllPromoCodesResponse getAllPromoCodes() {
         return promoCodeService.getAllPromoCodes();
     }
 }

@@ -243,7 +243,7 @@ public class RideServiceImpl implements RideService {
     private void checkRideStatusNotEquals(Ride ride, List<RideStatus> rideStatusList) {
         for (RideStatus status : rideStatusList) {
             if (ride.getStatus().equals(status)) {
-                throw new RideStatusException(status.getMessage());
+                throw new RideStatusException(status.getStatusErrorMessage());
             }
         }
     }

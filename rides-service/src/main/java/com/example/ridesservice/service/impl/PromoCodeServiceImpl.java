@@ -1,6 +1,7 @@
 package com.example.ridesservice.service.impl;
 
 import com.example.ridesservice.dto.request.PromoCodeRequest;
+import com.example.ridesservice.dto.response.AllPromoCodesResponse;
 import com.example.ridesservice.dto.response.PromoCodeResponse;
 import com.example.ridesservice.exception.IncorrectDateException;
 import com.example.ridesservice.exception.PromoCodeAlreadyExistsException;
@@ -13,7 +14,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -71,11 +71,13 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     }
 
     @Override
-    public List<PromoCodeResponse> getAllPromoCodes() {
-        return promoCodeRepository.findAll()
-                .stream()
-                .map(this::mapPromoCodeToPromoCodeResponse)
-                .toList();
+    public AllPromoCodesResponse getAllPromoCodes() {
+        return AllPromoCodesResponse.builder()
+                .promoCodes(promoCodeRepository.findAll()
+                        .stream()
+                        .map(this::mapPromoCodeToPromoCodeResponse)
+                        .toList())
+                .build();
     }
 
     @Override

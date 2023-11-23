@@ -10,10 +10,10 @@ public enum RideStatus {
     COMPLETED("The ride has already been completed!"),
     CANCELED("The ride has already been canceled!");
 
-    private final String message;
+    private final String statusErrorMessage;
 
-    RideStatus(String message) {
-        this.message = message;
+    RideStatus(String statusErrorMessage) {
+        this.statusErrorMessage = statusErrorMessage;
     }
 
 }
