@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-stop-table
+      author: AlexandraA
+      changes:
+        - createTable:
+            tableName: stop
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: number
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: address
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ride_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: stop
+            baseColumnNames: ride_id
+            referencedTableName: ride
+            referencedColumnNames: id
+            constraintName: FK_ride_stop

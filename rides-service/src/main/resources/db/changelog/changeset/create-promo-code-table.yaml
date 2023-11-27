@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-promo-code-table
+      author: AlexandraA
+      changes:
+        - createTable:
+            tableName: promo_code
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(20)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: start_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: discount_percent
+                  type: integer
+                  constraints:
+                    nullable: false

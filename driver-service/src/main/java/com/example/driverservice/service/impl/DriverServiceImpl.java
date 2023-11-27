@@ -1,6 +1,7 @@
 package com.example.driverservice.service.impl;
 
 import com.example.driverservice.dto.request.DriverRequest;
+import com.example.driverservice.dto.response.DriverPageResponse;
 import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.DriverNotFoundException;
@@ -70,11 +71,23 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public Page<DriverResponse> getAllDrivers(int page, int size, String sortBy) {
+    public DriverPageResponse getAllDrivers(int page, int size, String sortBy) {
         checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        return driverRepository.findAll(pageable)
-                .map(this::mapDriverToDriverResponse);
+        Page<Driver> driverPage = driverRepository.findAll(pageable);
+
+        List<DriverResponse> driverResponses = driverPage.getContent()
+                .stream()
+                .map(this::mapDriverToDriverResponse)
+                .toList();
+
+        return DriverPageResponse.builder()
+                .drivers(driverResponses)
+                .totalPages(driverPage.getTotalPages())
+                .totalElements(driverPage.getTotalElements())
+                .currentPage(driverPage.getNumber())
+                .pageSize(driverPage.getSize())
+                .build();
     }
 
 
@@ -97,7 +110,9 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public Driver mapDriverRequestToDriver(DriverRequest driverRequest) {
-        return modelMapper.map(driverRequest, Driver.class);
+        Driver driver = modelMapper.map(driverRequest, Driver.class);
+        driver.setId(null);
+        return driver;
     }
 
     public DriverResponse mapDriverToDriverResponse(Driver driver) {

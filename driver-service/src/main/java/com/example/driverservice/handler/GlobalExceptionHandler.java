@@ -2,7 +2,12 @@ package com.example.driverservice.handler;
 
 import com.example.driverservice.dto.response.ExceptionResponse;
 import com.example.driverservice.dto.response.ValidationErrorResponse;
-import com.example.driverservice.exception.*;
+import com.example.driverservice.exception.CarNotFoundException;
+import com.example.driverservice.exception.CarNumberUniqueException;
+import com.example.driverservice.exception.DriverNotFoundException;
+import com.example.driverservice.exception.DriverRatingNotFoundException;
+import com.example.driverservice.exception.IncorrectFieldNameException;
+import com.example.driverservice.exception.PhoneNumberUniqueException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;

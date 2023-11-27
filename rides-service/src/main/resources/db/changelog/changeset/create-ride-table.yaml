@@ -1,0 +1,79 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-ride-table
+      author: AlexandraA
+      changes:
+        - createTable:
+            tableName: ride
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: passenger_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_address
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_address
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payment_method
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: creation_date_time
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: promo_code_id
+                  type: bigint
+              - column:
+                  name: price
+                  type: decimal
+                  constraints:
+                    nullable: false
+              - column:
+                  name: driver_id
+                  type: bigint
+              - column:
+                  name: driver_name
+                  type: varchar(255)
+              - column:
+                  name: car_number
+                  type: varchar(9)
+              - column:
+                  name: car_make
+                  type: varchar(255)
+              - column:
+                  name: car_color
+                  type: varchar(255)
+              - column:
+                  name: start_date_time
+                  type: timestamp(6)
+              - column:
+                  name: end_date_time
+                  type: timestamp(6)
+        - addForeignKeyConstraint:
+            baseTableName: ride
+            baseColumnNames: promo_code_id
+            referencedTableName: promo_code
+            referencedColumnNames: id
+            constraintName: FK_ride_promo_code
