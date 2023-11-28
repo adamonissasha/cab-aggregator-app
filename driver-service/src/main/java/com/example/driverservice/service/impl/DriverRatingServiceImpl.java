@@ -22,15 +22,15 @@ public class DriverRatingServiceImpl implements DriverRatingService {
     private final DriverRatingRepository driverRatingRepository;
     private final DriverRepository driverRepository;
     private final ModelMapper modelMapper;
-    private static final String DRIVER_NOT_FOUND = "Driver not found!";
-    private static final String NO_DRIVER_RATING = "There is no rating of this driver!";
+    private static final String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
+    private static final String DRIVER_RATING_NOT_FOUND = "Driver with id '%s' has no ratings";
 
 
     @Override
     public DriverRatingResponse rateDriver(DriverRatingRequest driverRatingRequest, long driverId) {
         DriverRating newDriverRating = mapDriverRatingRequestToDriverRating(driverRatingRequest);
         newDriverRating.setDriver(driverRepository.findById(driverId)
-                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND)));
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId))));
         newDriverRating = driverRatingRepository.save(newDriverRating);
         return mapDriverRatingToDriverRatingResponse(newDriverRating);
     }
@@ -53,7 +53,7 @@ public class DriverRatingServiceImpl implements DriverRatingService {
         validateDriverExists(driverId);
         List<DriverRating> driverRatings = driverRatingRepository.getDriverRatingsByDriverId(driverId);
         if (driverRatings.isEmpty())
-            throw new DriverRatingNotFoundException(NO_DRIVER_RATING);
+            throw new DriverRatingNotFoundException(String.format(DRIVER_RATING_NOT_FOUND, driverId));
         double averageRating = driverRatings.stream()
                 .mapToDouble(DriverRating::getRating)
                 .average()
@@ -66,11 +66,13 @@ public class DriverRatingServiceImpl implements DriverRatingService {
 
     public void validateDriverExists(long driverId) {
         driverRepository.findById(driverId)
-                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId)));
     }
 
     public DriverRating mapDriverRatingRequestToDriverRating(DriverRatingRequest driverRatingRequest) {
-        return modelMapper.map(driverRatingRequest, DriverRating.class);
+        DriverRating driverRating = modelMapper.map(driverRatingRequest, DriverRating.class);
+        driverRating.setId(null);
+        return driverRating;
     }
 
     private DriverRatingResponse mapDriverRatingToDriverRatingResponse(DriverRating driverRating) {

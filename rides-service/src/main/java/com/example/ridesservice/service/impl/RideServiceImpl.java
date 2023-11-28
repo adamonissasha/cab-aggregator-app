@@ -38,10 +38,10 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class RideServiceImpl implements RideService {
-    private static final String INCORRECT_PAYMENT_METHOD = "Incorrect payment method!";
-    private static final String RIDE_NOT_FOUND = "Ride not found!";
-    private static final String RIDE_NOT_CONFIRMED = "The ride hasn't confirmed!";
-    private static final String RIDE_NOT_STARTED = "The ride hasn't started!";
+    private static final String INCORRECT_PAYMENT_METHOD = "'%s' - incorrect payment method";
+    private static final String RIDE_NOT_FOUND = "Ride with id '%s' not found";
+    private static final String RIDE_NOT_CONFIRMED = "The ride with id '%s' hasn't confirmed";
+    private static final String RIDE_NOT_STARTED = "The ride with id '%s' hasn't started";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final StopService stopService;
     private final PromoCodeService promoCodeService;
@@ -204,7 +204,7 @@ public class RideServiceImpl implements RideService {
 
     private PaymentMethod getPaymentMethod(String paymentMethod) {
         if (!PaymentMethod.isValidPaymentMethod(paymentMethod)) {
-            throw new IncorrectPaymentMethodException(INCORRECT_PAYMENT_METHOD);
+            throw new IncorrectPaymentMethodException(String.format(INCORRECT_PAYMENT_METHOD, paymentMethod));
         }
         return PaymentMethod.valueOf(paymentMethod);
     }
@@ -231,26 +231,27 @@ public class RideServiceImpl implements RideService {
         if (promoCode != null) {
             rideResponse.setPromoCode(promoCode.getCode());
         }
+        rideResponse.setStatus(ride.getStatus().name());
         rideResponse.setStops(stops);
         return rideResponse;
     }
 
     private Ride getExistingRide(long rideId) {
         return rideRepository.findById(rideId)
-                .orElseThrow(() -> new RideNotFoundException(RIDE_NOT_FOUND));
+                .orElseThrow(() -> new RideNotFoundException(String.format(RIDE_NOT_FOUND, rideId)));
     }
 
     private void checkRideStatusNotEquals(Ride ride, List<RideStatus> rideStatusList) {
         for (RideStatus status : rideStatusList) {
             if (ride.getStatus().equals(status)) {
-                throw new RideStatusException(status.getStatusErrorMessage());
+                throw new RideStatusException(String.format(status.getStatusErrorMessage(), ride.getId()));
             }
         }
     }
 
     private void checkRideStatusEquals(Ride ride, RideStatus rideStatus, String message) {
         if (!ride.getStatus().equals(rideStatus)) {
-            throw new RideStatusException(message);
+            throw new RideStatusException(String.format(message, ride.getId()));
         }
     }
 

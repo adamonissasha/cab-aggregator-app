@@ -24,17 +24,18 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PassengerServiceImpl implements PassengerService {
-    private static final String PASSENGER_NOT_FOUND = "Passenger not found!";
-    private static final String PHONE_NUMBER_EXIST = "Passenger with this phone number already exist!";
+    private static final String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
+    private static final String PHONE_NUMBER_EXIST = "Passenger with phone number '%s' already exist";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final PassengerRepository passengerRepository;
     private final ModelMapper modelMapper;
 
     @Override
     public PassengerResponse createPassenger(PassengerRequest passengerRequest) {
-        passengerRepository.findPassengerByPhoneNumber(passengerRequest.getPhoneNumber())
+        String phoneNumber = passengerRequest.getPhoneNumber();
+        passengerRepository.findPassengerByPhoneNumber(phoneNumber)
                 .ifPresent(passenger -> {
-                    throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
+                    throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                 });
         Passenger newPassenger = mapPassengerRequestToPassenger(passengerRequest);
         newPassenger = passengerRepository.save(newPassenger);
@@ -44,10 +45,13 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public PassengerResponse editPassenger(long id, PassengerRequest passengerRequest) {
         Passenger existingPassenger = passengerRepository.findById(id)
-                .orElseThrow(() -> new PassengerNotFoundException(PASSENGER_NOT_FOUND));
-        passengerRepository.findPassengerByPhoneNumber(passengerRequest.getPhoneNumber())
+                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id)));
+        String phoneNumber = passengerRequest.getPhoneNumber();
+        passengerRepository.findPassengerByPhoneNumber(phoneNumber)
                 .ifPresent(passenger -> {
-                    throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
+                    if (passenger.getId() != id) {
+                        throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
+                    }
                 });
         Passenger updatedPassenger = mapPassengerRequestToPassenger(passengerRequest);
         updatedPassenger.setId(existingPassenger.getId());
@@ -59,7 +63,7 @@ public class PassengerServiceImpl implements PassengerService {
     public PassengerResponse getPassengerById(long id) {
         return passengerRepository.findById(id)
                 .map(this::mapPassengerToPassengerResponse)
-                .orElseThrow(() -> new PassengerNotFoundException(PASSENGER_NOT_FOUND));
+                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id)));
     }
 
     @Override

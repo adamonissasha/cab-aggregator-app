@@ -22,14 +22,14 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     private final PassengerRatingRepository passengerRatingRepository;
     private final PassengerRepository passengerRepository;
     private final ModelMapper modelMapper;
-    private static final String PASSENGER_RATINGS_NOT_FOUND = "Passenger ratings not found!";
-    private static final String PASSENGER_NOT_FOUND = "Passenger not found!";
+    private static final String PASSENGER_RATING_NOT_FOUND = "Passenger with id '%s' has no ratings";
+    private static final String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
 
     @Override
     public PassengerRatingResponse ratePassenger(long passengerId, PassengerRatingRequest passengerRatingRequest) {
         PassengerRating newPassengerRating = mapPassengerRatingRequestToPassengerRating(passengerRatingRequest);
         newPassengerRating.setPassenger(passengerRepository.findById(passengerId)
-                .orElseThrow(() -> new PassengerNotFoundException(PASSENGER_NOT_FOUND)));
+                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId))));
         newPassengerRating = passengerRatingRepository.save(newPassengerRating);
         return mapPassengerRatingToPassengerRatingResponse(newPassengerRating);
     }
@@ -52,7 +52,7 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
         validatePassengerExists(passengerId);
         List<PassengerRating> passengerRatings = passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId);
         if (passengerRatings.isEmpty()) {
-            throw new PassengerRatingNotFoundException(PASSENGER_RATINGS_NOT_FOUND);
+            throw new PassengerRatingNotFoundException(String.format(PASSENGER_RATING_NOT_FOUND, passengerId));
         }
         double averageRating = passengerRatings.stream()
                 .mapToDouble(PassengerRating::getRating)
@@ -67,12 +67,14 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
 
     public void validatePassengerExists(long passengerId) {
         if (!passengerRepository.existsById(passengerId)) {
-            throw new PassengerNotFoundException(PASSENGER_NOT_FOUND);
+            throw new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
         }
     }
 
     public PassengerRating mapPassengerRatingRequestToPassengerRating(PassengerRatingRequest passengerRatingRequest) {
-        return modelMapper.map(passengerRatingRequest, PassengerRating.class);
+        PassengerRating passengerRating = modelMapper.map(passengerRatingRequest, PassengerRating.class);
+        passengerRating.setId(null);
+        return passengerRating;
     }
 
     private PassengerRatingResponse mapPassengerRatingToPassengerRatingResponse(PassengerRating passengerRating) {

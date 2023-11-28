@@ -26,9 +26,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
-    private static final String DRIVER_NOT_FOUND = "Driver not found!";
-    private static final String CAR_NOT_FOUND = "Car with this id not found!";
-    private static final String PHONE_NUMBER_EXIST = "Driver with this phone number already exist!";
+    private static final String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
+    private static final String CAR_NOT_FOUND = "Car with id '%s' not found";
+    private static final String PHONE_NUMBER_EXIST = "Driver with phone number '%s' already exist";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final DriverRepository driverRepository;
     private final CarRepository carRepository;
@@ -36,11 +36,13 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse createDriver(DriverRequest driverRequest) {
-        carRepository.findById(driverRequest.getCarId())
-                .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
-        driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())
+        Long carId = driverRequest.getCarId();
+        String phoneNumber = driverRequest.getPhoneNumber();
+        carRepository.findById(carId)
+                .orElseThrow(() -> new CarNotFoundException(String.format(CAR_NOT_FOUND, carId)));
+        driverRepository.findDriverByPhoneNumber(phoneNumber)
                 .ifPresent(driver -> {
-                    throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
+                    throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                 });
         Driver newDriver = mapDriverRequestToDriver(driverRequest);
         newDriver = driverRepository.save(newDriver);
@@ -49,14 +51,18 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse editDriver(long id, DriverRequest driverRequest) {
-        carRepository.findById(driverRequest.getCarId())
-                .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
-        driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())
-                .ifPresent(driver -> {
-                    throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
-                });
+        Long carId = driverRequest.getCarId();
+        carRepository.findById(carId)
+                .orElseThrow(() -> new CarNotFoundException(String.format(CAR_NOT_FOUND, carId)));
         Driver existingDriver = driverRepository.findById(id)
-                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+        String phoneNumber = driverRequest.getPhoneNumber();
+        driverRepository.findDriverByPhoneNumber(phoneNumber)
+                .ifPresent(driver -> {
+                    if (driver.getId() != id) {
+                        throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
+                    }
+                });
         Driver updatedDriver = mapDriverRequestToDriver(driverRequest);
         updatedDriver.setId(existingDriver.getId());
         updatedDriver = driverRepository.save(updatedDriver);
@@ -67,7 +73,7 @@ public class DriverServiceImpl implements DriverService {
     public DriverResponse getDriverById(long id) {
         return driverRepository.findById(id)
                 .map(this::mapDriverToDriverResponse)
-                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
     }
 
     @Override

@@ -25,17 +25,18 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class CarServiceImpl implements CarService {
-    private static final String CAR_NOT_FOUND = "Car not found!";
-    private static final String CAR_NUMBER_EXIST = "Car with this number already exist!";
+    private static final String CAR_NOT_FOUND = "Car with id '%s' not found";
+    private static final String CAR_NUMBER_EXIST = "Car with number '%s' already exist";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final CarRepository carRepository;
     private final ModelMapper modelMapper;
 
     @Override
     public CarResponse createCar(CarRequest carRequest) {
-        carRepository.findCarByNumber(carRequest.getNumber())
+        String carNumber = carRequest.getNumber();
+        carRepository.findCarByNumber(carNumber)
                 .ifPresent(car -> {
-                    throw new CarNumberUniqueException(CAR_NUMBER_EXIST);
+                    throw new CarNumberUniqueException(String.format(CAR_NUMBER_EXIST, carNumber));
                 });
         Car newCar = mapCarRequestToCar(carRequest);
         newCar = carRepository.save(newCar);
@@ -45,10 +46,11 @@ public class CarServiceImpl implements CarService {
     @Override
     public CarResponse editCar(long id, CarRequest carRequest) {
         Car existingCar = carRepository.findById(id)
-                .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
-        Optional<Car> optionalCar = carRepository.findCarByNumber(carRequest.getNumber());
+                .orElseThrow(() -> new CarNotFoundException(String.format(CAR_NOT_FOUND, id)));
+        String carNumber = carRequest.getNumber();
+        Optional<Car> optionalCar = carRepository.findCarByNumber(carNumber);
         if (optionalCar.isPresent() && optionalCar.get().getId() != id) {
-            throw new CarNumberUniqueException(CAR_NUMBER_EXIST);
+            throw new CarNumberUniqueException(String.format(CAR_NUMBER_EXIST, carNumber));
         }
         Car updatedCar = mapCarRequestToCar(carRequest);
         updatedCar.setId(existingCar.getId());
@@ -60,7 +62,7 @@ public class CarServiceImpl implements CarService {
     public CarResponse getCarById(long id) {
         return carRepository.findById(id)
                 .map(this::mapCarToCarResponse)
-                .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
+                .orElseThrow(() -> new CarNotFoundException(String.format(CAR_NOT_FOUND, id)));
     }
 
     @Override
