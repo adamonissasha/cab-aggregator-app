@@ -5,9 +5,12 @@ import com.example.driverservice.dto.response.DriverPageResponse;
 import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.DriverNotFoundException;
+import com.example.driverservice.exception.DriverStatusException;
+import com.example.driverservice.exception.FreeDriverNotFoundException;
 import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
 import com.example.driverservice.model.Driver;
+import com.example.driverservice.model.enums.Status;
 import com.example.driverservice.repository.CarRepository;
 import com.example.driverservice.repository.DriverRepository;
 import com.example.driverservice.service.DriverService;
@@ -27,6 +30,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
     private static final String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
+    private static final String FREE_DRIVER_NOT_FOUND = "Free driver not found";
+    private static final String DRIVER_ALREADY_FREE = "Driver with id '%s' is already free";
     private static final String CAR_NOT_FOUND = "Car with id '%s' not found";
     private static final String PHONE_NUMBER_EXIST = "Driver with phone number '%s' already exist";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
@@ -96,6 +101,29 @@ public class DriverServiceImpl implements DriverService {
                 .build();
     }
 
+    @Override
+    public DriverResponse getFreeDriver() {
+        Driver freeDriver = driverRepository.findAll()
+                .stream()
+                .filter(driver -> driver.getStatus().equals(Status.FREE))
+                .findFirst()
+                .orElseThrow(() -> new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND));
+        freeDriver.setStatus(Status.BUSY);
+        driverRepository.save(freeDriver);
+        return mapDriverToDriverResponse(freeDriver);
+    }
+
+    @Override
+    public DriverResponse changeDriverStatusToFree(Long id) {
+        Driver driver = driverRepository.findById(id)
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+        if (driver.getStatus().equals(Status.FREE)) {
+            throw new DriverStatusException(String.format(DRIVER_ALREADY_FREE, id));
+        }
+        driver.setStatus(Status.FREE);
+        driver = driverRepository.save(driver);
+        return mapDriverToDriverResponse(driver);
+    }
 
     public void checkSortField(String sortBy) {
         List<String> allowedSortFields = new ArrayList<>();
@@ -118,6 +146,7 @@ public class DriverServiceImpl implements DriverService {
     public Driver mapDriverRequestToDriver(DriverRequest driverRequest) {
         Driver driver = modelMapper.map(driverRequest, Driver.class);
         driver.setId(null);
+        driver.setStatus(Status.FREE);
         return driver;
     }
 

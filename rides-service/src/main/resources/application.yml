@@ -17,3 +17,6 @@ spring:
         show_sql: true
     hibernate:
       ddl-auto: none
+
+driver-service:
+  url: ${DRIVER_SERVICE_URI:http://localhost:8081/driver}

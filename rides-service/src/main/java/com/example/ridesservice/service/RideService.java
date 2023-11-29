@@ -13,15 +13,11 @@ public interface RideService {
 
     RideResponse canselRide(Long rideId);
 
-    RideResponse confirmRide(Long rideId, ConfirmRideRequest confirmRideRequest);
-
     RideResponse startRide(Long rideId);
 
     RideResponse completeRide(Long rideId);
 
     RideResponse getRideByRideId(Long rideId);
-
-    RidesPageResponse getAvailableRides(int page, int size, String sortBy);
 
     RidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy);
 

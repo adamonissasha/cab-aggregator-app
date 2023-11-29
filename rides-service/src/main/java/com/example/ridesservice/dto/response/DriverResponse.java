@@ -1,4 +1,4 @@
-package com.example.driverservice.dto.response;
+package com.example.ridesservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

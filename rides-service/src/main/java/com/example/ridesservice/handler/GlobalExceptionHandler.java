@@ -4,6 +4,7 @@ import com.example.ridesservice.dto.response.ExceptionResponse;
 import com.example.ridesservice.exception.IncorrectDateException;
 import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
+import com.example.ridesservice.exception.PassengerException;
 import com.example.ridesservice.exception.PromoCodeAlreadyExistsException;
 import com.example.ridesservice.exception.PromoCodeNotFoundException;
 import com.example.ridesservice.exception.RideNotFoundException;
@@ -33,6 +34,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PromoCodeAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handlePromoCodeAlreadyExistsException(PromoCodeAlreadyExistsException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.CONFLICT.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = PassengerException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ExceptionResponse handlePassengerException(PassengerException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())

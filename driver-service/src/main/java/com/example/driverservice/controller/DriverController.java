@@ -50,4 +50,16 @@ public class DriverController {
                                             @RequestParam(defaultValue = "id") String sortBy) {
         return driverService.getAllDrivers(page, size, sortBy);
     }
+
+    @GetMapping("/free")
+    @ResponseStatus(HttpStatus.OK)
+    public DriverResponse getFreeDriver() {
+        return driverService.getFreeDriver();
+    }
+
+    @PutMapping("/{id}/free")
+    @ResponseStatus(HttpStatus.OK)
+    public DriverResponse changeStatusToFree(@PathVariable("id") Long id) {
+        return driverService.changeDriverStatusToFree(id);
+    }
 }

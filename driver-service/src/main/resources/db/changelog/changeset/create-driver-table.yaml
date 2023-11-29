@@ -34,6 +34,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
                   name: email
                   type: varchar(50)
                   constraints:

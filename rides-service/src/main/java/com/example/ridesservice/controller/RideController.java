@@ -1,6 +1,5 @@
 package com.example.ridesservice.controller;
 
-import com.example.ridesservice.dto.request.ConfirmRideRequest;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.response.RideResponse;
@@ -39,26 +38,19 @@ public class RideController {
         return rideService.editRide(rideId, editRideRequest);
     }
 
-    @PutMapping("/cancel/{rideId}")
+    @PutMapping("/{rideId}/cancel")
     @ResponseStatus(HttpStatus.OK)
     public RideResponse canselRide(@PathVariable("rideId") Long rideId) {
         return rideService.canselRide(rideId);
     }
 
-    @PutMapping("/confirm/{rideId}")
-    @ResponseStatus(HttpStatus.OK)
-    public RideResponse confirmRide(@PathVariable("rideId") Long rideId,
-                                    @Valid @RequestBody ConfirmRideRequest confirmRideRequest) {
-        return rideService.confirmRide(rideId, confirmRideRequest);
-    }
-
-    @PutMapping("/start/{rideId}")
+    @PutMapping("/{rideId}/start")
     @ResponseStatus(HttpStatus.OK)
     public RideResponse startRide(@PathVariable("rideId") Long rideId) {
         return rideService.startRide(rideId);
     }
 
-    @PutMapping("/complete/{rideId}")
+    @PutMapping("/{rideId}/complete")
     @ResponseStatus(HttpStatus.OK)
     public RideResponse completeRide(@PathVariable("rideId") Long rideId) {
         return rideService.completeRide(rideId);
@@ -68,14 +60,6 @@ public class RideController {
     @ResponseStatus(HttpStatus.OK)
     public RideResponse getRideByRideId(@PathVariable("rideId") Long rideId) {
         return rideService.getRideByRideId(rideId);
-    }
-
-    @GetMapping("/available")
-    @ResponseStatus(HttpStatus.OK)
-    public RidesPageResponse getAvailableRides(@RequestParam(defaultValue = "0") @Min(0) int page,
-                                               @RequestParam(defaultValue = "10") @Min(1) int size,
-                                               @RequestParam(defaultValue = "id") String sortBy) {
-        return rideService.getAvailableRides(page, size, sortBy);
     }
 
     @GetMapping("/passenger/{passengerId}")

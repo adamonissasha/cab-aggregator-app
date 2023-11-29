@@ -1,13 +1,14 @@
 package com.example.ridesservice.service.impl;
 
-import com.example.ridesservice.dto.request.ConfirmRideRequest;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
+import com.example.ridesservice.dto.response.DriverResponse;
 import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.dto.response.RidesPageResponse;
 import com.example.ridesservice.dto.response.StopResponse;
 import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
+import com.example.ridesservice.exception.PassengerException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
 import com.example.ridesservice.model.PromoCode;
@@ -20,11 +21,13 @@ import com.example.ridesservice.service.RideService;
 import com.example.ridesservice.service.StopService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -40,27 +43,38 @@ import java.util.Random;
 public class RideServiceImpl implements RideService {
     private static final String INCORRECT_PAYMENT_METHOD = "'%s' - incorrect payment method";
     private static final String RIDE_NOT_FOUND = "Ride with id '%s' not found";
-    private static final String RIDE_NOT_CONFIRMED = "The ride with id '%s' hasn't confirmed";
     private static final String RIDE_NOT_STARTED = "The ride with id '%s' hasn't started";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
+    private static final String PASSENGER_RIDE_EXCEPTION = "Passenger with id '%s' has already book a ride";
     private final StopService stopService;
     private final PromoCodeService promoCodeService;
     private final RideRepository rideRepository;
     private final ModelMapper modelMapper;
     private final Random random = new Random();
+    @Value("${driver-service.url}")
+    private String rideServiceUrl;
+    private final WebClient webClient;
 
     @Override
     public RideResponse createRide(CreateRideRequest createRideRequest) {
         PaymentMethod paymentMethod = getPaymentMethod(createRideRequest.getPaymentMethod());
         PromoCode promoCode = promoCodeService.getPromoCodeByName(createRideRequest.getPromoCode());
         BigDecimal price = calculatePrice(promoCode);
+        DriverResponse driver = getFreeDriver();
+        Long passengerId = createRideRequest.getPassengerId();
+        checkPassengerRides(passengerId);
 
         Ride newRide = Ride.builder()
-                .passengerId(createRideRequest.getPassengerId())
+                .passengerId(passengerId)
                 .startAddress(createRideRequest.getStartAddress())
                 .endAddress(createRideRequest.getEndAddress())
                 .paymentMethod(paymentMethod)
                 .promoCode(promoCode)
+                .driverId(driver.getId())
+                .driverName(driver.getFirstName())
+                .carNumber(driver.getCar().getNumber())
+                .carColor(driver.getCar().getColor())
+                .carMake(driver.getCar().getCarMake())
                 .creationDateTime(LocalDateTime.now())
                 .price(price)
                 .status(RideStatus.CREATED)
@@ -115,28 +129,6 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public RideResponse confirmRide(Long rideId, ConfirmRideRequest confirmRideRequest) {
-        Ride ride = getExistingRide(rideId);
-
-        checkRideStatusNotEquals(ride, Arrays.asList(
-                RideStatus.COMPLETED,
-                RideStatus.CANCELED,
-                RideStatus.STARTED,
-                RideStatus.CONFIRMED)
-        );
-
-        ride.setStatus(RideStatus.CONFIRMED);
-        ride.setDriverId(confirmRideRequest.getDriverId());
-        ride.setDriverName(confirmRideRequest.getDriverName());
-        ride.setCarNumber(confirmRideRequest.getCarNumber());
-        ride.setCarColor(confirmRideRequest.getCarColor());
-        ride.setCarMake(confirmRideRequest.getCarMake());
-        rideRepository.save(ride);
-
-        return mapRideToRideResponse(ride, stopService.getRideStops(ride));
-    }
-
-    @Override
     public RideResponse startRide(Long rideId) {
         Ride ride = getExistingRide(rideId);
 
@@ -145,7 +137,6 @@ public class RideServiceImpl implements RideService {
                 RideStatus.CANCELED,
                 RideStatus.STARTED)
         );
-        checkRideStatusEquals(ride, RideStatus.CONFIRMED, RIDE_NOT_CONFIRMED);
 
         ride.setStatus(RideStatus.STARTED);
         ride.setStartDateTime(LocalDateTime.now());
@@ -162,11 +153,15 @@ public class RideServiceImpl implements RideService {
                 RideStatus.COMPLETED,
                 RideStatus.CANCELED)
         );
-        checkRideStatusEquals(ride, RideStatus.STARTED, RIDE_NOT_STARTED);
+        if (!ride.getStatus().equals(RideStatus.STARTED)) {
+            throw new RideStatusException(String.format(RIDE_NOT_STARTED, ride.getId()));
+        }
 
         ride.setStatus(RideStatus.COMPLETED);
         ride.setEndDateTime(LocalDateTime.now());
         rideRepository.save(ride);
+
+        changeDriverStatusToFree(ride.getDriverId());
 
         return mapRideToRideResponse(ride, stopService.getRideStops(ride));
     }
@@ -175,14 +170,6 @@ public class RideServiceImpl implements RideService {
     public RideResponse getRideByRideId(Long rideId) {
         Ride ride = getExistingRide(rideId);
         return mapRideToRideResponse(ride, stopService.getRideStops(ride));
-    }
-
-    @Override
-    public RidesPageResponse getAvailableRides(int page, int size, String sortBy) {
-        checkSortField(sortBy);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<Ride> ridesPage = rideRepository.findAllByStatus(RideStatus.CREATED, pageable);
-        return mapRidesPageToResponse(ridesPage);
     }
 
     @Override
@@ -219,11 +206,38 @@ public class RideServiceImpl implements RideService {
         return price.setScale(1, RoundingMode.HALF_UP);
     }
 
+    private void checkPassengerRides(Long passengerId) {
+        if (rideRepository.findAll()
+                .stream()
+                .filter(ride -> ride.getPassengerId().equals(passengerId))
+                .anyMatch(ride -> ride.getStatus().equals(RideStatus.CREATED) ||
+                        ride.getStatus().equals(RideStatus.STARTED))) {
+            throw new PassengerException(String.format(PASSENGER_RIDE_EXCEPTION, passengerId));
+        }
+    }
+
     private BigDecimal applyPromoCode(BigDecimal price, PromoCode promoCode) {
         BigDecimal discount = BigDecimal.valueOf(promoCode.getDiscountPercent() / 100.0);
         price = price.subtract(price.multiply(discount));
         return price;
     }
+
+    private DriverResponse getFreeDriver() {
+        return webClient.get()
+                .uri(rideServiceUrl + "/free")
+                .retrieve()
+                .bodyToMono(DriverResponse.class)
+                .block();
+    }
+
+    private void changeDriverStatusToFree(Long driverId) {
+        webClient.get()
+                .uri(rideServiceUrl + "/{driverId}/free", driverId)
+                .retrieve()
+                .bodyToMono(DriverResponse.class)
+                .subscribe();
+    }
+
 
     private RideResponse mapRideToRideResponse(Ride ride, List<StopResponse> stops) {
         RideResponse rideResponse = modelMapper.map(ride, RideResponse.class);
@@ -246,12 +260,6 @@ public class RideServiceImpl implements RideService {
             if (ride.getStatus().equals(status)) {
                 throw new RideStatusException(String.format(status.getStatusErrorMessage(), ride.getId()));
             }
-        }
-    }
-
-    private void checkRideStatusEquals(Ride ride, RideStatus rideStatus, String message) {
-        if (!ride.getStatus().equals(rideStatus)) {
-            throw new RideStatusException(String.format(message, ride.getId()));
         }
     }
 
