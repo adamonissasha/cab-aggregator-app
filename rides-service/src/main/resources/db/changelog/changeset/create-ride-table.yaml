@@ -54,17 +54,8 @@ databaseChangeLog:
                   name: driver_id
                   type: bigint
               - column:
-                  name: driver_name
-                  type: varchar(255)
-              - column:
-                  name: car_number
-                  type: varchar(9)
-              - column:
-                  name: car_make
-                  type: varchar(255)
-              - column:
-                  name: car_color
-                  type: varchar(255)
+                  name: car_id
+                  type: bigint
               - column:
                   name: start_date_time
                   type: timestamp(6)

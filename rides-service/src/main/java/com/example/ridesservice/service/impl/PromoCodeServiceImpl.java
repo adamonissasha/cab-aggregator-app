@@ -19,8 +19,8 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class PromoCodeServiceImpl implements PromoCodeService {
-    private static final String PROMO_CODE_BY_ID_NOT_FOUND = "Promo code with id '%s' found";
-    private static final String PROMO_CODE_BY_CODE_NOT_FOUND = "Promo code '%s' found";
+    private static final String PROMO_CODE_BY_ID_NOT_FOUND = "Promo code with id '%s' not found";
+    private static final String PROMO_CODE_BY_CODE_NOT_FOUND = "Promo code '%s' not found";
     private static final String PROMO_CODE_ALREADY_EXISTS = "Promo code '%s' already exists in this period of time";
     private static final String INCORRECT_DATE = "Start date '%s' must not be after end date '%s'";
     private final PromoCodeRepository promoCodeRepository;

@@ -20,3 +20,6 @@ spring:
 
 driver-service:
   url: ${DRIVER_SERVICE_URI:http://localhost:8081/driver}
+
+passenger-service:
+  url: ${PASSENGER_SERVICE_URI:http://localhost:8080/passenger}

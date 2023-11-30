@@ -4,11 +4,14 @@ import com.example.ridesservice.dto.response.ExceptionResponse;
 import com.example.ridesservice.exception.IncorrectDateException;
 import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
-import com.example.ridesservice.exception.PassengerException;
 import com.example.ridesservice.exception.PromoCodeAlreadyExistsException;
 import com.example.ridesservice.exception.PromoCodeNotFoundException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
+import com.example.ridesservice.exception.driver.CarNotFoundException;
+import com.example.ridesservice.exception.driver.DriverNotFoundException;
+import com.example.ridesservice.exception.passenger.PassengerException;
+import com.example.ridesservice.exception.passenger.PassengerNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +28,24 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PromoCodeNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handlePromoCodeNotFoundException(PromoCodeNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = DriverNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ExceptionResponse handleDriverNotFoundException(DriverNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = CarNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ExceptionResponse handleCarNotFoundException(CarNotFoundException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -88,6 +109,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = RideNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleRideNotFoundException(RideNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = PassengerNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ExceptionResponse handlePassengerNotFoundException(PassengerNotFoundException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())

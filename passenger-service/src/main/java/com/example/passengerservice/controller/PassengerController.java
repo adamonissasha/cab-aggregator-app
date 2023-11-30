@@ -3,6 +3,7 @@ package com.example.passengerservice.controller;
 import com.example.passengerservice.dto.request.PassengerRequest;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
+import com.example.passengerservice.dto.response.RidePassengerResponse;
 import com.example.passengerservice.service.PassengerService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -39,7 +40,7 @@ public class PassengerController {
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public PassengerResponse getPassengerById(@PathVariable("id") long id) {
+    public RidePassengerResponse getPassengerById(@PathVariable("id") long id) {
         return passengerService.getPassengerById(id);
     }
 

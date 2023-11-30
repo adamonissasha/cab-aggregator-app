@@ -3,11 +3,13 @@ package com.example.passengerservice.service.impl;
 import com.example.passengerservice.dto.request.PassengerRequest;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
+import com.example.passengerservice.dto.response.RidePassengerResponse;
 import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
 import com.example.passengerservice.model.Passenger;
 import com.example.passengerservice.repository.PassengerRepository;
+import com.example.passengerservice.service.PassengerRatingService;
 import com.example.passengerservice.service.PassengerService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -29,6 +31,7 @@ public class PassengerServiceImpl implements PassengerService {
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final PassengerRepository passengerRepository;
     private final ModelMapper modelMapper;
+    private final PassengerRatingService passengerRatingService;
 
     @Override
     public PassengerResponse createPassenger(PassengerRequest passengerRequest) {
@@ -60,9 +63,9 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public PassengerResponse getPassengerById(long id) {
+    public RidePassengerResponse getPassengerById(long id) {
         return passengerRepository.findById(id)
-                .map(this::mapPassengerToPassengerResponse)
+                .map(this::mapPassengerToRidePassengerResponse)
                 .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id)));
     }
 
@@ -110,5 +113,12 @@ public class PassengerServiceImpl implements PassengerService {
 
     public PassengerResponse mapPassengerToPassengerResponse(Passenger passenger) {
         return modelMapper.map(passenger, PassengerResponse.class);
+    }
+
+    public RidePassengerResponse mapPassengerToRidePassengerResponse(Passenger passenger) {
+        RidePassengerResponse ridePassengerResponse = modelMapper.map(passenger, RidePassengerResponse.class);
+        ridePassengerResponse.setRating(passengerRatingService.getAveragePassengerRating(passenger.getId())
+                .getAverageRating());
+        return ridePassengerResponse;
     }
 }

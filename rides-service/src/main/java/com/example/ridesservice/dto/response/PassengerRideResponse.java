@@ -15,11 +15,9 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-public class RideResponse {
+public class PassengerRideResponse {
     private long rideId;
-    private String passengerName;
-    private String passengerPhoneNumber;
-    private double passengerRating;
+    private long passengerId;
     private String driverName;
     private String driverPhoneNumber;
     private double driverRating;

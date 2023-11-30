@@ -11,10 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class DriverResponse {
+public class PassengerResponse {
     private long id;
     private String firstName;
     private String phoneNumber;
     private double rating;
-    private CarResponse car;
 }

@@ -2,6 +2,8 @@ package com.example.ridesservice.controller;
 
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
+import com.example.ridesservice.dto.response.PassengerRideResponse;
+import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
 import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.dto.response.RidesPageResponse;
 import com.example.ridesservice.service.RideService;
@@ -27,14 +29,14 @@ public class RideController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public RideResponse createRide(@Valid @RequestBody CreateRideRequest createRideRequest) {
+    public PassengerRideResponse createRide(@Valid @RequestBody CreateRideRequest createRideRequest) {
         return rideService.createRide(createRideRequest);
     }
 
     @PutMapping("/{rideId}")
     @ResponseStatus(HttpStatus.OK)
-    public RideResponse editRide(@PathVariable("rideId") Long rideId,
-                                 @Valid @RequestBody EditRideRequest editRideRequest) {
+    public PassengerRideResponse editRide(@PathVariable("rideId") Long rideId,
+                                          @Valid @RequestBody EditRideRequest editRideRequest) {
         return rideService.editRide(rideId, editRideRequest);
     }
 
@@ -64,10 +66,10 @@ public class RideController {
 
     @GetMapping("/passenger/{passengerId}")
     @ResponseStatus(HttpStatus.OK)
-    public RidesPageResponse getPassengerRides(@PathVariable("passengerId") Long passengerId,
-                                               @RequestParam(defaultValue = "0") @Min(0) int page,
-                                               @RequestParam(defaultValue = "10") @Min(1) int size,
-                                               @RequestParam(defaultValue = "id") String sortBy) {
+    public PassengerRidesPageResponse getPassengerRides(@PathVariable("passengerId") Long passengerId,
+                                                        @RequestParam(defaultValue = "0") @Min(0) int page,
+                                                        @RequestParam(defaultValue = "10") @Min(1) int size,
+                                                        @RequestParam(defaultValue = "id") String sortBy) {
         return rideService.getPassengerRides(passengerId, page, size, sortBy);
     }
 

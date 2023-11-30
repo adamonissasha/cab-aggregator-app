@@ -1,4 +1,4 @@
-package com.example.ridesservice.dto.response;
+package com.example.passengerservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,10 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class DriverResponse {
+public class RidePassengerResponse {
     private long id;
     private String firstName;
     private String phoneNumber;
     private double rating;
-    private CarResponse car;
 }

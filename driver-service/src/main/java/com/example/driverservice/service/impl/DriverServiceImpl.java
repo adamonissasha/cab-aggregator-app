@@ -3,7 +3,7 @@ package com.example.driverservice.service.impl;
 import com.example.driverservice.dto.request.DriverRequest;
 import com.example.driverservice.dto.response.DriverPageResponse;
 import com.example.driverservice.dto.response.DriverResponse;
-import com.example.driverservice.exception.CarNotFoundException;
+import com.example.driverservice.dto.response.RideDriverResponse;
 import com.example.driverservice.exception.DriverNotFoundException;
 import com.example.driverservice.exception.DriverStatusException;
 import com.example.driverservice.exception.FreeDriverNotFoundException;
@@ -11,8 +11,9 @@ import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
 import com.example.driverservice.model.Driver;
 import com.example.driverservice.model.enums.Status;
-import com.example.driverservice.repository.CarRepository;
 import com.example.driverservice.repository.DriverRepository;
+import com.example.driverservice.service.CarService;
+import com.example.driverservice.service.DriverRatingService;
 import com.example.driverservice.service.DriverService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -32,19 +33,17 @@ public class DriverServiceImpl implements DriverService {
     private static final String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
     private static final String FREE_DRIVER_NOT_FOUND = "Free driver not found";
     private static final String DRIVER_ALREADY_FREE = "Driver with id '%s' is already free";
-    private static final String CAR_NOT_FOUND = "Car with id '%s' not found";
     private static final String PHONE_NUMBER_EXIST = "Driver with phone number '%s' already exist";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final DriverRepository driverRepository;
-    private final CarRepository carRepository;
+    private final CarService carService;
+    private final DriverRatingService driverRatingService;
     private final ModelMapper modelMapper;
 
     @Override
     public DriverResponse createDriver(DriverRequest driverRequest) {
-        Long carId = driverRequest.getCarId();
         String phoneNumber = driverRequest.getPhoneNumber();
-        carRepository.findById(carId)
-                .orElseThrow(() -> new CarNotFoundException(String.format(CAR_NOT_FOUND, carId)));
+        carService.getCarById(driverRequest.getCarId());
         driverRepository.findDriverByPhoneNumber(phoneNumber)
                 .ifPresent(driver -> {
                     throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
@@ -56,9 +55,7 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse editDriver(long id, DriverRequest driverRequest) {
-        Long carId = driverRequest.getCarId();
-        carRepository.findById(carId)
-                .orElseThrow(() -> new CarNotFoundException(String.format(CAR_NOT_FOUND, carId)));
+        carService.getCarById(driverRequest.getCarId());
         Driver existingDriver = driverRepository.findById(id)
                 .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
         String phoneNumber = driverRequest.getPhoneNumber();
@@ -102,7 +99,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public DriverResponse getFreeDriver() {
+    public RideDriverResponse getFreeDriver() {
         Driver freeDriver = driverRepository.findAll()
                 .stream()
                 .filter(driver -> driver.getStatus().equals(Status.FREE))
@@ -110,7 +107,7 @@ public class DriverServiceImpl implements DriverService {
                 .orElseThrow(() -> new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND));
         freeDriver.setStatus(Status.BUSY);
         driverRepository.save(freeDriver);
-        return mapDriverToDriverResponse(freeDriver);
+        return mapDriverToRideDriverResponse(freeDriver);
     }
 
     @Override
@@ -152,5 +149,13 @@ public class DriverServiceImpl implements DriverService {
 
     public DriverResponse mapDriverToDriverResponse(Driver driver) {
         return modelMapper.map(driver, DriverResponse.class);
+    }
+
+    public RideDriverResponse mapDriverToRideDriverResponse(Driver driver) {
+        RideDriverResponse rideDriverResponse = modelMapper.map(driver, RideDriverResponse.class);
+        rideDriverResponse.setRating(driverRatingService
+                .getAverageDriverRating(driver.getId())
+                .getAverageRating());
+        return rideDriverResponse;
     }
 }
