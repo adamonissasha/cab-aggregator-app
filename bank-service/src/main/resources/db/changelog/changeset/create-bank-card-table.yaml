@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-bank-card-table
+      author: AlexandraA
+      changes:
+        - createTable:
+            tableName: bank_card
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: number
+                  type: varchar(19)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: expiryDate
+                  type: varchar(5)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cvv
+                  type: varchar(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance
+                  type: float
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_default
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
