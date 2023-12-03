@@ -19,7 +19,7 @@ databaseChangeLog:
                     unique: true
                     nullable: false
               - column:
-                  name: expiryDate
+                  name: expiry_date
                   type: varchar(5)
                   constraints:
                     nullable: false
@@ -39,12 +39,12 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: user_id
+                  name: card_holder_id
                   type: bigint
                   constraints:
                     nullable: false
               - column:
-                  name: user
-                  type: varchar(50)
+                  name: card_holder
+                  type: varchar(255)
                   constraints:
                     nullable: false

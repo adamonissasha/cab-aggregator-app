@@ -1,6 +1,6 @@
 package com.example.bankservice.model;
 
-import com.example.bankservice.model.enums.User;
+import com.example.bankservice.model.enums.CardHolder;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -25,7 +25,7 @@ import lombok.ToString;
 public class BankCard {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(unique = true)
     private String number;
@@ -38,8 +38,8 @@ public class BankCard {
 
     private Boolean isDefault;
 
-    private Long userId;
+    private Long cardHolderId;
 
     @Enumerated(value = EnumType.STRING)
-    private User user;
+    private CardHolder cardHolder;
 }
