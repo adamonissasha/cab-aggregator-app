@@ -37,8 +37,6 @@ public class BankCardServiceImpl implements BankCardService {
             user = driverWebClient.getDriver(bankCardRequest.getCardHolderId());
         }
         BankCard newBankCard = bankCardMapper.mapBankCardRequestToBankCard(bankCardRequest);
-
-        System.out.println(newBankCard);
         newBankCard = bankCardRepository.save(newBankCard);
         return bankCardMapper.mapBankCardToBankCardResponse(newBankCard, user);
     }

@@ -23,6 +23,7 @@ public class BankCardMapper {
     public BankCardResponse mapBankCardToBankCardResponse(BankCard bankCard, CardHolderResponse cardHolder) {
         BankCardResponse bankCardResponse = modelMapper.map(bankCard, BankCardResponse.class);
         bankCardResponse.setCardHolder(cardHolder);
+        bankCardResponse.setCardHolderRole(bankCard.getCardHolder().name());
         return bankCardResponse;
     }
 }
