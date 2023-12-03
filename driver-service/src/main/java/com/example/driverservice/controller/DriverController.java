@@ -3,7 +3,6 @@ package com.example.driverservice.controller;
 import com.example.driverservice.dto.request.DriverRequest;
 import com.example.driverservice.dto.response.DriverPageResponse;
 import com.example.driverservice.dto.response.DriverResponse;
-import com.example.driverservice.dto.response.RideDriverResponse;
 import com.example.driverservice.service.DriverService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -54,7 +53,7 @@ public class DriverController {
 
     @GetMapping("/free")
     @ResponseStatus(HttpStatus.OK)
-    public RideDriverResponse getFreeDriver() {
+    public DriverResponse getFreeDriver() {
         return driverService.getFreeDriver();
     }
 

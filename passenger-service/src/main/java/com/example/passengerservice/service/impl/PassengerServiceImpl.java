@@ -3,7 +3,6 @@ package com.example.passengerservice.service.impl;
 import com.example.passengerservice.dto.request.PassengerRequest;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
-import com.example.passengerservice.dto.response.RidePassengerResponse;
 import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
@@ -63,9 +62,9 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     @Override
-    public RidePassengerResponse getPassengerById(long id) {
+    public PassengerResponse getPassengerById(long id) {
         return passengerRepository.findById(id)
-                .map(this::mapPassengerToRidePassengerResponse)
+                .map(this::mapPassengerToPassengerResponse)
                 .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id)));
     }
 
@@ -112,13 +111,9 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public PassengerResponse mapPassengerToPassengerResponse(Passenger passenger) {
-        return modelMapper.map(passenger, PassengerResponse.class);
-    }
-
-    public RidePassengerResponse mapPassengerToRidePassengerResponse(Passenger passenger) {
-        RidePassengerResponse ridePassengerResponse = modelMapper.map(passenger, RidePassengerResponse.class);
-        ridePassengerResponse.setRating(passengerRatingService.getAveragePassengerRating(passenger.getId())
+        PassengerResponse passengerResponse = modelMapper.map(passenger, PassengerResponse.class);
+        passengerResponse.setRating(passengerRatingService.getAveragePassengerRating(passenger.getId())
                 .getAverageRating());
-        return ridePassengerResponse;
+        return passengerResponse;
     }
 }

@@ -3,7 +3,6 @@ package com.example.driverservice.service.impl;
 import com.example.driverservice.dto.request.DriverRequest;
 import com.example.driverservice.dto.response.DriverPageResponse;
 import com.example.driverservice.dto.response.DriverResponse;
-import com.example.driverservice.dto.response.RideDriverResponse;
 import com.example.driverservice.exception.DriverNotFoundException;
 import com.example.driverservice.exception.DriverStatusException;
 import com.example.driverservice.exception.FreeDriverNotFoundException;
@@ -99,7 +98,7 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public RideDriverResponse getFreeDriver() {
+    public DriverResponse getFreeDriver() {
         Driver freeDriver = driverRepository.findAll()
                 .stream()
                 .filter(driver -> driver.getStatus().equals(Status.FREE))
@@ -107,7 +106,7 @@ public class DriverServiceImpl implements DriverService {
                 .orElseThrow(() -> new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND));
         freeDriver.setStatus(Status.BUSY);
         driverRepository.save(freeDriver);
-        return mapDriverToRideDriverResponse(freeDriver);
+        return mapDriverToDriverResponse(freeDriver);
     }
 
     @Override
@@ -148,14 +147,10 @@ public class DriverServiceImpl implements DriverService {
     }
 
     public DriverResponse mapDriverToDriverResponse(Driver driver) {
-        return modelMapper.map(driver, DriverResponse.class);
-    }
-
-    public RideDriverResponse mapDriverToRideDriverResponse(Driver driver) {
-        RideDriverResponse rideDriverResponse = modelMapper.map(driver, RideDriverResponse.class);
-        rideDriverResponse.setRating(driverRatingService
+        DriverResponse driverResponse = modelMapper.map(driver, DriverResponse.class);
+        driverResponse.setRating(driverRatingService
                 .getAverageDriverRating(driver.getId())
                 .getAverageRating());
-        return rideDriverResponse;
+        return driverResponse;
     }
 }

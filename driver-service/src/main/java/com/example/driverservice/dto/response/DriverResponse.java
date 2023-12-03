@@ -19,4 +19,5 @@ public class DriverResponse {
     private String phoneNumber;
     private CarResponse car;
     private String status;
+    private double rating;
 }
