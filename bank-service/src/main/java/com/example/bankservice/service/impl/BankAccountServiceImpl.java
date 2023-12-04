@@ -10,6 +10,7 @@ import com.example.bankservice.dto.response.BankAccountResponse;
 import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.exception.BankAccountNotFoundException;
 import com.example.bankservice.exception.CardNumberUniqueException;
+import com.example.bankservice.exception.DriverBankAccountException;
 import com.example.bankservice.exception.IncorrectFieldNameException;
 import com.example.bankservice.exception.WithdrawalException;
 import com.example.bankservice.mapper.BankAccountMapper;
@@ -38,6 +39,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BankAccountServiceImpl implements BankAccountService {
     private static final String BANK_ACCOUNT_NUMBER_EXIST = "Bank account with number '%s' already exist";
+    private static final String DRIVER_ALREADY_HAS_ACCOUNT = "Driver with id '%s' already has bank account";
     private static final String BANK_ACCOUNT_NOT_FOUND = "Bank account with id '%s' not found";
     private static final String BANK_ACCOUNT_BY_DRIVER_ID_NOT_FOUND = "Driver with id '%s' bank account not found";
     private static final String WITHDRAWAL_SUM_IS_OUTSIDE = "Withdrawal sum %s isn't included in the range from 30 to 300 BYN";
@@ -57,6 +59,12 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountResponse createBankAccount(BankAccountRequest bankAccountRequest) {
+        Long driverId = bankAccountRequest.getDriverId();
+        bankAccountRepository.findByDriverId(driverId)
+                .ifPresent(bankAccount -> {
+                    throw new DriverBankAccountException(
+                            String.format(DRIVER_ALREADY_HAS_ACCOUNT, driverId));
+                });
         String accountNumber = bankAccountRequest.getNumber();
         bankAccountRepository.findByNumber(accountNumber)
                 .ifPresent(bankAccount -> {
@@ -64,7 +72,7 @@ public class BankAccountServiceImpl implements BankAccountService {
                             String.format(BANK_ACCOUNT_NUMBER_EXIST, accountNumber));
                 });
         BankAccount newBankAccount = bankAccountMapper.mapBankAccountRequestToBankAccount(bankAccountRequest);
-        BankUserResponse bankUserResponse = driverWebClient.getDriver(bankAccountRequest.getDriverId());
+        BankUserResponse bankUserResponse = driverWebClient.getDriver(driverId);
         newBankAccount = bankAccountRepository.save(newBankAccount);
         return bankAccountMapper.mapBankAccountToBankAccountResponse(newBankAccount, bankUserResponse);
     }
