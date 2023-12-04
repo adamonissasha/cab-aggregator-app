@@ -1,6 +1,6 @@
 package com.example.bankservice.webClient;
 
-import com.example.bankservice.dto.response.CardHolderResponse;
+import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.dto.response.ExceptionResponse;
 import com.example.bankservice.exception.PassengerNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,8 @@ public class PassengerWebClient {
     @Value("${passenger-service.url}")
     private String passengerServiceUrl;
     private final WebClient webClient;
-    public CardHolderResponse getPassenger(long id) {
+
+    public BankUserResponse getPassenger(long id) {
         return webClient.get()
                 .uri(passengerServiceUrl + "/{id}", id)
                 .retrieve()
@@ -31,7 +32,7 @@ public class PassengerWebClient {
                             return Mono.empty();
                         }
                 )
-                .bodyToMono(CardHolderResponse.class)
+                .bodyToMono(BankUserResponse.class)
                 .block();
     }
 }

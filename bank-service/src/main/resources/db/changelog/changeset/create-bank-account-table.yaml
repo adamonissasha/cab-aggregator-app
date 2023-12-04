@@ -20,11 +20,16 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: balance
-                  type: float
+                  type: decimal
                   constraints:
                     nullable: false
               - column:
                   name: driver_id
                   type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: boolean
                   constraints:
                     nullable: false

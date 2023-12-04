@@ -6,11 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
-public class BankCardBalanceResponse {
-    private double balance;
+public class BankAccountResponse {
+    private long id;
+    private String number;
+    private BigDecimal balance;
+    private BankUserResponse driver;
+    private Boolean isActive;
 }

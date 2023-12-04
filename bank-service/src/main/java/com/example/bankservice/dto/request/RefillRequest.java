@@ -1,7 +1,7 @@
 package com.example.bankservice.dto.request;
 
-import com.example.bankservice.model.enums.BankUser;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,11 +12,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Getter
 @Setter
-public class BankCardRequest {
-    private String number;
-    private String expiryDate;
-    private String cvv;
-    private BigDecimal balance;
+@Builder
+public class RefillRequest {
+    private BigDecimal sum;
     private Long bankUserId;
-    private BankUser bankUser;
 }

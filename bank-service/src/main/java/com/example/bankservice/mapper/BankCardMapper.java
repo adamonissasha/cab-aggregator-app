@@ -2,7 +2,7 @@ package com.example.bankservice.mapper;
 
 import com.example.bankservice.dto.request.BankCardRequest;
 import com.example.bankservice.dto.response.BankCardResponse;
-import com.example.bankservice.dto.response.CardHolderResponse;
+import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.model.BankCard;
 import com.example.bankservice.repository.BankCardRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,15 +18,15 @@ public class BankCardMapper {
     public BankCard mapBankCardRequestToBankCard(BankCardRequest bankCardRequest) {
         BankCard bankCard = modelMapper.map(bankCardRequest, BankCard.class);
         bankCard.setId(null);
-        bankCard.setIsDefault(!bankCardRepository.existsByCardHolderIdAndCardHolder(bankCard.getCardHolderId(),
-                bankCard.getCardHolder()));
+        bankCard.setIsDefault(!bankCardRepository.existsByBankUserIdAndBankUser(bankCard.getBankUserId(),
+                bankCard.getBankUser()));
         return bankCard;
     }
 
-    public BankCardResponse mapBankCardToBankCardResponse(BankCard bankCard, CardHolderResponse cardHolder) {
+    public BankCardResponse mapBankCardToBankCardResponse(BankCard bankCard, BankUserResponse bankUser) {
         BankCardResponse bankCardResponse = modelMapper.map(bankCard, BankCardResponse.class);
-        bankCardResponse.setCardHolder(cardHolder);
-        bankCardResponse.setCardHolderRole(bankCard.getCardHolder().name());
+        bankCardResponse.setBankUser(bankUser);
+        bankCardResponse.setBankUserRole(bankCard.getBankUser().name());
         return bankCardResponse;
     }
 }

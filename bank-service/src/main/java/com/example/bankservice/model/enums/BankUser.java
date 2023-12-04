@@ -1,6 +1,6 @@
 package com.example.bankservice.model.enums;
 
-public enum CardHolder {
+public enum BankUser {
     PASSENGER,
     DRIVER
 }

@@ -23,6 +23,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: sum
+                  type: decimal
+                  constraints:
+                    nullable: false
+              - column:
                   name: bank_account_id
                   type: bigint
                   constraints:

@@ -1,6 +1,6 @@
 package com.example.bankservice.webClient;
 
-import com.example.bankservice.dto.response.CardHolderResponse;
+import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.dto.response.ExceptionResponse;
 import com.example.bankservice.exception.DriverNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,8 @@ public class DriverWebClient {
     @Value("${driver-service.url}")
     private String rideServiceUrl;
     private final WebClient webClient;
-    public CardHolderResponse getDriver(long id) {
+
+    public BankUserResponse getDriver(long id) {
         return webClient.get()
                 .uri(rideServiceUrl + "/{id}", id)
                 .retrieve()
@@ -31,7 +32,7 @@ public class DriverWebClient {
                             return Mono.empty();
                         }
                 )
-                .bodyToMono(CardHolderResponse.class)
+                .bodyToMono(BankUserResponse.class)
                 .block();
     }
 }

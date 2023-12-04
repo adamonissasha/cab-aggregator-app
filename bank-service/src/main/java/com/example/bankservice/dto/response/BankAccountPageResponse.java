@@ -6,15 +6,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
-public class CardHolderResponse {
-    private long id;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String phoneNumber;
+public class BankAccountPageResponse {
+    private List<BankAccountResponse> bankAccounts;
+    private int totalPages;
+    private long totalElements;
+    private int currentPage;
+    private int pageSize;
 }

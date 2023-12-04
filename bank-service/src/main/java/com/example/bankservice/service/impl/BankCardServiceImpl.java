@@ -1,18 +1,18 @@
 package com.example.bankservice.service.impl;
 
 import com.example.bankservice.dto.request.BankCardRequest;
-import com.example.bankservice.dto.request.TopUpCardRequest;
+import com.example.bankservice.dto.request.RefillRequest;
 import com.example.bankservice.dto.request.UpdateBankCardRequest;
-import com.example.bankservice.dto.response.BankCardBalanceResponse;
+import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
-import com.example.bankservice.dto.response.CardHolderResponse;
+import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.exception.BankCardNotFoundException;
 import com.example.bankservice.exception.CardNumberUniqueException;
 import com.example.bankservice.exception.IncorrectFieldNameException;
 import com.example.bankservice.mapper.BankCardMapper;
 import com.example.bankservice.model.BankCard;
-import com.example.bankservice.model.enums.CardHolder;
+import com.example.bankservice.model.enums.BankUser;
 import com.example.bankservice.repository.BankCardRepository;
 import com.example.bankservice.service.BankCardService;
 import com.example.bankservice.webClient.DriverWebClient;
@@ -48,9 +48,9 @@ public class BankCardServiceImpl implements BankCardService {
                     throw new CardNumberUniqueException(String.format(CARD_NUMBER_EXIST, bankCard.getNumber()));
                 });
         BankCard newBankCard = bankCardMapper.mapBankCardRequestToBankCard(bankCardRequest);
-        CardHolderResponse cardHolderResponse = getCardHolder(newBankCard.getCardHolderId(), newBankCard.getCardHolder());
+        BankUserResponse bankUserResponse = getBankUser(newBankCard.getBankUserId(), newBankCard.getBankUser());
         newBankCard = bankCardRepository.save(newBankCard);
-        return bankCardMapper.mapBankCardToBankCardResponse(newBankCard, cardHolderResponse);
+        return bankCardMapper.mapBankCardToBankCardResponse(newBankCard, bankUserResponse);
     }
 
     @Override
@@ -69,7 +69,7 @@ public class BankCardServiceImpl implements BankCardService {
         updatedBankCard.setCvv(updateBankCardRequest.getCvv());
         updatedBankCard = bankCardRepository.save(updatedBankCard);
         return bankCardMapper.mapBankCardToBankCardResponse(updatedBankCard,
-                getCardHolder(updatedBankCard.getCardHolderId(), updatedBankCard.getCardHolder()));
+                getBankUser(updatedBankCard.getBankUserId(), updatedBankCard.getBankUser()));
     }
 
     @Override
@@ -84,18 +84,18 @@ public class BankCardServiceImpl implements BankCardService {
         BankCard bankCard = bankCardRepository.findById(id)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
         return bankCardMapper.mapBankCardToBankCardResponse(bankCard,
-                getCardHolder(bankCard.getCardHolderId(), bankCard.getCardHolder()));
+                getBankUser(bankCard.getBankUserId(), bankCard.getBankUser()));
     }
 
     @Override
-    public BankCardPageResponse getBankCardsByCardHolder(Long cardHolderId, CardHolder cardHolder, int page, int size, String sortBy) {
+    public BankCardPageResponse getBankCardsByBankUser(Long bankUserId, BankUser bankUser, int page, int size, String sortBy) {
         checkSortField(sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<BankCard> bankCardPage = bankCardRepository.findAllByCardHolderIdAndCardHolder(cardHolderId, cardHolder, pageable);
+        Page<BankCard> bankCardPage = bankCardRepository.findAllByBankUserIdAndBankUser(bankUserId, bankUser, pageable);
         List<BankCardResponse> bankCardResponses = bankCardPage.getContent()
                 .stream()
                 .map(bankCard -> bankCardMapper.mapBankCardToBankCardResponse(bankCard,
-                        getCardHolder(bankCard.getCardHolderId(), bankCard.getCardHolder())))
+                        getBankUser(bankCard.getBankUserId(), bankCard.getBankUser())))
                 .toList();
 
         return BankCardPageResponse.builder()
@@ -111,8 +111,8 @@ public class BankCardServiceImpl implements BankCardService {
     public BankCardResponse makeBankCardDefault(Long id) {
         BankCard bankCard = bankCardRepository.findById(id)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
-        bankCardRepository.findByCardHolderIdAndCardHolderAndIsDefaultTrue(bankCard.getCardHolderId(),
-                        bankCard.getCardHolder())
+        bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankCard.getBankUserId(),
+                        bankCard.getBankUser())
                 .ifPresent(previousDefaultCard -> {
                     previousDefaultCard.setIsDefault(false);
                     bankCardRepository.save(previousDefaultCard);
@@ -120,46 +120,55 @@ public class BankCardServiceImpl implements BankCardService {
         bankCard.setIsDefault(true);
         bankCardRepository.save(bankCard);
         return bankCardMapper.mapBankCardToBankCardResponse(bankCard,
-                getCardHolder(bankCard.getCardHolderId(), bankCard.getCardHolder()));
+                getBankUser(bankCard.getBankUserId(), bankCard.getBankUser()));
     }
 
     @Override
-    public BankCardResponse getDefaultBankCard(Long cardHolderId, CardHolder cardHolder) {
-        CardHolderResponse cardHolderResponse = getCardHolder(cardHolderId, cardHolder);
-        BankCard defaultBankCard = bankCardRepository.findByCardHolderIdAndCardHolderAndIsDefaultTrue(
-                        cardHolderId, cardHolder)
+    public BankCardResponse getDefaultBankCard(Long bankUserId, BankUser bankUser) {
+        BankUserResponse bankUserResponse = getBankUser(bankUserId, bankUser);
+        BankCard defaultBankCard = bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(
+                        bankUserId, bankUser)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(DEFAULT_CARD_NOT_FOUND,
-                        cardHolder, cardHolderId)));
-        return bankCardMapper.mapBankCardToBankCardResponse(defaultBankCard, cardHolderResponse);
+                        bankUser, bankUserId)));
+        return bankCardMapper.mapBankCardToBankCardResponse(defaultBankCard, bankUserResponse);
     }
 
     @Override
-    public BankCardResponse topUpBankCard(Long id, TopUpCardRequest topUpCardRequest) {
-        BankCard bankCard = bankCardRepository.findById(id)
-                .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
-        bankCard.setBalance(bankCard.getBalance() + topUpCardRequest.getSum());
+    public BankCardResponse refillBankCard(Long id, RefillRequest refillRequest) {
+        BankCard bankCard;
+        if (id == null) {
+            BankUser bankUser = BankUser.DRIVER;
+            Long bankUserId = refillRequest.getBankUserId();
+            bankCard = bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankUserId, bankUser)
+                    .orElseThrow(() -> new BankCardNotFoundException(String.format(DEFAULT_CARD_NOT_FOUND,
+                            bankUser, bankUserId)));
+        } else {
+            bankCard = bankCardRepository.findById(id)
+                    .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
+        }
+        bankCard.setBalance(bankCard.getBalance().add(refillRequest.getSum()));
         bankCard = bankCardRepository.save(bankCard);
         return bankCardMapper.mapBankCardToBankCardResponse(bankCard,
-                getCardHolder(bankCard.getCardHolderId(), bankCard.getCardHolder()));
+                getBankUser(bankCard.getBankUserId(), bankCard.getBankUser()));
     }
 
     @Override
-    public BankCardBalanceResponse getBankCardBalance(Long id) {
+    public BalanceResponse getBankCardBalance(Long id) {
         BankCard bankCard = bankCardRepository.findById(id)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
-        return BankCardBalanceResponse.builder()
+        return BalanceResponse.builder()
                 .balance(bankCard.getBalance())
                 .build();
     }
 
-    private CardHolderResponse getCardHolder(Long cardHolderId, CardHolder cardHolder) {
-        CardHolderResponse cardHolderResponse;
-        if (cardHolder.equals(CardHolder.PASSENGER)) {
-            cardHolderResponse = passengerWebClient.getPassenger(cardHolderId);
+    private BankUserResponse getBankUser(Long bankUserId, BankUser bankUser) {
+        BankUserResponse bankUserResponse;
+        if (bankUser.equals(BankUser.PASSENGER)) {
+            bankUserResponse = passengerWebClient.getPassenger(bankUserId);
         } else {
-            cardHolderResponse = driverWebClient.getDriver(cardHolderId);
+            bankUserResponse = driverWebClient.getDriver(bankUserId);
         }
-        return cardHolderResponse;
+        return bankUserResponse;
     }
 
     public void checkSortField(String sortBy) {

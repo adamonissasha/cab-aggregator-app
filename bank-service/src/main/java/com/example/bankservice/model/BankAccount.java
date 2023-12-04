@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.math.BigDecimal;
+
 @Entity
 @Builder
 @NoArgsConstructor
@@ -22,12 +24,14 @@ import lombok.ToString;
 public class BankAccount {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(unique = true)
     private String number;
 
-    private Double balance;
+    private BigDecimal balance;
 
     private Long driverId;
+
+    private Boolean isActive;
 }

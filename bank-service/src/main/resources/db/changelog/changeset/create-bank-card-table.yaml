@@ -30,7 +30,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: balance
-                  type: float
+                  type: decimal
                   constraints:
                     nullable: false
               - column:

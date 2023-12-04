@@ -1,6 +1,6 @@
 package com.example.bankservice.model;
 
-import com.example.bankservice.model.enums.CardHolder;
+import com.example.bankservice.model.enums.BankUser;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.math.BigDecimal;
 
 @Entity
 @Builder
@@ -34,12 +36,12 @@ public class BankCard {
 
     private String cvv;
 
-    private Double balance;
+    private BigDecimal balance;
 
     private Boolean isDefault;
 
-    private Long cardHolderId;
+    private Long bankUserId;
 
     @Enumerated(value = EnumType.STRING)
-    private CardHolder cardHolder;
+    private BankUser bankUser;
 }

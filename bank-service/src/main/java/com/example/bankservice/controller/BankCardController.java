@@ -1,12 +1,12 @@
 package com.example.bankservice.controller;
 
 import com.example.bankservice.dto.request.BankCardRequest;
-import com.example.bankservice.dto.request.TopUpCardRequest;
+import com.example.bankservice.dto.request.RefillRequest;
 import com.example.bankservice.dto.request.UpdateBankCardRequest;
-import com.example.bankservice.dto.response.BankCardBalanceResponse;
+import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
-import com.example.bankservice.model.enums.CardHolder;
+import com.example.bankservice.model.enums.BankUser;
 import com.example.bankservice.service.BankCardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -54,12 +54,12 @@ public class BankCardController {
 
     @GetMapping("/holder/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public BankCardPageResponse getCardHolderCards(@PathVariable("id") Long cardHolderId,
-                                                   @RequestParam CardHolder cardHolder,
-                                                   @RequestParam(defaultValue = "0") int page,
-                                                   @RequestParam(defaultValue = "10") int size,
-                                                   @RequestParam(defaultValue = "id") String sortBy) {
-        return bankCardService.getBankCardsByCardHolder(cardHolderId, cardHolder, page, size, sortBy);
+    public BankCardPageResponse getBankUserCards(@PathVariable("id") Long bankUserId,
+                                                 @RequestParam BankUser bankUser,
+                                                 @RequestParam(defaultValue = "0") int page,
+                                                 @RequestParam(defaultValue = "10") int size,
+                                                 @RequestParam(defaultValue = "id") String sortBy) {
+        return bankCardService.getBankCardsByBankUser(bankUserId, bankUser, page, size, sortBy);
     }
 
     @PutMapping("/default/{id}")
@@ -70,21 +70,21 @@ public class BankCardController {
 
     @GetMapping("/holder/{id}/default")
     @ResponseStatus(HttpStatus.OK)
-    public BankCardResponse getDefaultBankCard(@PathVariable("id") Long cardHolderId,
-                                               @RequestParam CardHolder cardHolder) {
-        return bankCardService.getDefaultBankCard(cardHolderId, cardHolder);
+    public BankCardResponse getDefaultBankCard(@PathVariable("id") Long bankUserId,
+                                               @RequestParam BankUser bankUser) {
+        return bankCardService.getDefaultBankCard(bankUserId, bankUser);
     }
 
-    @PutMapping("/{id}/top-up")
+    @PutMapping("/{id}/refill")
     @ResponseStatus(HttpStatus.OK)
-    public BankCardResponse topUpBankCard(@PathVariable("id") Long id,
-                                          @RequestBody TopUpCardRequest topUpCardRequest) {
-        return bankCardService.topUpBankCard(id, topUpCardRequest);
+    public BankCardResponse refillBankCard(@PathVariable("id") Long id,
+                                           @RequestBody RefillRequest refillRequest) {
+        return bankCardService.refillBankCard(id, refillRequest);
     }
 
     @GetMapping("/{id}/balance")
     @ResponseStatus(HttpStatus.OK)
-    public BankCardBalanceResponse getBankCardBalance(@PathVariable("id") Long id) {
+    public BalanceResponse getBankCardBalance(@PathVariable("id") Long id) {
         return bankCardService.getBankCardBalance(id);
     }
 }

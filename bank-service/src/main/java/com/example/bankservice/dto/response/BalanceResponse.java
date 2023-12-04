@@ -1,6 +1,7 @@
 package com.example.bankservice.dto.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,12 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Getter
 @Setter
-public class BankCardResponse {
-    private long id;
-    private String number;
-    private String expiryDate;
+@Builder
+public class BalanceResponse {
     private BigDecimal balance;
-    private boolean isDefault;
-    private String bankUserRole;
-    private BankUserResponse bankUser;
 }

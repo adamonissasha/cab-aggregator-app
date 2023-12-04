@@ -1,7 +1,7 @@
 package com.example.bankservice.repository;
 
 import com.example.bankservice.model.BankCard;
-import com.example.bankservice.model.enums.CardHolder;
+import com.example.bankservice.model.enums.BankUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,9 +13,9 @@ import java.util.Optional;
 public interface BankCardRepository extends JpaRepository<BankCard, Long> {
     Optional<BankCard> findBankCardByNumber(String number);
 
-    boolean existsByCardHolderIdAndCardHolder(Long cardHolderId, CardHolder cardHolder);
+    boolean existsByBankUserIdAndBankUser(Long bankUserId, BankUser bankUser);
 
-    Page<BankCard> findAllByCardHolderIdAndCardHolder(Long cardHolderId, CardHolder cardHolder, Pageable pageable);
+    Page<BankCard> findAllByBankUserIdAndBankUser(Long bankUserId, BankUser bankUser, Pageable pageable);
 
-    Optional<BankCard> findByCardHolderIdAndCardHolderAndIsDefaultTrue(Long cardHolderId, CardHolder cardHolder);
+    Optional<BankCard> findByBankUserIdAndBankUserAndIsDefaultTrue(Long bankUserId, BankUser bankUser);
 }

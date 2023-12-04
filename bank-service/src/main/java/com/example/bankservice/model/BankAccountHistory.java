@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,7 +30,7 @@ import java.time.LocalDateTime;
 public class BankAccountHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_id")
@@ -39,4 +40,6 @@ public class BankAccountHistory {
 
     @Enumerated(value = EnumType.STRING)
     private Operation operation;
+
+    private BigDecimal sum;
 }

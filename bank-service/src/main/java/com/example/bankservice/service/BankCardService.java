@@ -1,12 +1,12 @@
 package com.example.bankservice.service;
 
 import com.example.bankservice.dto.request.BankCardRequest;
-import com.example.bankservice.dto.request.TopUpCardRequest;
+import com.example.bankservice.dto.request.RefillRequest;
 import com.example.bankservice.dto.request.UpdateBankCardRequest;
-import com.example.bankservice.dto.response.BankCardBalanceResponse;
+import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
-import com.example.bankservice.model.enums.CardHolder;
+import com.example.bankservice.model.enums.BankUser;
 
 public interface BankCardService {
     BankCardResponse createBankCard(BankCardRequest bankCardRequest);
@@ -17,13 +17,13 @@ public interface BankCardService {
 
     BankCardResponse getBankCardById(Long id);
 
-    BankCardPageResponse getBankCardsByCardHolder(Long cardHolderId, CardHolder cardHolder, int page, int size, String sortBy);
+    BankCardPageResponse getBankCardsByBankUser(Long bankUserId, BankUser bankUser, int page, int size, String sortBy);
 
     BankCardResponse makeBankCardDefault(Long id);
 
-    BankCardResponse getDefaultBankCard(Long cardHolderId, CardHolder cardHolder);
+    BankCardResponse getDefaultBankCard(Long bankUserId, BankUser bankUser);
 
-    BankCardResponse topUpBankCard(Long id, TopUpCardRequest topUpCardRequest);
+    BankCardResponse refillBankCard(Long id, RefillRequest refillRequest);
 
-    BankCardBalanceResponse getBankCardBalance(Long id);
+    BalanceResponse getBankCardBalance(Long id);
 }
