@@ -75,7 +75,7 @@ public class DriverWebClient {
     }
 
     public void changeDriverStatusToFree(Long driverId) {
-        webClient.get()
+        webClient.put()
                 .uri(rideServiceUrl + "/{driverId}/free", driverId)
                 .retrieve()
                 .bodyToMono(DriverResponse.class)

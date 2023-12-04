@@ -8,6 +8,7 @@ import com.example.ridesservice.exception.PromoCodeAlreadyExistsException;
 import com.example.ridesservice.exception.PromoCodeNotFoundException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
+import com.example.ridesservice.exception.bank.BankAccountNotFoundException;
 import com.example.ridesservice.exception.driver.CarNotFoundException;
 import com.example.ridesservice.exception.driver.DriverNotFoundException;
 import com.example.ridesservice.exception.passenger.PassengerException;
@@ -118,6 +119,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PassengerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handlePassengerNotFoundException(PassengerNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = BankAccountNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ExceptionResponse handleBankAccountNotFoundException(BankAccountNotFoundException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())

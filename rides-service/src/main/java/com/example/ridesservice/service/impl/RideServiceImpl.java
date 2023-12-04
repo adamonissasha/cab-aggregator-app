@@ -2,6 +2,7 @@ package com.example.ridesservice.service.impl;
 
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
+import com.example.ridesservice.dto.request.RefillRequest;
 import com.example.ridesservice.dto.response.DriverResponse;
 import com.example.ridesservice.dto.response.PassengerRideResponse;
 import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
@@ -22,6 +23,7 @@ import com.example.ridesservice.repository.RideRepository;
 import com.example.ridesservice.service.PromoCodeService;
 import com.example.ridesservice.service.RideService;
 import com.example.ridesservice.service.StopService;
+import com.example.ridesservice.webClient.BankWebClient;
 import com.example.ridesservice.webClient.DriverWebClient;
 import com.example.ridesservice.webClient.PassengerWebClient;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -53,6 +56,7 @@ public class RideServiceImpl implements RideService {
     private final RideRepository rideRepository;
     private final RideMapper rideMapper;
     private final DriverWebClient driverWebClient;
+    private final BankWebClient bankWebClient;
     private final PassengerWebClient passengerWebClient;
     private final Random random = new Random();
 
@@ -185,7 +189,12 @@ public class RideServiceImpl implements RideService {
         ride.setEndDateTime(LocalDateTime.now());
         rideRepository.save(ride);
 
-        driverWebClient.changeDriverStatusToFree(ride.getDriverId());
+        Long driverId = ride.getDriverId();
+        driverWebClient.changeDriverStatusToFree(driverId);
+        bankWebClient.refillDriverBankAccount(RefillRequest.builder()
+                .bankUserId(driverId)
+                .sum(ride.getPrice())
+                .build());
 
         return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride));
     }

@@ -60,11 +60,11 @@ public class BankAccountController {
         return bankAccountService.getAllBankAccounts(page, size, sortBy);
     }
 
-    @PutMapping("/{id}/refill")
+    @PutMapping("/refill")
     @ResponseStatus(HttpStatus.OK)
-    public BankAccountResponse refillBankAccount(@PathVariable("id") Long id,
-                                                 @RequestBody RefillRequest refillRequest) {
-        return bankAccountService.refillBankAccount(id, refillRequest);
+    public BankAccountResponse refillDriverBankAccount(@RequestBody RefillRequest refillRequest) {
+        System.out.println("START");
+        return bankAccountService.refillBankAccount(refillRequest);
     }
 
     @GetMapping("/{id}/balance")

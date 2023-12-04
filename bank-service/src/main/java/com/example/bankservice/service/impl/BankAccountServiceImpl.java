@@ -39,6 +39,7 @@ import java.util.List;
 public class BankAccountServiceImpl implements BankAccountService {
     private static final String BANK_ACCOUNT_NUMBER_EXIST = "Bank account with number '%s' already exist";
     private static final String BANK_ACCOUNT_NOT_FOUND = "Bank account with id '%s' not found";
+    private static final String BANK_ACCOUNT_BY_DRIVER_ID_NOT_FOUND = "Driver with id '%s' bank account not found";
     private static final String WITHDRAWAL_SUM_IS_OUTSIDE = "Withdrawal sum %s isn't included in the range from 30 to 300 BYN";
     private static final String LARGE_WITHDRAWAL_SUM = "Withdrawal sum %s exceeds bank account balance";
     private static final String WITHDRAWAL_DATE_MESSAGE = "Withdrawal from the bank account is allowed once every %s days." +
@@ -126,9 +127,11 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccountResponse refillBankAccount(Long id, RefillRequest refillRequest) {
-        BankAccount bankAccount = bankAccountRepository.findById(id)
-                .orElseThrow(() -> new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id)));
+    public BankAccountResponse refillBankAccount(RefillRequest refillRequest) {
+        Long driverId = refillRequest.getBankUserId();
+        BankAccount bankAccount = bankAccountRepository.findByDriverId(driverId)
+                .orElseThrow(() -> new BankAccountNotFoundException(
+                        String.format(BANK_ACCOUNT_BY_DRIVER_ID_NOT_FOUND, driverId)));
 
         BigDecimal refillSum = refillRequest.getSum();
         BigDecimal updatedBalance = bankAccount.getBalance()
@@ -136,14 +139,14 @@ public class BankAccountServiceImpl implements BankAccountService {
         updatedBalance = updatedBalance.setScale(2, RoundingMode.HALF_UP);
         bankAccount.setBalance(updatedBalance);
 
-        bankAccountHistoryService.createBankAccountHistoryRecord(id,
+        bankAccountHistoryService.createBankAccountHistoryRecord(bankAccount.getId(),
                 BankAccountHistoryRequest.builder()
-                        .sum(refillSum)
+                        .sum(DRIVER_PERCENT.multiply(refillSum))
                         .operation(Operation.REFILL)
                         .build()
         );
 
-        BankUserResponse bankUserResponse = driverWebClient.getDriver(bankAccount.getDriverId());
+        BankUserResponse bankUserResponse = driverWebClient.getDriver(driverId);
         bankAccount = bankAccountRepository.save(bankAccount);
         return bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse);
     }
@@ -174,7 +177,7 @@ public class BankAccountServiceImpl implements BankAccountService {
             }
         }
         BigDecimal bankAccountBalance = bankAccount.getBalance();
-        if(bankAccountBalance.compareTo(withdrawalSum) < 0) {
+        if (bankAccountBalance.compareTo(withdrawalSum) < 0) {
             throw new WithdrawalException(String.format(LARGE_WITHDRAWAL_SUM, withdrawalSum));
         }
         bankAccount.setBalance(bankAccountBalance.subtract(withdrawalSum));

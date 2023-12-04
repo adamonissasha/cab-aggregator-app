@@ -19,7 +19,7 @@ public interface BankAccountService {
 
     BankAccountPageResponse getAllBankAccounts(int page, int size, String sortBy);
 
-    BankAccountResponse refillBankAccount(Long id, RefillRequest refillRequest);
+    BankAccountResponse refillBankAccount(RefillRequest refillRequest);
 
     BalanceResponse getBankAccountBalance(Long id);
 

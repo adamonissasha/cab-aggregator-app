@@ -23,3 +23,6 @@ driver-service:
 
 passenger-service:
   url: ${PASSENGER_SERVICE_URI:http://localhost:8080/passenger}
+
+bank-service:
+  url: ${BANK_SERVICE_URI:http://localhost:8083/bank}
