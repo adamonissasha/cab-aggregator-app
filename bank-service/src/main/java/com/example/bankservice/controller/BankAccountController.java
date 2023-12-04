@@ -63,7 +63,6 @@ public class BankAccountController {
     @PutMapping("/refill")
     @ResponseStatus(HttpStatus.OK)
     public BankAccountResponse refillDriverBankAccount(@RequestBody RefillRequest refillRequest) {
-        System.out.println("START");
         return bankAccountService.refillBankAccount(refillRequest);
     }
 
