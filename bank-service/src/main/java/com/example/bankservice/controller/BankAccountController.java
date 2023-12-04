@@ -7,6 +7,7 @@ import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankAccountPageResponse;
 import com.example.bankservice.dto.response.BankAccountResponse;
 import com.example.bankservice.service.BankAccountService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,7 +29,7 @@ public class BankAccountController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BankAccountResponse createBankAccount(@RequestBody BankAccountRequest bankAccountRequest) {
+    public BankAccountResponse createBankAccount(@Valid @RequestBody BankAccountRequest bankAccountRequest) {
         return bankAccountService.createBankAccount(bankAccountRequest);
     }
 

@@ -26,6 +26,7 @@ ext {
             'modelMapper'       : '3.1.1',
             'postgresql'        : '42.6.0',
             'liquibase'         : '4.24.0',
+            'hibernateValidator': '8.0.1.Final',
             'lombok'            : '1.18.26'
     ]
 }
@@ -38,6 +39,7 @@ dependencies {
     implementation "org.liquibase:liquibase-core:${versions.liquibase}"
     implementation "org.modelmapper:modelmapper:${versions.modelMapper}"
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation "org.hibernate.validator:hibernate-validator:${versions.hibernateValidator}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"

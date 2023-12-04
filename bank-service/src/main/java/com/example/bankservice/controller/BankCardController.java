@@ -8,6 +8,7 @@ import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
 import com.example.bankservice.model.enums.BankUser;
 import com.example.bankservice.service.BankCardService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,14 +30,14 @@ public class BankCardController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public BankCardResponse createBankCard(@RequestBody BankCardRequest bankCardRequest) {
+    public BankCardResponse createBankCard(@Valid @RequestBody BankCardRequest bankCardRequest) {
         return bankCardService.createBankCard(bankCardRequest);
     }
 
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public BankCardResponse editBankCard(@PathVariable("id") Long id,
-                                         @RequestBody UpdateBankCardRequest updateBankCardRequest) {
+                                         @Valid @RequestBody UpdateBankCardRequest updateBankCardRequest) {
         return bankCardService.editBankCard(id, updateBankCardRequest);
     }
 
