@@ -32,10 +32,10 @@ public class BankAccountController {
         return bankAccountService.createBankAccount(bankAccountRequest);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{driverId}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteBankAccount(@PathVariable("id") Long id) {
-        bankAccountService.deleteBankAccount(id);
+    public void deleteBankAccount(@PathVariable("driverId") Long driverId) {
+        bankAccountService.deleteBankAccount(driverId);
     }
 
     @GetMapping("/{id}")

@@ -10,6 +10,7 @@ import com.example.passengerservice.model.Passenger;
 import com.example.passengerservice.repository.PassengerRepository;
 import com.example.passengerservice.service.PassengerRatingService;
 import com.example.passengerservice.service.PassengerService;
+import com.example.passengerservice.webClient.BankWebClient;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,7 @@ public class PassengerServiceImpl implements PassengerService {
     private final PassengerRepository passengerRepository;
     private final ModelMapper modelMapper;
     private final PassengerRatingService passengerRatingService;
+    private final BankWebClient bankWebClient;
 
     @Override
     public PassengerResponse createPassenger(PassengerRequest passengerRequest) {
@@ -87,6 +89,16 @@ public class PassengerServiceImpl implements PassengerService {
                 .build();
     }
 
+    @Override
+    public void deletePassengerById(long id) {
+        Passenger passenger = passengerRepository.findById(id)
+                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id)));
+        passenger.setActive(false);
+        passengerRepository.save(passenger);
+
+        bankWebClient.deletePassengerBankCards(id);
+    }
+
 
     public void checkSortField(String sortBy) {
         List<String> allowedSortFields = new ArrayList<>();
@@ -107,7 +119,9 @@ public class PassengerServiceImpl implements PassengerService {
     }
 
     public Passenger mapPassengerRequestToPassenger(PassengerRequest passengerRequest) {
-        return modelMapper.map(passengerRequest, Passenger.class);
+        Passenger passenger = modelMapper.map(passengerRequest, Passenger.class);
+        passenger.setActive(true);
+        return passenger;
     }
 
     public PassengerResponse mapPassengerToPassengerResponse(Passenger passenger) {

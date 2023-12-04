@@ -34,4 +34,5 @@ public class Passenger {
     private String phoneNumber;
 
     private String password;
+    private boolean isActive;
 }

@@ -17,6 +17,7 @@ import com.example.bankservice.repository.BankCardRepository;
 import com.example.bankservice.service.BankCardService;
 import com.example.bankservice.webClient.DriverWebClient;
 import com.example.bankservice.webClient.PassengerWebClient;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -77,6 +78,12 @@ public class BankCardServiceImpl implements BankCardService {
         BankCard bankCard = bankCardRepository.findById(id)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
         bankCardRepository.delete(bankCard);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBankUserCards(Long bankUserId, BankUser bankUser) {
+        bankCardRepository.deleteAllByBankUserIdAndBankUser(bankUserId, bankUser);
     }
 
     @Override

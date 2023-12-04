@@ -26,4 +26,6 @@ public interface BankCardService {
     BankCardResponse refillBankCard(Long id, RefillRequest refillRequest);
 
     BalanceResponse getBankCardBalance(Long id);
+
+    void deleteBankUserCards(Long bankUserId, BankUser bankUser);
 }

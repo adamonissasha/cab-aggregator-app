@@ -78,9 +78,10 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public void deleteBankAccount(Long id) {
-        BankAccount bankAccount = bankAccountRepository.findById(id)
-                .orElseThrow(() -> new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id)));
+    public void deleteBankAccount(Long driverId) {
+        BankAccount bankAccount = bankAccountRepository.findByDriverId(driverId)
+                .orElseThrow(() -> new BankAccountNotFoundException(
+                        String.format(BANK_ACCOUNT_BY_DRIVER_ID_NOT_FOUND, driverId)));
         bankAccount.setIsActive(false);
         bankAccountRepository.save(bankAccount);
     }

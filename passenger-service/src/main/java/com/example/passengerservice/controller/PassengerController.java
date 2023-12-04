@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,5 +50,11 @@ public class PassengerController {
                                                   @RequestParam(defaultValue = "10") @Min(1) int size,
                                                   @RequestParam(defaultValue = "id") String sortBy) {
         return passengerService.getAllPassengers(page, size, sortBy);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deletePassengerById(@PathVariable("id") long id) {
+        passengerService.deletePassengerById(id);
     }
 }

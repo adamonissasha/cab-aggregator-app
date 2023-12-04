@@ -16,4 +16,6 @@ public interface DriverService {
     DriverResponse getFreeDriver();
 
     DriverResponse changeDriverStatusToFree(Long id);
+
+    void deleteDriverById(long id);
 }

@@ -18,4 +18,6 @@ public interface BankCardRepository extends JpaRepository<BankCard, Long> {
     Page<BankCard> findAllByBankUserIdAndBankUser(Long bankUserId, BankUser bankUser, Pageable pageable);
 
     Optional<BankCard> findByBankUserIdAndBankUserAndIsDefaultTrue(Long bankUserId, BankUser bankUser);
+
+    void deleteAllByBankUserIdAndBankUser(Long bankUserId, BankUser bankUser);
 }

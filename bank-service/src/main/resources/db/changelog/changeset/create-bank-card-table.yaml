@@ -39,12 +39,12 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: card_holder_id
+                  name: bank_user_id
                   type: bigint
                   constraints:
                     nullable: false
               - column:
-                  name: card_holder
+                  name: bank_user
                   type: varchar(255)
                   constraints:
                     nullable: false

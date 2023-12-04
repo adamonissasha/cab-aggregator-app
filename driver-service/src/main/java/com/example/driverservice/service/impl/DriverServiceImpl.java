@@ -14,6 +14,7 @@ import com.example.driverservice.repository.DriverRepository;
 import com.example.driverservice.service.CarService;
 import com.example.driverservice.service.DriverRatingService;
 import com.example.driverservice.service.DriverService;
+import com.example.driverservice.webClient.BankWebClient;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -38,6 +39,7 @@ public class DriverServiceImpl implements DriverService {
     private final CarService carService;
     private final DriverRatingService driverRatingService;
     private final ModelMapper modelMapper;
+    private final BankWebClient bankWebClient;
 
     @Override
     public DriverResponse createDriver(DriverRequest driverRequest) {
@@ -121,6 +123,18 @@ public class DriverServiceImpl implements DriverService {
         return mapDriverToDriverResponse(driver);
     }
 
+    @Override
+    public void deleteDriverById(long id) {
+        Driver driver = driverRepository.findById(id)
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+        driver.setActive(false);
+        driverRepository.save(driver);
+
+        Long driverId = driver.getId();
+        bankWebClient.deleteDriverBankAccount(driverId);
+        bankWebClient.deleteDriverBankCards(driverId);
+    }
+
     public void checkSortField(String sortBy) {
         List<String> allowedSortFields = new ArrayList<>();
         getFieldNamesRecursive(Driver.class, allowedSortFields);
@@ -143,6 +157,7 @@ public class DriverServiceImpl implements DriverService {
         Driver driver = modelMapper.map(driverRequest, Driver.class);
         driver.setId(null);
         driver.setStatus(Status.FREE);
+        driver.setActive(true);
         return driver;
     }
 
@@ -151,6 +166,7 @@ public class DriverServiceImpl implements DriverService {
         driverResponse.setRating(driverRatingService
                 .getAverageDriverRating(driver.getId())
                 .getAverageRating());
+        driverResponse.setCar(carService.getCarById(driver.getCar().getId()));
         return driverResponse;
     }
 }

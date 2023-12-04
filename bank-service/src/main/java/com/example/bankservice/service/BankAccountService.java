@@ -11,7 +11,7 @@ public interface BankAccountService {
 
     BankAccountResponse createBankAccount(BankAccountRequest bankAccountRequest);
 
-    void deleteBankAccount(Long id);
+    void deleteBankAccount(Long driverId);
 
     BankAccountResponse getBankAccountById(Long id);
 
