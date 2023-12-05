@@ -3,10 +3,12 @@ package com.example.bankservice.service.impl;
 import com.example.bankservice.dto.request.BankCardRequest;
 import com.example.bankservice.dto.request.RefillRequest;
 import com.example.bankservice.dto.request.UpdateBankCardRequest;
+import com.example.bankservice.dto.request.WithdrawalRequest;
 import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
 import com.example.bankservice.dto.response.BankUserResponse;
+import com.example.bankservice.exception.BankCardBalanceException;
 import com.example.bankservice.exception.BankCardNotFoundException;
 import com.example.bankservice.exception.CardNumberUniqueException;
 import com.example.bankservice.exception.IncorrectFieldNameException;
@@ -26,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +38,8 @@ public class BankCardServiceImpl implements BankCardService {
     private static final String CARD_NUMBER_EXIST = "Card with number '%s' already exist";
     private static final String CARD_NOT_FOUND = "Card with id '%s' not found";
     private static final String DEFAULT_CARD_NOT_FOUND = "%s's with id %s default card not found";
+    private static final String INSUFFICIENT_CARD_BALANCE_TO_PAY = "There is not enough balance money to pay %s BYN " +
+            "for the ride. Refill card or change payment method.";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final BankCardRepository bankCardRepository;
     private final BankCardMapper bankCardMapper;
@@ -84,6 +89,22 @@ public class BankCardServiceImpl implements BankCardService {
     @Transactional
     public void deleteBankUserCards(Long bankUserId, BankUser bankUser) {
         bankCardRepository.deleteAllByBankUserIdAndBankUser(bankUserId, bankUser);
+    }
+
+    @Override
+    public BankCardResponse withdrawalPaymentFromBankCard(Long id, WithdrawalRequest withdrawalRequest) {
+        BankCard bankCard = bankCardRepository.findById(id)
+                .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
+
+        BigDecimal withdrawalSum = withdrawalRequest.getSum();
+        BigDecimal bankCardBalance = bankCard.getBalance();
+        if (bankCardBalance.compareTo(withdrawalSum) < 0) {
+            throw new BankCardBalanceException(String.format(INSUFFICIENT_CARD_BALANCE_TO_PAY, withdrawalSum));
+        }
+        bankCard.setBalance(bankCardBalance.subtract(withdrawalSum));
+        bankCard = bankCardRepository.save(bankCard);
+        return bankCardMapper.mapBankCardToBankCardResponse(bankCard,
+                getBankUser(bankCard.getBankUserId(), bankCard.getBankUser()));
     }
 
     @Override

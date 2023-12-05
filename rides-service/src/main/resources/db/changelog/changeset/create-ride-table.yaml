@@ -33,6 +33,9 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: bank_card_id
+                  type: bigint
+              - column:
                   name: status
                   type: varchar(255)
                   constraints:

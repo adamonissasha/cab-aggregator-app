@@ -3,6 +3,7 @@ package com.example.ridesservice.service.impl;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.request.RefillRequest;
+import com.example.ridesservice.dto.request.WithdrawalRequest;
 import com.example.ridesservice.dto.response.DriverResponse;
 import com.example.ridesservice.dto.response.PassengerRideResponse;
 import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
@@ -11,6 +12,7 @@ import com.example.ridesservice.dto.response.RidesPageResponse;
 import com.example.ridesservice.dto.response.StopResponse;
 import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
+import com.example.ridesservice.exception.PaymentMethodException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
 import com.example.ridesservice.exception.passenger.PassengerException;
@@ -32,7 +34,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -51,6 +52,7 @@ public class RideServiceImpl implements RideService {
     private static final String RIDE_NOT_STARTED = "The ride with id '%s' hasn't started";
     private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private static final String PASSENGER_RIDE_EXCEPTION = "Passenger with id '%s' has already book a ride";
+    private static final String CARD_PAYMENT_METHOD = "If you have chosen CARD payment method, select the card for payment";
     private final StopService stopService;
     private final PromoCodeService promoCodeService;
     private final RideRepository rideRepository;
@@ -64,6 +66,10 @@ public class RideServiceImpl implements RideService {
     @Override
     public PassengerRideResponse createRide(CreateRideRequest createRideRequest) {
         PaymentMethod paymentMethod = getPaymentMethod(createRideRequest.getPaymentMethod());
+        if (paymentMethod.equals(PaymentMethod.CARD) && createRideRequest.getBankCardId() == null) {
+            throw new PaymentMethodException(CARD_PAYMENT_METHOD);
+        }
+
         PromoCode promoCode = promoCodeService.getPromoCodeByName(createRideRequest.getPromoCode());
         BigDecimal price = calculatePrice(promoCode);
         Long passengerId = passengerWebClient.getPassenger(createRideRequest.getPassengerId()).getId();
@@ -77,6 +83,7 @@ public class RideServiceImpl implements RideService {
                 .paymentMethod(paymentMethod)
                 .promoCode(promoCode)
                 .driverId(driver.getId())
+                .bankCardId(createRideRequest.getBankCardId())
                 .carId(driver.getCar().getId())
                 .creationDateTime(LocalDateTime.now())
                 .price(price)
@@ -185,6 +192,15 @@ public class RideServiceImpl implements RideService {
             throw new RideStatusException(String.format(RIDE_NOT_STARTED, ride.getId()));
         }
 
+        BigDecimal ridePrice = ride.getPrice();
+
+        if (ride.getPaymentMethod().equals(PaymentMethod.CARD)) {
+            bankWebClient.withdrawalPaymentFromPassengerCard(ride.getBankCardId(),
+                    WithdrawalRequest.builder()
+                            .sum(ridePrice)
+                            .build());
+        }
+
         ride.setStatus(RideStatus.COMPLETED);
         ride.setEndDateTime(LocalDateTime.now());
         rideRepository.save(ride);
@@ -193,7 +209,7 @@ public class RideServiceImpl implements RideService {
         driverWebClient.changeDriverStatusToFree(driverId);
         bankWebClient.refillDriverBankAccount(RefillRequest.builder()
                 .bankUserId(driverId)
-                .sum(ride.getPrice())
+                .sum(ridePrice)
                 .build());
 
         return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride));

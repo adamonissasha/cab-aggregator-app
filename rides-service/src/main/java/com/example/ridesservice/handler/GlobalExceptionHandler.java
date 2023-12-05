@@ -4,11 +4,13 @@ import com.example.ridesservice.dto.response.ExceptionResponse;
 import com.example.ridesservice.exception.IncorrectDateException;
 import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
+import com.example.ridesservice.exception.PaymentMethodException;
 import com.example.ridesservice.exception.PromoCodeAlreadyExistsException;
 import com.example.ridesservice.exception.PromoCodeNotFoundException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
 import com.example.ridesservice.exception.bank.BankAccountNotFoundException;
+import com.example.ridesservice.exception.bank.BankCardBalanceException;
 import com.example.ridesservice.exception.driver.CarNotFoundException;
 import com.example.ridesservice.exception.driver.DriverNotFoundException;
 import com.example.ridesservice.exception.passenger.PassengerException;
@@ -40,6 +42,24 @@ public class GlobalExceptionHandler {
     public ExceptionResponse handleDriverNotFoundException(DriverNotFoundException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = BankCardBalanceException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ExceptionResponse handleBankCardBalanceException(BankCardBalanceException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.CONFLICT.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = PaymentMethodException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handlePaymentMethodException(PaymentMethodException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
                 .build();
     }

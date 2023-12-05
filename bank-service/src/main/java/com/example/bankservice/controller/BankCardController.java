@@ -3,6 +3,7 @@ package com.example.bankservice.controller;
 import com.example.bankservice.dto.request.BankCardRequest;
 import com.example.bankservice.dto.request.RefillRequest;
 import com.example.bankservice.dto.request.UpdateBankCardRequest;
+import com.example.bankservice.dto.request.WithdrawalRequest;
 import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
@@ -88,6 +89,14 @@ public class BankCardController {
     public BankCardResponse refillBankCard(@PathVariable("id") Long id,
                                            @RequestBody RefillRequest refillRequest) {
         return bankCardService.refillBankCard(id, refillRequest);
+    }
+
+    @PutMapping("/{id}/withdrawal")
+    @ResponseStatus(HttpStatus.OK)
+    public BankCardResponse withdrawalPaymentFromBankCard(@PathVariable("id") Long id,
+                                                          @RequestBody WithdrawalRequest withdrawalRequest) {
+        System.out.println("AAAAAAAAAAAAAAAAAAAAAAa");
+        return bankCardService.withdrawalPaymentFromBankCard(id, withdrawalRequest);
     }
 
     @GetMapping("/{id}/balance")

@@ -14,7 +14,7 @@ import lombok.Setter;
 @Setter
 public class BankAccountRequest {
     @NotBlank(message = "{bank.account.number.required}")
-    @Pattern(regexp = "^\\d{4} \\d{4} \\d{4} \\d{4}$", message = "{bank.account.number.format}")
+    @Pattern(regexp = "^[A-Za-z\\d]{14}$", message = "{bank.account.number.format}")
     private String number;
 
     @NotNull(message = "{bank.account.driver-id.required}")

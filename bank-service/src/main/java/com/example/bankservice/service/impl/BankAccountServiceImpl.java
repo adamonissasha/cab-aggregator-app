@@ -192,7 +192,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         bankAccount.setBalance(bankAccountBalance.subtract(withdrawalSum));
         bankAccount = bankAccountRepository.save(bankAccount);
 
-        bankCardService.refillBankCard(withdrawalRequest.getBankCardId(),
+        bankCardService.refillBankCard(id,
                 RefillRequest.builder()
                         .sum(withdrawalSum)
                         .bankUserId(bankAccount.getDriverId())

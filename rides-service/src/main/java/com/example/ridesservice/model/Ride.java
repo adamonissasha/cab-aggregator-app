@@ -42,6 +42,8 @@ public class Ride {
     @Enumerated(value = EnumType.STRING)
     private PaymentMethod paymentMethod;
 
+    private Long bankCardId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "promo_code_id")
     private PromoCode promoCode;

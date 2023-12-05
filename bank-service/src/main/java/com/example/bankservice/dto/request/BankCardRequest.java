@@ -33,6 +33,6 @@ public class BankCardRequest {
     @NotNull(message = "{bank.card.user-id.required}")
     private Long bankUserId;
 
-    @NotBlank(message = "{bank.card.user.required}")
+    @NotNull(message = "{bank.card.user.required}")
     private BankUser bankUser;
 }

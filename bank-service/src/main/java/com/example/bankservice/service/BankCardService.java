@@ -3,6 +3,7 @@ package com.example.bankservice.service;
 import com.example.bankservice.dto.request.BankCardRequest;
 import com.example.bankservice.dto.request.RefillRequest;
 import com.example.bankservice.dto.request.UpdateBankCardRequest;
+import com.example.bankservice.dto.request.WithdrawalRequest;
 import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
@@ -28,4 +29,6 @@ public interface BankCardService {
     BalanceResponse getBankCardBalance(Long id);
 
     void deleteBankUserCards(Long bankUserId, BankUser bankUser);
+
+    BankCardResponse withdrawalPaymentFromBankCard(Long id, WithdrawalRequest withdrawalRequest);
 }
