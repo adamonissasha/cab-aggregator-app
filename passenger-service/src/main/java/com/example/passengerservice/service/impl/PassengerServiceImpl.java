@@ -3,13 +3,13 @@ package com.example.passengerservice.service.impl;
 import com.example.passengerservice.dto.request.PassengerRequest;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
-import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
 import com.example.passengerservice.model.Passenger;
 import com.example.passengerservice.repository.PassengerRepository;
 import com.example.passengerservice.service.PassengerRatingService;
 import com.example.passengerservice.service.PassengerService;
+import com.example.passengerservice.util.FieldValidator;
 import com.example.passengerservice.webClient.BankWebClient;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -19,8 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,11 +26,11 @@ import java.util.List;
 public class PassengerServiceImpl implements PassengerService {
     private static final String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
     private static final String PHONE_NUMBER_EXIST = "Passenger with phone number '%s' already exist";
-    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final PassengerRepository passengerRepository;
     private final ModelMapper modelMapper;
     private final PassengerRatingService passengerRatingService;
     private final BankWebClient bankWebClient;
+    private final FieldValidator fieldValidator;
 
     @Override
     public PassengerResponse createPassenger(PassengerRequest passengerRequest) {
@@ -72,7 +70,7 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public PassengerPageResponse getAllPassengers(int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(Passenger.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Passenger> passengerPage = passengerRepository.findAll(pageable);
         List<PassengerResponse> passengerResponses = passengerPage.getContent()
@@ -97,25 +95,6 @@ public class PassengerServiceImpl implements PassengerService {
         passengerRepository.save(passenger);
 
         bankWebClient.deletePassengerBankCards(id);
-    }
-
-
-    public void checkSortField(String sortBy) {
-        List<String> allowedSortFields = new ArrayList<>();
-        getFieldNamesRecursive(Passenger.class, allowedSortFields);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
-    }
-
-    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
-        if (myClass != null) {
-            Field[] fields = myClass.getDeclaredFields();
-            for (Field field : fields) {
-                fieldNames.add(field.getName());
-            }
-            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
-        }
     }
 
     public Passenger mapPassengerRequestToPassenger(PassengerRequest passengerRequest) {

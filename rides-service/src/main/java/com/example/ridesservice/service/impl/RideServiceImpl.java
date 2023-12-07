@@ -10,7 +10,6 @@ import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
 import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.dto.response.RidesPageResponse;
 import com.example.ridesservice.dto.response.StopResponse;
-import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
 import com.example.ridesservice.exception.PaymentMethodException;
 import com.example.ridesservice.exception.RideNotFoundException;
@@ -25,6 +24,7 @@ import com.example.ridesservice.repository.RideRepository;
 import com.example.ridesservice.service.PromoCodeService;
 import com.example.ridesservice.service.RideService;
 import com.example.ridesservice.service.StopService;
+import com.example.ridesservice.util.FieldValidator;
 import com.example.ridesservice.webClient.BankWebClient;
 import com.example.ridesservice.webClient.DriverWebClient;
 import com.example.ridesservice.webClient.PassengerWebClient;
@@ -35,11 +35,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -50,7 +48,6 @@ public class RideServiceImpl implements RideService {
     private static final String INCORRECT_PAYMENT_METHOD = "'%s' - incorrect payment method";
     private static final String RIDE_NOT_FOUND = "Ride with id '%s' not found";
     private static final String RIDE_NOT_STARTED = "The ride with id '%s' hasn't started";
-    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private static final String PASSENGER_RIDE_EXCEPTION = "Passenger with id '%s' has already book a ride";
     private static final String CARD_PAYMENT_METHOD = "If you have chosen CARD payment method, select the card for payment";
     private final StopService stopService;
@@ -61,7 +58,7 @@ public class RideServiceImpl implements RideService {
     private final BankWebClient bankWebClient;
     private final PassengerWebClient passengerWebClient;
     private final Random random = new Random();
-
+    private final FieldValidator fieldValidator;
 
     @Override
     public PassengerRideResponse createRide(CreateRideRequest createRideRequest) {
@@ -132,7 +129,7 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public PassengerRidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(Ride.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Ride> ridesPage = rideRepository.findAllByPassengerId(passengerId, pageable);
         return rideMapper.mapRidesPageToPassengerRidesPageResponse(ridesPage);
@@ -140,7 +137,7 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public RidesPageResponse getDriverRides(Long driverId, int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(Ride.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Ride> ridesPage = rideRepository.findAllByDriverId(driverId, pageable);
         return rideMapper.mapRidesPageToRidesPageResponse(ridesPage);
@@ -259,24 +256,6 @@ public class RideServiceImpl implements RideService {
             if (ride.getStatus().equals(status)) {
                 throw new RideStatusException(String.format(status.getStatusErrorMessage(), ride.getId()));
             }
-        }
-    }
-
-    public void checkSortField(String sortBy) {
-        List<String> allowedSortFields = new ArrayList<>();
-        getFieldNamesRecursive(Ride.class, allowedSortFields);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
-    }
-
-    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
-        if (myClass != null) {
-            Field[] fields = myClass.getDeclaredFields();
-            for (Field field : fields) {
-                fieldNames.add(field.getName());
-            }
-            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
         }
     }
 }

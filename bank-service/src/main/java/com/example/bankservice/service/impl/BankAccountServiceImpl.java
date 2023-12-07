@@ -11,7 +11,6 @@ import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.exception.BankAccountNotFoundException;
 import com.example.bankservice.exception.CardNumberUniqueException;
 import com.example.bankservice.exception.DriverBankAccountException;
-import com.example.bankservice.exception.IncorrectFieldNameException;
 import com.example.bankservice.exception.WithdrawalException;
 import com.example.bankservice.mapper.BankAccountMapper;
 import com.example.bankservice.model.BankAccount;
@@ -20,6 +19,7 @@ import com.example.bankservice.repository.BankAccountRepository;
 import com.example.bankservice.service.BankAccountHistoryService;
 import com.example.bankservice.service.BankAccountService;
 import com.example.bankservice.service.BankCardService;
+import com.example.bankservice.util.FieldValidator;
 import com.example.bankservice.webClient.DriverWebClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,11 +28,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -46,7 +44,6 @@ public class BankAccountServiceImpl implements BankAccountService {
     private static final String LARGE_WITHDRAWAL_SUM = "Withdrawal sum %s exceeds bank account balance";
     private static final String WITHDRAWAL_DATE_MESSAGE = "Withdrawal from the bank account is allowed once every %s days." +
             "The last withdrawal date - %s. The next available withdrawal date - %s.";
-    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private static final BigDecimal DRIVER_PERCENT = BigDecimal.valueOf(0.7);
     private static final BigDecimal MIN_WITHDRAWAL_SUM = BigDecimal.valueOf(30);
     private static final BigDecimal MAX_WITHDRAWAL_SUM = BigDecimal.valueOf(300);
@@ -56,6 +53,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final DriverWebClient driverWebClient;
     private final BankAccountHistoryService bankAccountHistoryService;
     private final BankCardService bankCardService;
+    private final FieldValidator fieldValidator;
 
     @Override
     public BankAccountResponse createBankAccount(BankAccountRequest bankAccountRequest) {
@@ -96,7 +94,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountPageResponse getAllActiveBankAccounts(int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(BankAccount.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankAccount> bankAccountPage = bankAccountRepository.findAll(pageable);
         List<BankAccountResponse> bankAccountResponses = bankAccountPage.getContent()
@@ -117,7 +115,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountPageResponse getAllBankAccounts(int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(BankAccount.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankAccount> bankAccountPage = bankAccountRepository.findAll(pageable);
         List<BankAccountResponse> bankAccountResponses = bankAccountPage.getContent()
@@ -207,24 +205,5 @@ public class BankAccountServiceImpl implements BankAccountService {
 
         BankUserResponse bankUserResponse = driverWebClient.getDriver(bankAccount.getDriverId());
         return bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse);
-    }
-
-
-    public void checkSortField(String sortBy) {
-        List<String> allowedSortFields = new ArrayList<>();
-        getFieldNamesRecursive(BankAccount.class, allowedSortFields);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
-    }
-
-    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
-        if (myClass != null) {
-            Field[] fields = myClass.getDeclaredFields();
-            for (Field field : fields) {
-                fieldNames.add(field.getName());
-            }
-            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
-        }
     }
 }

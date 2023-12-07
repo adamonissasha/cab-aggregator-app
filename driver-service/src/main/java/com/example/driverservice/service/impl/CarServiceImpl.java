@@ -5,10 +5,10 @@ import com.example.driverservice.dto.response.CarPageResponse;
 import com.example.driverservice.dto.response.CarResponse;
 import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.CarNumberUniqueException;
-import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.model.Car;
 import com.example.driverservice.repository.CarRepository;
 import com.example.driverservice.service.CarService;
+import com.example.driverservice.util.FieldValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -17,8 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,9 +25,9 @@ import java.util.Optional;
 public class CarServiceImpl implements CarService {
     private static final String CAR_NOT_FOUND = "Car with id '%s' not found";
     private static final String CAR_NUMBER_EXIST = "Car with number '%s' already exist";
-    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final CarRepository carRepository;
     private final ModelMapper modelMapper;
+    private final FieldValidator fieldValidator;
 
     @Override
     public CarResponse createCar(CarRequest carRequest) {
@@ -67,7 +65,7 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public CarPageResponse getAllCars(int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(Car.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Car> carPage = carRepository.findAll(pageable);
 
@@ -83,25 +81,6 @@ public class CarServiceImpl implements CarService {
                 .currentPage(carPage.getNumber())
                 .pageSize(carPage.getSize())
                 .build();
-    }
-
-
-    public void checkSortField(String sortBy) {
-        List<String> allowedSortFields = new ArrayList<>();
-        getFieldNamesRecursive(Car.class, allowedSortFields);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
-    }
-
-    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
-        if (myClass != null) {
-            Field[] fields = myClass.getDeclaredFields();
-            for (Field field : fields) {
-                fieldNames.add(field.getName());
-            }
-            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
-        }
     }
 
     public Car mapCarRequestToCar(CarRequest carRequest) {

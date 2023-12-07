@@ -6,7 +6,6 @@ import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.exception.DriverNotFoundException;
 import com.example.driverservice.exception.DriverStatusException;
 import com.example.driverservice.exception.FreeDriverNotFoundException;
-import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
 import com.example.driverservice.model.Driver;
 import com.example.driverservice.model.enums.Status;
@@ -14,6 +13,7 @@ import com.example.driverservice.repository.DriverRepository;
 import com.example.driverservice.service.CarService;
 import com.example.driverservice.service.DriverRatingService;
 import com.example.driverservice.service.DriverService;
+import com.example.driverservice.util.FieldValidator;
 import com.example.driverservice.webClient.BankWebClient;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -23,8 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -34,12 +32,12 @@ public class DriverServiceImpl implements DriverService {
     private static final String FREE_DRIVER_NOT_FOUND = "Free driver not found";
     private static final String DRIVER_ALREADY_FREE = "Driver with id '%s' is already free";
     private static final String PHONE_NUMBER_EXIST = "Driver with phone number '%s' already exist";
-    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final DriverRepository driverRepository;
     private final CarService carService;
     private final DriverRatingService driverRatingService;
     private final ModelMapper modelMapper;
     private final BankWebClient bankWebClient;
+    private final FieldValidator fieldValidator;
 
     @Override
     public DriverResponse createDriver(DriverRequest driverRequest) {
@@ -81,7 +79,7 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverPageResponse getAllDrivers(int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(Driver.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Driver> driverPage = driverRepository.findAll(pageable);
 
@@ -133,24 +131,6 @@ public class DriverServiceImpl implements DriverService {
         Long driverId = driver.getId();
         bankWebClient.deleteDriverBankAccount(driverId);
         bankWebClient.deleteDriverBankCards(driverId);
-    }
-
-    public void checkSortField(String sortBy) {
-        List<String> allowedSortFields = new ArrayList<>();
-        getFieldNamesRecursive(Driver.class, allowedSortFields);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
-    }
-
-    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
-        if (myClass != null) {
-            Field[] fields = myClass.getDeclaredFields();
-            for (Field field : fields) {
-                fieldNames.add(field.getName());
-            }
-            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
-        }
     }
 
     public Driver mapDriverRequestToDriver(DriverRequest driverRequest) {

@@ -11,12 +11,12 @@ import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.exception.BankCardBalanceException;
 import com.example.bankservice.exception.BankCardNotFoundException;
 import com.example.bankservice.exception.CardNumberUniqueException;
-import com.example.bankservice.exception.IncorrectFieldNameException;
 import com.example.bankservice.mapper.BankCardMapper;
 import com.example.bankservice.model.BankCard;
 import com.example.bankservice.model.enums.BankUser;
 import com.example.bankservice.repository.BankCardRepository;
 import com.example.bankservice.service.BankCardService;
+import com.example.bankservice.util.FieldValidator;
 import com.example.bankservice.webClient.DriverWebClient;
 import com.example.bankservice.webClient.PassengerWebClient;
 import jakarta.transaction.Transactional;
@@ -27,9 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -40,11 +38,11 @@ public class BankCardServiceImpl implements BankCardService {
     private static final String DEFAULT_CARD_NOT_FOUND = "%s's with id %s default card not found";
     private static final String INSUFFICIENT_CARD_BALANCE_TO_PAY = "There is not enough balance money to pay %s BYN " +
             "for the ride. Refill card or change payment method.";
-    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
     private final BankCardRepository bankCardRepository;
     private final BankCardMapper bankCardMapper;
     private final PassengerWebClient passengerWebClient;
     private final DriverWebClient driverWebClient;
+    private final FieldValidator fieldValidator;
 
     @Override
     public BankCardResponse createBankCard(BankCardRequest bankCardRequest) {
@@ -117,7 +115,7 @@ public class BankCardServiceImpl implements BankCardService {
 
     @Override
     public BankCardPageResponse getBankCardsByBankUser(Long bankUserId, BankUser bankUser, int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(BankCard.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankCard> bankCardPage = bankCardRepository.findAllByBankUserIdAndBankUser(bankUserId, bankUser, pageable);
         List<BankCardResponse> bankCardResponses = bankCardPage.getContent()
@@ -197,23 +195,5 @@ public class BankCardServiceImpl implements BankCardService {
             bankUserResponse = driverWebClient.getDriver(bankUserId);
         }
         return bankUserResponse;
-    }
-
-    public void checkSortField(String sortBy) {
-        List<String> allowedSortFields = new ArrayList<>();
-        getFieldNamesRecursive(BankCard.class, allowedSortFields);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
-    }
-
-    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
-        if (myClass != null) {
-            Field[] fields = myClass.getDeclaredFields();
-            for (Field field : fields) {
-                fieldNames.add(field.getName());
-            }
-            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
-        }
     }
 }
