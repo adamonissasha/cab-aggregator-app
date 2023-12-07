@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +35,7 @@ public class BankAccountHistoryServiceImpl implements BankAccountHistoryService 
     private final FieldValidator fieldValidator;
 
     @Override
+    @Transactional
     public BankAccountHistoryResponse createBankAccountHistoryRecord(Long id, BankAccountHistoryRequest bankAccountHistoryRequest) {
         BankAccountHistory bankAccountHistory =
                 bankAccountHistoryMapper.mapBankAccountHistoryRequestToBankAccountHistory(id, bankAccountHistoryRequest);
@@ -57,6 +59,7 @@ public class BankAccountHistoryServiceImpl implements BankAccountHistoryService 
     }
 
     @Override
+    @Transactional
     public BankAccountHistoryPageResponse getBankAccountHistory(Long id, int page, int size, String sortBy) {
         fieldValidator.checkSortField(BankAccountHistory.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());

@@ -27,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -56,6 +57,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final FieldValidator fieldValidator;
 
     @Override
+    @Transactional
     public BankAccountResponse createBankAccount(BankAccountRequest bankAccountRequest) {
         Long driverId = bankAccountRequest.getDriverId();
         bankAccountRepository.findByDriverId(driverId)
@@ -134,6 +136,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
+    @Transactional
     public BankAccountResponse refillBankAccount(RefillRequest refillRequest) {
         Long driverId = refillRequest.getBankUserId();
         BankAccount bankAccount = bankAccountRepository.findByDriverId(driverId)
@@ -168,25 +171,16 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
+    @Transactional
     public BankAccountResponse withdrawalFromBankAccount(Long id, WithdrawalRequest withdrawalRequest) {
         BankAccount bankAccount = bankAccountRepository.findById(id)
                 .orElseThrow(() -> new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id)));
+
         BigDecimal withdrawalSum = withdrawalRequest.getSum();
-        if (withdrawalSum.compareTo(MIN_WITHDRAWAL_SUM) < 0 || withdrawalSum.compareTo(MAX_WITHDRAWAL_SUM) > 0) {
-            throw new WithdrawalException(String.format(WITHDRAWAL_SUM_IS_OUTSIDE, withdrawalSum));
-        }
-        LocalDateTime lastWithdrawalDate = bankAccountHistoryService.getLastWithdrawalDate(id);
-        if (lastWithdrawalDate != null) {
-            LocalDateTime nextAvailableWithdrawalDate = lastWithdrawalDate.plusDays(WITHDRAWAL_LIMIT_DAYS);
-            if (nextAvailableWithdrawalDate.isAfter(LocalDateTime.now())) {
-                throw new WithdrawalException(String.format(WITHDRAWAL_DATE_MESSAGE, WITHDRAWAL_LIMIT_DAYS,
-                        lastWithdrawalDate, nextAvailableWithdrawalDate));
-            }
-        }
         BigDecimal bankAccountBalance = bankAccount.getBalance();
-        if (bankAccountBalance.compareTo(withdrawalSum) < 0) {
-            throw new WithdrawalException(String.format(LARGE_WITHDRAWAL_SUM, withdrawalSum));
-        }
+
+        checkWithdrawalConditions(id, withdrawalSum, bankAccountBalance);
+
         bankAccount.setBalance(bankAccountBalance.subtract(withdrawalSum));
         bankAccount = bankAccountRepository.save(bankAccount);
 
@@ -205,5 +199,22 @@ public class BankAccountServiceImpl implements BankAccountService {
 
         BankUserResponse bankUserResponse = driverWebClient.getDriver(bankAccount.getDriverId());
         return bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse);
+    }
+
+    private void checkWithdrawalConditions(Long id, BigDecimal withdrawalSum, BigDecimal bankAccountBalance) {
+        if (withdrawalSum.compareTo(MIN_WITHDRAWAL_SUM) < 0 || withdrawalSum.compareTo(MAX_WITHDRAWAL_SUM) > 0) {
+            throw new WithdrawalException(String.format(WITHDRAWAL_SUM_IS_OUTSIDE, withdrawalSum));
+        }
+        LocalDateTime lastWithdrawalDate = bankAccountHistoryService.getLastWithdrawalDate(id);
+        if (lastWithdrawalDate != null) {
+            LocalDateTime nextAvailableWithdrawalDate = lastWithdrawalDate.plusDays(WITHDRAWAL_LIMIT_DAYS);
+            if (nextAvailableWithdrawalDate.isAfter(LocalDateTime.now())) {
+                throw new WithdrawalException(String.format(WITHDRAWAL_DATE_MESSAGE, WITHDRAWAL_LIMIT_DAYS,
+                        lastWithdrawalDate, nextAvailableWithdrawalDate));
+            }
+        }
+        if (bankAccountBalance.compareTo(withdrawalSum) < 0) {
+            throw new WithdrawalException(String.format(LARGE_WITHDRAWAL_SUM, withdrawalSum));
+        }
     }
 }

@@ -45,6 +45,7 @@ public class BankCardServiceImpl implements BankCardService {
     private final FieldValidator fieldValidator;
 
     @Override
+    @Transactional
     public BankCardResponse createBankCard(BankCardRequest bankCardRequest) {
         String cardNumber = bankCardRequest.getNumber();
         bankCardRepository.findBankCardByNumber(cardNumber)
@@ -58,6 +59,7 @@ public class BankCardServiceImpl implements BankCardService {
     }
 
     @Override
+    @Transactional
     public BankCardResponse editBankCard(Long id, UpdateBankCardRequest updateBankCardRequest) {
         BankCard updatedBankCard = bankCardRepository.findById(id)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
@@ -90,6 +92,7 @@ public class BankCardServiceImpl implements BankCardService {
     }
 
     @Override
+    @Transactional
     public BankCardResponse withdrawalPaymentFromBankCard(Long id, WithdrawalRequest withdrawalRequest) {
         BankCard bankCard = bankCardRepository.findById(id)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
@@ -106,6 +109,7 @@ public class BankCardServiceImpl implements BankCardService {
     }
 
     @Override
+    @Transactional
     public BankCardResponse getBankCardById(Long id) {
         BankCard bankCard = bankCardRepository.findById(id)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
@@ -114,6 +118,7 @@ public class BankCardServiceImpl implements BankCardService {
     }
 
     @Override
+    @Transactional
     public BankCardPageResponse getBankCardsByBankUser(Long bankUserId, BankUser bankUser, int page, int size, String sortBy) {
         fieldValidator.checkSortField(BankCard.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
@@ -134,6 +139,7 @@ public class BankCardServiceImpl implements BankCardService {
     }
 
     @Override
+    @Transactional
     public BankCardResponse makeBankCardDefault(Long id) {
         BankCard bankCard = bankCardRepository.findById(id)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
@@ -150,6 +156,7 @@ public class BankCardServiceImpl implements BankCardService {
     }
 
     @Override
+    @Transactional
     public BankCardResponse getDefaultBankCard(Long bankUserId, BankUser bankUser) {
         BankUserResponse bankUserResponse = getBankUser(bankUserId, bankUser);
         BankCard defaultBankCard = bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(
@@ -160,6 +167,7 @@ public class BankCardServiceImpl implements BankCardService {
     }
 
     @Override
+    @Transactional
     public BankCardResponse refillBankCard(Long id, RefillRequest refillRequest) {
         BankCard bankCard;
         if (id == null) {
