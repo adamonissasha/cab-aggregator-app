@@ -99,10 +99,7 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse getFreeDriver() {
-        Driver freeDriver = driverRepository.findAll()
-                .stream()
-                .filter(driver -> driver.getStatus().equals(Status.FREE))
-                .findFirst()
+        Driver freeDriver = driverRepository.findFirstByStatus(Status.FREE)
                 .orElseThrow(() -> new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND));
         freeDriver.setStatus(Status.BUSY);
         driverRepository.save(freeDriver);
