@@ -189,7 +189,7 @@ public class BankCardServiceImpl implements BankCardService {
 
     private BankUserResponse getBankUser(Long bankUserId, BankUser bankUser) {
         BankUserResponse bankUserResponse;
-        if (bankUser.equals(BankUser.PASSENGER)) {
+        if (bankUser == BankUser.PASSENGER) {
             bankUserResponse = passengerWebClient.getPassenger(bankUserId);
         } else {
             bankUserResponse = driverWebClient.getDriver(bankUserId);

@@ -63,7 +63,7 @@ public class RideServiceImpl implements RideService {
     @Override
     public PassengerRideResponse createRide(CreateRideRequest createRideRequest) {
         PaymentMethod paymentMethod = getPaymentMethod(createRideRequest.getPaymentMethod());
-        if (paymentMethod.equals(PaymentMethod.CARD) && createRideRequest.getBankCardId() == null) {
+        if (paymentMethod == PaymentMethod.CARD && createRideRequest.getBankCardId() == null) {
             throw new PaymentMethodException(CARD_PAYMENT_METHOD);
         }
 
@@ -185,13 +185,13 @@ public class RideServiceImpl implements RideService {
                 RideStatus.COMPLETED,
                 RideStatus.CANCELED)
         );
-        if (!ride.getStatus().equals(RideStatus.STARTED)) {
+        if (ride.getStatus() != RideStatus.STARTED) {
             throw new RideStatusException(String.format(RIDE_NOT_STARTED, ride.getId()));
         }
 
         BigDecimal ridePrice = ride.getPrice();
 
-        if (ride.getPaymentMethod().equals(PaymentMethod.CARD)) {
+        if (ride.getPaymentMethod() == PaymentMethod.CARD) {
             bankWebClient.withdrawalPaymentFromPassengerCard(ride.getBankCardId(),
                     WithdrawalRequest.builder()
                             .sum(ridePrice)
@@ -240,8 +240,8 @@ public class RideServiceImpl implements RideService {
         if (rideRepository.findAll()
                 .stream()
                 .filter(ride -> ride.getPassengerId().equals(passengerId))
-                .anyMatch(ride -> ride.getStatus().equals(RideStatus.CREATED) ||
-                        ride.getStatus().equals(RideStatus.STARTED))) {
+                .anyMatch(ride -> ride.getStatus() == RideStatus.CREATED ||
+                        ride.getStatus() == RideStatus.STARTED)) {
             throw new PassengerException(String.format(PASSENGER_RIDE_EXCEPTION, passengerId));
         }
     }

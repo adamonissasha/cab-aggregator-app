@@ -110,7 +110,7 @@ public class DriverServiceImpl implements DriverService {
     public DriverResponse changeDriverStatusToFree(Long id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
-        if (driver.getStatus().equals(Status.FREE)) {
+        if (driver.getStatus() == Status.FREE) {
             throw new DriverStatusException(String.format(DRIVER_ALREADY_FREE, id));
         }
         driver.setStatus(Status.FREE);
