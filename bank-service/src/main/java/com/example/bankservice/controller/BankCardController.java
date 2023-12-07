@@ -36,33 +36,28 @@ public class BankCardController {
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public BankCardResponse editBankCard(@PathVariable("id") Long id,
                                          @Valid @RequestBody UpdateBankCardRequest updateBankCardRequest) {
         return bankCardService.editBankCard(id, updateBankCardRequest);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public void deleteBankCard(@PathVariable("id") Long id) {
         bankCardService.deleteBankCard(id);
     }
 
     @DeleteMapping("/user/{bankUserId}")
-    @ResponseStatus(HttpStatus.OK)
     public void deleteBankUserCards(@PathVariable("bankUserId") Long bankUserId,
                                     @RequestParam BankUser bankUser) {
         bankCardService.deleteBankUserCards(bankUserId, bankUser);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public BankCardResponse getBankCardById(@PathVariable("id") Long id) {
         return bankCardService.getBankCardById(id);
     }
 
     @GetMapping("/user/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public BankCardPageResponse getBankUserCards(@PathVariable("id") Long bankUserId,
                                                  @RequestParam BankUser bankUser,
                                                  @RequestParam(defaultValue = "0") int page,
@@ -72,35 +67,29 @@ public class BankCardController {
     }
 
     @PutMapping("/default/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public BankCardResponse makeBankCardDefault(@PathVariable("id") Long id) {
         return bankCardService.makeBankCardDefault(id);
     }
 
     @GetMapping("/user/{id}/default")
-    @ResponseStatus(HttpStatus.OK)
     public BankCardResponse getDefaultBankCard(@PathVariable("id") Long bankUserId,
                                                @RequestParam BankUser bankUser) {
         return bankCardService.getDefaultBankCard(bankUserId, bankUser);
     }
 
     @PutMapping("/{id}/refill")
-    @ResponseStatus(HttpStatus.OK)
     public BankCardResponse refillBankCard(@PathVariable("id") Long id,
                                            @RequestBody RefillRequest refillRequest) {
         return bankCardService.refillBankCard(id, refillRequest);
     }
 
     @PutMapping("/{id}/withdrawal")
-    @ResponseStatus(HttpStatus.OK)
     public BankCardResponse withdrawalPaymentFromBankCard(@PathVariable("id") Long id,
                                                           @RequestBody WithdrawalRequest withdrawalRequest) {
-        System.out.println("AAAAAAAAAAAAAAAAAAAAAAa");
         return bankCardService.withdrawalPaymentFromBankCard(id, withdrawalRequest);
     }
 
     @GetMapping("/{id}/balance")
-    @ResponseStatus(HttpStatus.OK)
     public BalanceResponse getBankCardBalance(@PathVariable("id") Long id) {
         return bankCardService.getBankCardBalance(id);
     }

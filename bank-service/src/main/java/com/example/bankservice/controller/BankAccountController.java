@@ -34,19 +34,16 @@ public class BankAccountController {
     }
 
     @DeleteMapping("/{driverId}")
-    @ResponseStatus(HttpStatus.OK)
     public void deleteBankAccount(@PathVariable("driverId") Long driverId) {
         bankAccountService.deleteBankAccount(driverId);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public BankAccountResponse getBankAccountById(@PathVariable("id") Long id) {
         return bankAccountService.getBankAccountById(id);
     }
 
     @GetMapping("/active")
-    @ResponseStatus(HttpStatus.OK)
     public BankAccountPageResponse getAllActiveBankAccounts(@RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "10") int size,
                                                             @RequestParam(defaultValue = "id") String sortBy) {
@@ -54,7 +51,6 @@ public class BankAccountController {
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public BankAccountPageResponse getAllBankAccounts(@RequestParam(defaultValue = "0") int page,
                                                       @RequestParam(defaultValue = "10") int size,
                                                       @RequestParam(defaultValue = "id") String sortBy) {
@@ -62,19 +58,16 @@ public class BankAccountController {
     }
 
     @PutMapping("/refill")
-    @ResponseStatus(HttpStatus.OK)
     public BankAccountResponse refillDriverBankAccount(@RequestBody RefillRequest refillRequest) {
         return bankAccountService.refillBankAccount(refillRequest);
     }
 
     @GetMapping("/{id}/balance")
-    @ResponseStatus(HttpStatus.OK)
     public BalanceResponse getBankAccountBalance(@PathVariable("id") Long id) {
         return bankAccountService.getBankAccountBalance(id);
     }
 
     @PutMapping("/{id}/withdrawal")
-    @ResponseStatus(HttpStatus.OK)
     public BankAccountResponse withdrawalFromBankAccount(@PathVariable("id") Long id,
                                                          @RequestBody WithdrawalRequest withdrawalRequest) {
         return bankAccountService.withdrawalFromBankAccount(id, withdrawalRequest);

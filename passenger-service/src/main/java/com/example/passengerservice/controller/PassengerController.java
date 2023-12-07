@@ -32,20 +32,17 @@ public class PassengerController {
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public PassengerResponse editPassenger(@Valid @RequestBody PassengerRequest passengerRequest,
                                            @PathVariable("id") long id) {
         return passengerService.editPassenger(id, passengerRequest);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public PassengerResponse getPassengerById(@PathVariable("id") long id) {
         return passengerService.getPassengerById(id);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public PassengerPageResponse getAllPassengers(@RequestParam(defaultValue = "0") @Min(0) int page,
                                                   @RequestParam(defaultValue = "10") @Min(1) int size,
                                                   @RequestParam(defaultValue = "id") String sortBy) {
@@ -53,7 +50,6 @@ public class PassengerController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public void deletePassengerById(@PathVariable("id") long id) {
         passengerService.deletePassengerById(id);
     }

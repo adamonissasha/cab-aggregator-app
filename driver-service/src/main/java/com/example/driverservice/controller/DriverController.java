@@ -32,26 +32,22 @@ public class DriverController {
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public DriverResponse editDriver(@Valid @RequestBody DriverRequest driverRequest,
                                      @PathVariable("id") long id) {
         return driverService.editDriver(id, driverRequest);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public DriverResponse getDriverById(@PathVariable("id") long id) {
         return driverService.getDriverById(id);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public void deleteDriverById(@PathVariable("id") long id) {
         driverService.deleteDriverById(id);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public DriverPageResponse getAllDrivers(@RequestParam(defaultValue = "0") @Min(0) int page,
                                             @RequestParam(defaultValue = "10") @Min(1) int size,
                                             @RequestParam(defaultValue = "id") String sortBy) {
@@ -59,13 +55,11 @@ public class DriverController {
     }
 
     @GetMapping("/free")
-    @ResponseStatus(HttpStatus.OK)
     public DriverResponse getFreeDriver() {
         return driverService.getFreeDriver();
     }
 
     @PutMapping("/{id}/free")
-    @ResponseStatus(HttpStatus.OK)
     public DriverResponse changeStatusToFree(@PathVariable("id") Long id) {
         return driverService.changeDriverStatusToFree(id);
     }

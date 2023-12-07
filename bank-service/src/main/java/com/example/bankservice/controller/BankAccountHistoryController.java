@@ -29,7 +29,6 @@ public class BankAccountHistoryController {
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public BankAccountHistoryPageResponse getBankAccountHistory(@PathVariable("id") Long id,
                                                                 @RequestParam(defaultValue = "0") int page,
                                                                 @RequestParam(defaultValue = "10") int size,

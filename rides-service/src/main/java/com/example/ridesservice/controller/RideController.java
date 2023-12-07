@@ -34,38 +34,32 @@ public class RideController {
     }
 
     @PutMapping("/{rideId}")
-    @ResponseStatus(HttpStatus.OK)
     public PassengerRideResponse editRide(@PathVariable("rideId") Long rideId,
                                           @Valid @RequestBody EditRideRequest editRideRequest) {
         return rideService.editRide(rideId, editRideRequest);
     }
 
     @PutMapping("/{rideId}/cancel")
-    @ResponseStatus(HttpStatus.OK)
     public RideResponse canselRide(@PathVariable("rideId") Long rideId) {
         return rideService.canselRide(rideId);
     }
 
     @PutMapping("/{rideId}/start")
-    @ResponseStatus(HttpStatus.OK)
     public RideResponse startRide(@PathVariable("rideId") Long rideId) {
         return rideService.startRide(rideId);
     }
 
     @PutMapping("/{rideId}/complete")
-    @ResponseStatus(HttpStatus.OK)
     public RideResponse completeRide(@PathVariable("rideId") Long rideId) {
         return rideService.completeRide(rideId);
     }
 
     @GetMapping("/{rideId}")
-    @ResponseStatus(HttpStatus.OK)
     public RideResponse getRideByRideId(@PathVariable("rideId") Long rideId) {
         return rideService.getRideByRideId(rideId);
     }
 
     @GetMapping("/passenger/{passengerId}")
-    @ResponseStatus(HttpStatus.OK)
     public PassengerRidesPageResponse getPassengerRides(@PathVariable("passengerId") Long passengerId,
                                                         @RequestParam(defaultValue = "0") @Min(0) int page,
                                                         @RequestParam(defaultValue = "10") @Min(1) int size,
@@ -74,7 +68,6 @@ public class RideController {
     }
 
     @GetMapping("/driver/{driverId}")
-    @ResponseStatus(HttpStatus.OK)
     public RidesPageResponse getDriverRides(@PathVariable("driverId") Long driverId,
                                             @RequestParam(defaultValue = "0") @Min(0) int page,
                                             @RequestParam(defaultValue = "10") @Min(1) int size,

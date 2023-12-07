@@ -29,20 +29,17 @@ public class PromoCodeController {
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public PromoCodeResponse editPromoCode(@Valid @RequestBody PromoCodeRequest promoCodeRequest,
                                            @PathVariable("id") long id) {
         return promoCodeService.editPromoCode(id, promoCodeRequest);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public PromoCodeResponse getPromoCodeById(@PathVariable("id") long id) {
         return promoCodeService.getPromoCodeById(id);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public AllPromoCodesResponse getAllPromoCodes() {
         return promoCodeService.getAllPromoCodes();
     }

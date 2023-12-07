@@ -23,20 +23,17 @@ public class DriverRatingController {
     private final DriverRatingService driverRatingService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.OK)
     public DriverRatingResponse rateDriver(@Valid @RequestBody DriverRatingRequest driverRatingRequest,
                                            @PathVariable("driverId") long driverId) {
         return driverRatingService.rateDriver(driverRatingRequest, driverId);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public AllDriverRatingsResponse getRatingsByDriverId(@PathVariable("driverId") long driverId) {
         return driverRatingService.getRatingsByDriverId(driverId);
     }
 
     @GetMapping("/average")
-    @ResponseStatus(HttpStatus.OK)
     public AverageDriverRatingResponse getAverageDriverRating(@PathVariable("driverId") long driverId) {
         return driverRatingService.getAverageDriverRating(driverId);
     }
