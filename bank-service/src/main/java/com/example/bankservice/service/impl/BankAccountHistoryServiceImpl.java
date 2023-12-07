@@ -52,17 +52,10 @@ public class BankAccountHistoryServiceImpl implements BankAccountHistoryService 
 
     @Override
     public LocalDateTime getLastWithdrawalDate(Long id) {
-        List<BankAccountHistory> withdrawals = bankAccountHistoryRepository
-                .findByBankAccountIdAndOperation(id, Operation.WITHDRAWAL);
-
-        if (!withdrawals.isEmpty()) {
-            return withdrawals.stream()
-                    .map(BankAccountHistory::getOperationDateTime)
-                    .max(LocalDateTime::compareTo)
-                    .orElse(null);
-        }
-
-        return null;
+        return bankAccountHistoryRepository.findFirstByBankAccountIdAndOperationOrderByOperationDateTimeDesc(id,
+                        Operation.WITHDRAWAL)
+                .map(BankAccountHistory::getOperationDateTime)
+                .orElse(null);
     }
 
     @Override
