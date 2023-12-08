@@ -1,0 +1,25 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: bank-service
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/bank_service_db
+    username: postgres
+    password: postgres
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: true
+    hibernate:
+      ddl-auto: none
+
+driver-service:
+  url: ${DRIVER_SERVICE_URI:http://localhost:8081/driver}
+
+passenger-service:
+  url: ${PASSENGER_SERVICE_URI:http://localhost:8080/passenger}

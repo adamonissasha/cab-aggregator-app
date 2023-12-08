@@ -17,3 +17,6 @@ spring:
         show_sql: true
     hibernate:
       ddl-auto: none
+
+bank-service:
+  url: ${BANK_SERVICE_URI:http://localhost:8083/bank}

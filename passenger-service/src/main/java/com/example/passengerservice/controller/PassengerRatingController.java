@@ -23,20 +23,17 @@ public class PassengerRatingController {
     private final PassengerRatingService passengerRatingService;
 
     @PostMapping
-    @ResponseStatus(HttpStatus.OK)
     public PassengerRatingResponse ratePassenger(@PathVariable("passengerId") long passengerId,
                                                  @Valid @RequestBody PassengerRatingRequest passengerRatingRequest) {
         return passengerRatingService.ratePassenger(passengerId, passengerRatingRequest);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public AllPassengerRatingsResponse getRatingsByPassengerId(@PathVariable("passengerId") long passengerId) {
         return passengerRatingService.getRatingsByPassengerId(passengerId);
     }
 
     @GetMapping("/average")
-    @ResponseStatus(HttpStatus.OK)
     public AveragePassengerRatingResponse getAveragePassengerRating(@PathVariable("passengerId") long passengerId) {
         return passengerRatingService.getAveragePassengerRating(passengerId);
     }

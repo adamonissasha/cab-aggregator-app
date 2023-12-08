@@ -3,14 +3,18 @@ package com.example.driverservice.service.impl;
 import com.example.driverservice.dto.request.DriverRequest;
 import com.example.driverservice.dto.response.DriverPageResponse;
 import com.example.driverservice.dto.response.DriverResponse;
-import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.DriverNotFoundException;
-import com.example.driverservice.exception.IncorrectFieldNameException;
+import com.example.driverservice.exception.DriverStatusException;
+import com.example.driverservice.exception.FreeDriverNotFoundException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
 import com.example.driverservice.model.Driver;
-import com.example.driverservice.repository.CarRepository;
+import com.example.driverservice.model.enums.Status;
 import com.example.driverservice.repository.DriverRepository;
+import com.example.driverservice.service.CarService;
+import com.example.driverservice.service.DriverRatingService;
 import com.example.driverservice.service.DriverService;
+import com.example.driverservice.util.FieldValidator;
+import com.example.driverservice.webClient.BankWebClient;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -18,29 +22,31 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
-    private static final String DRIVER_NOT_FOUND = "Driver not found!";
-    private static final String CAR_NOT_FOUND = "Car with this id not found!";
-    private static final String PHONE_NUMBER_EXIST = "Driver with this phone number already exist!";
-    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
+    private static final String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
+    private static final String FREE_DRIVER_NOT_FOUND = "Free driver not found";
+    private static final String DRIVER_ALREADY_FREE = "Driver with id '%s' is already free";
+    private static final String PHONE_NUMBER_EXIST = "Driver with phone number '%s' already exist";
     private final DriverRepository driverRepository;
-    private final CarRepository carRepository;
+    private final CarService carService;
+    private final DriverRatingService driverRatingService;
     private final ModelMapper modelMapper;
+    private final BankWebClient bankWebClient;
+    private final FieldValidator fieldValidator;
 
     @Override
     public DriverResponse createDriver(DriverRequest driverRequest) {
-        carRepository.findById(driverRequest.getCarId())
-                .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
-        driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())
+        String phoneNumber = driverRequest.getPhoneNumber();
+        carService.getCarById(driverRequest.getCarId());
+        driverRepository.findDriverByPhoneNumber(phoneNumber)
                 .ifPresent(driver -> {
-                    throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
+                    throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                 });
         Driver newDriver = mapDriverRequestToDriver(driverRequest);
         newDriver = driverRepository.save(newDriver);
@@ -49,14 +55,16 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse editDriver(long id, DriverRequest driverRequest) {
-        carRepository.findById(driverRequest.getCarId())
-                .orElseThrow(() -> new CarNotFoundException(CAR_NOT_FOUND));
-        driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())
-                .ifPresent(driver -> {
-                    throw new PhoneNumberUniqueException(PHONE_NUMBER_EXIST);
-                });
+        carService.getCarById(driverRequest.getCarId());
         Driver existingDriver = driverRepository.findById(id)
-                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+        String phoneNumber = driverRequest.getPhoneNumber();
+        driverRepository.findDriverByPhoneNumber(phoneNumber)
+                .ifPresent(driver -> {
+                    if (driver.getId() != id) {
+                        throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
+                    }
+                });
         Driver updatedDriver = mapDriverRequestToDriver(driverRequest);
         updatedDriver.setId(existingDriver.getId());
         updatedDriver = driverRepository.save(updatedDriver);
@@ -67,12 +75,12 @@ public class DriverServiceImpl implements DriverService {
     public DriverResponse getDriverById(long id) {
         return driverRepository.findById(id)
                 .map(this::mapDriverToDriverResponse)
-                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
     }
 
     @Override
     public DriverPageResponse getAllDrivers(int page, int size, String sortBy) {
-        checkSortField(sortBy);
+        fieldValidator.checkSortField(Driver.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Driver> driverPage = driverRepository.findAll(pageable);
 
@@ -90,32 +98,54 @@ public class DriverServiceImpl implements DriverService {
                 .build();
     }
 
-
-    public void checkSortField(String sortBy) {
-        List<String> allowedSortFields = new ArrayList<>();
-        getFieldNamesRecursive(Driver.class, allowedSortFields);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
+    @Override
+    public DriverResponse getFreeDriver() {
+        Driver freeDriver = driverRepository.findFirstByStatus(Status.FREE)
+                .orElseThrow(() -> new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND));
+        freeDriver.setStatus(Status.BUSY);
+        driverRepository.save(freeDriver);
+        return mapDriverToDriverResponse(freeDriver);
     }
 
-    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
-        if (myClass != null) {
-            Field[] fields = myClass.getDeclaredFields();
-            for (Field field : fields) {
-                fieldNames.add(field.getName());
-            }
-            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
+    @Override
+    public DriverResponse changeDriverStatusToFree(Long id) {
+        Driver driver = driverRepository.findById(id)
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+        if (driver.getStatus() == Status.FREE) {
+            throw new DriverStatusException(String.format(DRIVER_ALREADY_FREE, id));
         }
+        driver.setStatus(Status.FREE);
+        driver = driverRepository.save(driver);
+        return mapDriverToDriverResponse(driver);
+    }
+
+    @Override
+    @Transactional
+    public void deleteDriverById(long id) {
+        Driver driver = driverRepository.findById(id)
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+        driver.setActive(false);
+        driverRepository.save(driver);
+
+        Long driverId = driver.getId();
+        bankWebClient.deleteDriverBankAccount(driverId);
+        bankWebClient.deleteDriverBankCards(driverId);
     }
 
     public Driver mapDriverRequestToDriver(DriverRequest driverRequest) {
         Driver driver = modelMapper.map(driverRequest, Driver.class);
         driver.setId(null);
+        driver.setStatus(Status.FREE);
+        driver.setActive(true);
         return driver;
     }
 
     public DriverResponse mapDriverToDriverResponse(Driver driver) {
-        return modelMapper.map(driver, DriverResponse.class);
+        DriverResponse driverResponse = modelMapper.map(driver, DriverResponse.class);
+        driverResponse.setRating(driverRatingService
+                .getAverageDriverRating(driver.getId())
+                .getAverageRating());
+        driverResponse.setCar(carService.getCarById(driver.getCar().getId()));
+        return driverResponse;
     }
 }

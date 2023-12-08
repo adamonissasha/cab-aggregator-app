@@ -6,6 +6,8 @@ import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.CarNumberUniqueException;
 import com.example.driverservice.exception.DriverNotFoundException;
 import com.example.driverservice.exception.DriverRatingNotFoundException;
+import com.example.driverservice.exception.DriverStatusException;
+import com.example.driverservice.exception.FreeDriverNotFoundException;
 import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
 import jakarta.validation.ConstraintViolation;
@@ -27,6 +29,24 @@ public class GlobalExceptionHandler {
     public ExceptionResponse handleDriverNotFoundException(DriverNotFoundException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = FreeDriverNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ExceptionResponse handleFreeDriverNotFoundException(FreeDriverNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = DriverStatusException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ExceptionResponse handleDriverStatusException(DriverStatusException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
                 .build();
     }

@@ -27,6 +27,8 @@ public class CreateRideRequest {
     @NotBlank(message = "{ride.payment-method.required}")
     private String paymentMethod;
 
+    private Long bankCardId;
+
     private String promoCode;
 
     @Valid

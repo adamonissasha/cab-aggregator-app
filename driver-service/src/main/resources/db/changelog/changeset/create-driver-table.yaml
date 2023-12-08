@@ -34,6 +34,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
                   name: email
                   type: varchar(50)
                   constraints:
@@ -41,6 +46,11 @@ databaseChangeLog:
               - column:
                   name: car_id
                   type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: boolean
                   constraints:
                     nullable: false
         - addForeignKeyConstraint:

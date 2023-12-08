@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-bank-account-history-table
+      author: AlexandraA
+      changes:
+        - createTable:
+            tableName: bank_account_history
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: operation_date_time
+                  type: timestamp(6)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: operation
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sum
+                  type: decimal
+                  constraints:
+                    nullable: false
+              - column:
+                  name: bank_account_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: bank_account_history
+            baseColumnNames: bank_account_id
+            referencedTableName: bank_account
+            referencedColumnNames: id
+            constraintName: FK_bank_account_history_bank_account

@@ -1,15 +1,21 @@
 package com.example.ridesservice.service.impl;
 
-import com.example.ridesservice.dto.request.ConfirmRideRequest;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
+import com.example.ridesservice.dto.request.RefillRequest;
+import com.example.ridesservice.dto.request.WithdrawalRequest;
+import com.example.ridesservice.dto.response.DriverResponse;
+import com.example.ridesservice.dto.response.PassengerRideResponse;
+import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
 import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.dto.response.RidesPageResponse;
 import com.example.ridesservice.dto.response.StopResponse;
-import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
+import com.example.ridesservice.exception.PaymentMethodException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
+import com.example.ridesservice.exception.passenger.PassengerException;
+import com.example.ridesservice.mapper.RideMapper;
 import com.example.ridesservice.model.PromoCode;
 import com.example.ridesservice.model.Ride;
 import com.example.ridesservice.model.enums.PaymentMethod;
@@ -18,19 +24,21 @@ import com.example.ridesservice.repository.RideRepository;
 import com.example.ridesservice.service.PromoCodeService;
 import com.example.ridesservice.service.RideService;
 import com.example.ridesservice.service.StopService;
+import com.example.ridesservice.util.FieldValidator;
+import com.example.ridesservice.webClient.BankWebClient;
+import com.example.ridesservice.webClient.DriverWebClient;
+import com.example.ridesservice.webClient.PassengerWebClient;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -38,48 +46,63 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 public class RideServiceImpl implements RideService {
-    private static final String INCORRECT_PAYMENT_METHOD = "Incorrect payment method!";
-    private static final String RIDE_NOT_FOUND = "Ride not found!";
-    private static final String RIDE_NOT_CONFIRMED = "The ride hasn't confirmed!";
-    private static final String RIDE_NOT_STARTED = "The ride hasn't started!";
-    private static final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: ";
+    private static final String INCORRECT_PAYMENT_METHOD = "'%s' - incorrect payment method";
+    private static final String RIDE_NOT_FOUND = "Ride with id '%s' not found";
+    private static final String RIDE_NOT_STARTED = "The ride with id '%s' hasn't started";
+    private static final String PASSENGER_RIDE_EXCEPTION = "Passenger with id '%s' has already book a ride";
+    private static final String CARD_PAYMENT_METHOD = "If you have chosen CARD payment method, select the card for payment";
     private final StopService stopService;
     private final PromoCodeService promoCodeService;
     private final RideRepository rideRepository;
-    private final ModelMapper modelMapper;
+    private final RideMapper rideMapper;
+    private final DriverWebClient driverWebClient;
+    private final BankWebClient bankWebClient;
+    private final PassengerWebClient passengerWebClient;
     private final Random random = new Random();
+    private final FieldValidator fieldValidator;
 
     @Override
-    public RideResponse createRide(CreateRideRequest createRideRequest) {
+    public PassengerRideResponse createRide(CreateRideRequest createRideRequest) {
         PaymentMethod paymentMethod = getPaymentMethod(createRideRequest.getPaymentMethod());
+        if (paymentMethod == PaymentMethod.CARD && createRideRequest.getBankCardId() == null) {
+            throw new PaymentMethodException(CARD_PAYMENT_METHOD);
+        }
+
         PromoCode promoCode = promoCodeService.getPromoCodeByName(createRideRequest.getPromoCode());
         BigDecimal price = calculatePrice(promoCode);
+        Long passengerId = passengerWebClient.getPassenger(createRideRequest.getPassengerId()).getId();
+        checkPassengerRides(passengerId);
+        DriverResponse driver = driverWebClient.getFreeDriver();
 
         Ride newRide = Ride.builder()
-                .passengerId(createRideRequest.getPassengerId())
+                .passengerId(passengerId)
                 .startAddress(createRideRequest.getStartAddress())
                 .endAddress(createRideRequest.getEndAddress())
                 .paymentMethod(paymentMethod)
                 .promoCode(promoCode)
+                .driverId(driver.getId())
+                .bankCardId(createRideRequest.getBankCardId())
+                .carId(driver.getCar().getId())
                 .creationDateTime(LocalDateTime.now())
                 .price(price)
                 .status(RideStatus.CREATED)
                 .build();
-
         newRide = rideRepository.save(newRide);
         List<StopResponse> stops = stopService.createStops(createRideRequest.getStops(), newRide);
 
-        return mapRideToRideResponse(newRide, stops);
+        return rideMapper.mapRideToPassengerRideResponse(newRide, stops, driver, driver.getCar());
     }
 
     @Override
-    public RideResponse editRide(Long rideId, EditRideRequest editRideRequest) {
+    public PassengerRideResponse editRide(Long rideId, EditRideRequest editRideRequest) {
         Ride existingRide = getExistingRide(rideId);
 
         checkRideStatusNotEquals(existingRide, Arrays.asList(
                 RideStatus.COMPLETED,
                 RideStatus.CANCELED)
         );
+
+        DriverResponse driver = driverWebClient.getDriver(existingRide.getDriverId());
 
         String newStartAddress = editRideRequest.getStartAddress();
         String newEndAddress = editRideRequest.getEndAddress();
@@ -95,8 +118,32 @@ public class RideServiceImpl implements RideService {
         existingRide = rideRepository.save(existingRide);
         List<StopResponse> stops = stopService.editStops(editRideRequest.getStops(), existingRide);
 
-        return mapRideToRideResponse(existingRide, stops);
+        return rideMapper.mapRideToPassengerRideResponse(existingRide, stops, driver, driver.getCar());
     }
+
+    @Override
+    public RideResponse getRideByRideId(Long rideId) {
+        Ride ride = getExistingRide(rideId);
+        return rideMapper.mapRideToRideResponse(ride,
+                stopService.getRideStops(ride));
+    }
+
+    @Override
+    public PassengerRidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy) {
+        fieldValidator.checkSortField(Ride.class, sortBy);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        Page<Ride> ridesPage = rideRepository.findAllByPassengerId(passengerId, pageable);
+        return rideMapper.mapRidesPageToPassengerRidesPageResponse(ridesPage);
+    }
+
+    @Override
+    public RidesPageResponse getDriverRides(Long driverId, int page, int size, String sortBy) {
+        fieldValidator.checkSortField(Ride.class, sortBy);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        Page<Ride> ridesPage = rideRepository.findAllByDriverId(driverId, pageable);
+        return rideMapper.mapRidesPageToRidesPageResponse(ridesPage);
+    }
+
 
     @Override
     public RideResponse canselRide(Long rideId) {
@@ -111,29 +158,7 @@ public class RideServiceImpl implements RideService {
         existingRide.setStatus(RideStatus.CANCELED);
         rideRepository.save(existingRide);
 
-        return mapRideToRideResponse(existingRide, stopService.getRideStops(existingRide));
-    }
-
-    @Override
-    public RideResponse confirmRide(Long rideId, ConfirmRideRequest confirmRideRequest) {
-        Ride ride = getExistingRide(rideId);
-
-        checkRideStatusNotEquals(ride, Arrays.asList(
-                RideStatus.COMPLETED,
-                RideStatus.CANCELED,
-                RideStatus.STARTED,
-                RideStatus.CONFIRMED)
-        );
-
-        ride.setStatus(RideStatus.CONFIRMED);
-        ride.setDriverId(confirmRideRequest.getDriverId());
-        ride.setDriverName(confirmRideRequest.getDriverName());
-        ride.setCarNumber(confirmRideRequest.getCarNumber());
-        ride.setCarColor(confirmRideRequest.getCarColor());
-        ride.setCarMake(confirmRideRequest.getCarMake());
-        rideRepository.save(ride);
-
-        return mapRideToRideResponse(ride, stopService.getRideStops(ride));
+        return rideMapper.mapRideToRideResponse(existingRide, stopService.getRideStops(existingRide));
     }
 
     @Override
@@ -145,16 +170,16 @@ public class RideServiceImpl implements RideService {
                 RideStatus.CANCELED,
                 RideStatus.STARTED)
         );
-        checkRideStatusEquals(ride, RideStatus.CONFIRMED, RIDE_NOT_CONFIRMED);
 
         ride.setStatus(RideStatus.STARTED);
         ride.setStartDateTime(LocalDateTime.now());
         rideRepository.save(ride);
 
-        return mapRideToRideResponse(ride, stopService.getRideStops(ride));
+        return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride));
     }
 
     @Override
+    @Transactional
     public RideResponse completeRide(Long rideId) {
         Ride ride = getExistingRide(rideId);
 
@@ -162,52 +187,33 @@ public class RideServiceImpl implements RideService {
                 RideStatus.COMPLETED,
                 RideStatus.CANCELED)
         );
-        checkRideStatusEquals(ride, RideStatus.STARTED, RIDE_NOT_STARTED);
+        if (ride.getStatus() != RideStatus.STARTED) {
+            throw new RideStatusException(String.format(RIDE_NOT_STARTED, ride.getId()));
+        }
+
+        BigDecimal ridePrice = ride.getPrice();
+
+        if (ride.getPaymentMethod() == PaymentMethod.CARD) {
+            bankWebClient.withdrawalPaymentFromPassengerCard(ride.getBankCardId(),
+                    WithdrawalRequest.builder()
+                            .sum(ridePrice)
+                            .build());
+        }
 
         ride.setStatus(RideStatus.COMPLETED);
         ride.setEndDateTime(LocalDateTime.now());
         rideRepository.save(ride);
 
-        return mapRideToRideResponse(ride, stopService.getRideStops(ride));
+        Long driverId = ride.getDriverId();
+        driverWebClient.changeDriverStatusToFree(driverId);
+        bankWebClient.refillDriverBankAccount(RefillRequest.builder()
+                .bankUserId(driverId)
+                .sum(ridePrice)
+                .build());
+
+        return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride));
     }
 
-    @Override
-    public RideResponse getRideByRideId(Long rideId) {
-        Ride ride = getExistingRide(rideId);
-        return mapRideToRideResponse(ride, stopService.getRideStops(ride));
-    }
-
-    @Override
-    public RidesPageResponse getAvailableRides(int page, int size, String sortBy) {
-        checkSortField(sortBy);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<Ride> ridesPage = rideRepository.findAllByStatus(RideStatus.CREATED, pageable);
-        return mapRidesPageToResponse(ridesPage);
-    }
-
-    @Override
-    public RidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy) {
-        checkSortField(sortBy);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<Ride> ridesPage = rideRepository.findAllByPassengerId(passengerId, pageable);
-        return mapRidesPageToResponse(ridesPage);
-    }
-
-    @Override
-    public RidesPageResponse getDriverRides(Long driverId, int page, int size, String sortBy) {
-        checkSortField(sortBy);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<Ride> ridesPage = rideRepository.findAllByDriverId(driverId, pageable);
-        return mapRidesPageToResponse(ridesPage);
-    }
-
-
-    private PaymentMethod getPaymentMethod(String paymentMethod) {
-        if (!PaymentMethod.isValidPaymentMethod(paymentMethod)) {
-            throw new IncorrectPaymentMethodException(INCORRECT_PAYMENT_METHOD);
-        }
-        return PaymentMethod.valueOf(paymentMethod);
-    }
 
     private BigDecimal calculatePrice(PromoCode promoCode) {
         int minPrice = 5;
@@ -225,65 +231,33 @@ public class RideServiceImpl implements RideService {
         return price;
     }
 
-    private RideResponse mapRideToRideResponse(Ride ride, List<StopResponse> stops) {
-        RideResponse rideResponse = modelMapper.map(ride, RideResponse.class);
-        PromoCode promoCode = ride.getPromoCode();
-        if (promoCode != null) {
-            rideResponse.setPromoCode(promoCode.getCode());
+    private PaymentMethod getPaymentMethod(String paymentMethod) {
+        if (!PaymentMethod.isValidPaymentMethod(paymentMethod)) {
+            throw new IncorrectPaymentMethodException(String.format(INCORRECT_PAYMENT_METHOD, paymentMethod));
         }
-        rideResponse.setStops(stops);
-        return rideResponse;
+        return PaymentMethod.valueOf(paymentMethod);
+    }
+
+    private void checkPassengerRides(Long passengerId) {
+        if (rideRepository.findAll()
+                .stream()
+                .filter(ride -> ride.getPassengerId().equals(passengerId))
+                .anyMatch(ride -> ride.getStatus() == RideStatus.CREATED ||
+                        ride.getStatus() == RideStatus.STARTED)) {
+            throw new PassengerException(String.format(PASSENGER_RIDE_EXCEPTION, passengerId));
+        }
     }
 
     private Ride getExistingRide(long rideId) {
         return rideRepository.findById(rideId)
-                .orElseThrow(() -> new RideNotFoundException(RIDE_NOT_FOUND));
+                .orElseThrow(() -> new RideNotFoundException(String.format(RIDE_NOT_FOUND, rideId)));
     }
 
     private void checkRideStatusNotEquals(Ride ride, List<RideStatus> rideStatusList) {
         for (RideStatus status : rideStatusList) {
             if (ride.getStatus().equals(status)) {
-                throw new RideStatusException(status.getStatusErrorMessage());
+                throw new RideStatusException(String.format(status.getStatusErrorMessage(), ride.getId()));
             }
         }
-    }
-
-    private void checkRideStatusEquals(Ride ride, RideStatus rideStatus, String message) {
-        if (!ride.getStatus().equals(rideStatus)) {
-            throw new RideStatusException(message);
-        }
-    }
-
-    public void checkSortField(String sortBy) {
-        List<String> allowedSortFields = new ArrayList<>();
-        getFieldNamesRecursive(Ride.class, allowedSortFields);
-        if (!allowedSortFields.contains(sortBy)) {
-            throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
-        }
-    }
-
-    private static void getFieldNamesRecursive(Class<?> myClass, List<String> fieldNames) {
-        if (myClass != null) {
-            Field[] fields = myClass.getDeclaredFields();
-            for (Field field : fields) {
-                fieldNames.add(field.getName());
-            }
-            getFieldNamesRecursive(myClass.getSuperclass(), fieldNames);
-        }
-    }
-
-    private RidesPageResponse mapRidesPageToResponse(Page<Ride> ridesPage) {
-        List<RideResponse> rideResponses = ridesPage.getContent()
-                .stream()
-                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)))
-                .toList();
-
-        return RidesPageResponse.builder()
-                .rides(rideResponses)
-                .totalPages(ridesPage.getTotalPages())
-                .totalElements(ridesPage.getTotalElements())
-                .currentPage(ridesPage.getNumber())
-                .pageSize(ridesPage.getSize())
-                .build();
     }
 }

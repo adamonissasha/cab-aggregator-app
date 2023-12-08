@@ -19,9 +19,10 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class PromoCodeServiceImpl implements PromoCodeService {
-    private static final String PROMO_CODE_NOT_FOUND = "Promo code not found!";
-    private static final String PROMO_CODE_ALREADY_EXISTS = "Promo code already exists!";
-    private static final String INCORRECT_DATE = "Incorrect date!";
+    private static final String PROMO_CODE_BY_ID_NOT_FOUND = "Promo code with id '%s' not found";
+    private static final String PROMO_CODE_BY_CODE_NOT_FOUND = "Promo code '%s' not found";
+    private static final String PROMO_CODE_ALREADY_EXISTS = "Promo code '%s' already exists in this period of time";
+    private static final String INCORRECT_DATE = "Start date '%s' must not be after end date '%s'";
     private final PromoCodeRepository promoCodeRepository;
     private final ModelMapper modelMapper;
 
@@ -29,13 +30,14 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     public PromoCodeResponse createPromoCode(PromoCodeRequest promoCodeRequest) {
         LocalDate startDate = promoCodeRequest.getStartDate();
         LocalDate endDate = promoCodeRequest.getEndDate();
+        String code = promoCodeRequest.getCode();
         if (startDate.isBefore(LocalDate.now()) || endDate.isBefore(startDate)) {
-            throw new IncorrectDateException(INCORRECT_DATE);
+            throw new IncorrectDateException(String.format(INCORRECT_DATE, startDate, endDate));
         }
         Optional<PromoCode> optionalPromoCode =
-                promoCodeRepository.findByCode(promoCodeRequest.getCode());
+                promoCodeRepository.findByCode(code);
         if (optionalPromoCode.isPresent() && optionalPromoCode.get().getEndDate().isAfter(startDate)) {
-            throw new PromoCodeAlreadyExistsException(PROMO_CODE_ALREADY_EXISTS);
+            throw new PromoCodeAlreadyExistsException(String.format(PROMO_CODE_ALREADY_EXISTS, code));
         }
         PromoCode newPromoCode = mapPromoCodeRequestToPromoCode(promoCodeRequest);
         newPromoCode = promoCodeRepository.save(newPromoCode);
@@ -46,16 +48,17 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     public PromoCodeResponse editPromoCode(long id, PromoCodeRequest promoCodeRequest) {
         LocalDate startDate = promoCodeRequest.getStartDate();
         LocalDate endDate = promoCodeRequest.getEndDate();
+        String code = promoCodeRequest.getCode();
         if (startDate.isBefore(LocalDate.now()) || endDate.isBefore(startDate)) {
-            throw new IncorrectDateException(INCORRECT_DATE);
+            throw new IncorrectDateException(String.format(INCORRECT_DATE, startDate, endDate));
         }
         PromoCode existingPromoCode = promoCodeRepository.findById(id)
-                .orElseThrow(() -> new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND));
+                .orElseThrow(() -> new PromoCodeNotFoundException(String.format(PROMO_CODE_BY_ID_NOT_FOUND, id)));
         Optional<PromoCode> optionalPromoCode =
-                promoCodeRepository.findByCode(promoCodeRequest.getCode());
+                promoCodeRepository.findByCode(code);
         if (optionalPromoCode.isPresent() && !optionalPromoCode.get().getId().equals(id)
                 && optionalPromoCode.get().getEndDate().isAfter(startDate)) {
-            throw new PromoCodeAlreadyExistsException(PROMO_CODE_ALREADY_EXISTS);
+            throw new PromoCodeAlreadyExistsException(String.format(PROMO_CODE_ALREADY_EXISTS, code));
         }
         PromoCode updatedPromoCode = mapPromoCodeRequestToPromoCode(promoCodeRequest);
         updatedPromoCode.setId(existingPromoCode.getId());
@@ -67,7 +70,7 @@ public class PromoCodeServiceImpl implements PromoCodeService {
     public PromoCodeResponse getPromoCodeById(long id) {
         return promoCodeRepository.findById(id)
                 .map(this::mapPromoCodeToPromoCodeResponse)
-                .orElseThrow(() -> new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND));
+                .orElseThrow(() -> new PromoCodeNotFoundException(String.format(PROMO_CODE_BY_ID_NOT_FOUND, id)));
     }
 
     @Override
@@ -85,9 +88,10 @@ public class PromoCodeServiceImpl implements PromoCodeService {
         return Optional.ofNullable(promoCodeName)
                 .map(code -> promoCodeRepository.findByCode(code)
                         .filter(promoCode ->
-                                LocalDate.now().isAfter(promoCode.getEndDate()) &&
-                                        LocalDate.now().isBefore(promoCode.getStartDate()))
-                        .orElseThrow(() -> new PromoCodeNotFoundException(PROMO_CODE_NOT_FOUND)))
+                                LocalDate.now().isBefore(promoCode.getEndDate()) &&
+                                        LocalDate.now().isAfter(promoCode.getStartDate()))
+                        .orElseThrow(() -> new PromoCodeNotFoundException(
+                                String.format(PROMO_CODE_BY_CODE_NOT_FOUND, promoCodeName))))
                 .orElse(null);
     }
 

@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,23 +32,25 @@ public class PassengerController {
     }
 
     @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public PassengerResponse editPassenger(@Valid @RequestBody PassengerRequest passengerRequest,
                                            @PathVariable("id") long id) {
         return passengerService.editPassenger(id, passengerRequest);
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public PassengerResponse getPassengerById(@PathVariable("id") long id) {
         return passengerService.getPassengerById(id);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
     public PassengerPageResponse getAllPassengers(@RequestParam(defaultValue = "0") @Min(0) int page,
                                                   @RequestParam(defaultValue = "10") @Min(1) int size,
                                                   @RequestParam(defaultValue = "id") String sortBy) {
         return passengerService.getAllPassengers(page, size, sortBy);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deletePassengerById(@PathVariable("id") long id) {
+        passengerService.deletePassengerById(id);
     }
 }

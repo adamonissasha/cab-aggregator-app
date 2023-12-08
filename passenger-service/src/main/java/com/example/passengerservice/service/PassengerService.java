@@ -12,4 +12,6 @@ public interface PassengerService {
     PassengerResponse getPassengerById(long id);
 
     PassengerPageResponse getAllPassengers(int page, int size, String sortBy);
+
+    void deletePassengerById(long id);
 }

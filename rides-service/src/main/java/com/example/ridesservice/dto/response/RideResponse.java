@@ -17,9 +17,12 @@ import java.util.List;
 @Builder
 public class RideResponse {
     private long rideId;
-    private long passengerId;
-    private long driverId;
+    private String passengerName;
+    private String passengerPhoneNumber;
+    private double passengerRating;
     private String driverName;
+    private String driverPhoneNumber;
+    private double driverRating;
     private String carNumber;
     private String carMake;
     private String carColor;

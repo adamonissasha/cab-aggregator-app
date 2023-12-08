@@ -5,7 +5,6 @@ import com.example.driverservice.dto.response.AllDriverRatingsResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.DriverRatingResponse;
 import com.example.driverservice.exception.DriverNotFoundException;
-import com.example.driverservice.exception.DriverRatingNotFoundException;
 import com.example.driverservice.model.DriverRating;
 import com.example.driverservice.repository.DriverRatingRepository;
 import com.example.driverservice.repository.DriverRepository;
@@ -22,15 +21,14 @@ public class DriverRatingServiceImpl implements DriverRatingService {
     private final DriverRatingRepository driverRatingRepository;
     private final DriverRepository driverRepository;
     private final ModelMapper modelMapper;
-    private static final String DRIVER_NOT_FOUND = "Driver not found!";
-    private static final String NO_DRIVER_RATING = "There is no rating of this driver!";
+    private static final String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
 
 
     @Override
     public DriverRatingResponse rateDriver(DriverRatingRequest driverRatingRequest, long driverId) {
         DriverRating newDriverRating = mapDriverRatingRequestToDriverRating(driverRatingRequest);
         newDriverRating.setDriver(driverRepository.findById(driverId)
-                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND)));
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId))));
         newDriverRating = driverRatingRepository.save(newDriverRating);
         return mapDriverRatingToDriverRatingResponse(newDriverRating);
     }
@@ -51,10 +49,9 @@ public class DriverRatingServiceImpl implements DriverRatingService {
     @Override
     public AverageDriverRatingResponse getAverageDriverRating(long driverId) {
         validateDriverExists(driverId);
-        List<DriverRating> driverRatings = driverRatingRepository.getDriverRatingsByDriverId(driverId);
-        if (driverRatings.isEmpty())
-            throw new DriverRatingNotFoundException(NO_DRIVER_RATING);
-        double averageRating = driverRatings.stream()
+        double averageRating = driverRatingRepository
+                .getDriverRatingsByDriverId(driverId)
+                .stream()
                 .mapToDouble(DriverRating::getRating)
                 .average()
                 .orElse(0.0);
@@ -66,11 +63,13 @@ public class DriverRatingServiceImpl implements DriverRatingService {
 
     public void validateDriverExists(long driverId) {
         driverRepository.findById(driverId)
-                .orElseThrow(() -> new DriverNotFoundException(DRIVER_NOT_FOUND));
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId)));
     }
 
     public DriverRating mapDriverRatingRequestToDriverRating(DriverRatingRequest driverRatingRequest) {
-        return modelMapper.map(driverRatingRequest, DriverRating.class);
+        DriverRating driverRating = modelMapper.map(driverRatingRequest, DriverRating.class);
+        driverRating.setId(null);
+        return driverRating;
     }
 
     private DriverRatingResponse mapDriverRatingToDriverRatingResponse(DriverRating driverRating) {
