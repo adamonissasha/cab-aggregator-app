@@ -18,5 +18,15 @@ spring:
     hibernate:
       ddl-auto: none
 
+  kafka:
+    bootstrap-servers: http://localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 bank-service:
   url: ${BANK_SERVICE_URI:http://localhost:8083/bank}
+
+free-driver:
+  topic:
+    name: free_driver_topic

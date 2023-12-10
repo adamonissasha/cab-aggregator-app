@@ -20,24 +20,6 @@ public class DriverWebClient {
     private String rideServiceUrl;
     private final WebClient webClient;
 
-    public DriverResponse getFreeDriver() {
-        return webClient.get()
-                .uri(rideServiceUrl + "/free")
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError,
-                        response -> {
-                            if (response.statusCode() == HttpStatus.NOT_FOUND) {
-                                return response.bodyToMono(ExceptionResponse.class)
-                                        .flatMap(exceptionResponse -> Mono.error(
-                                                new DriverNotFoundException(exceptionResponse.getMessage())));
-                            }
-                            return Mono.empty();
-                        }
-                )
-                .bodyToMono(DriverResponse.class)
-                .block();
-    }
-
     public DriverResponse getDriver(long id) {
         return webClient.get()
                 .uri(rideServiceUrl + "/{id}", id)

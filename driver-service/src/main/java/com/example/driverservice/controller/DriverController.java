@@ -54,11 +54,6 @@ public class DriverController {
         return driverService.getAllDrivers(page, size, sortBy);
     }
 
-    @GetMapping("/free")
-    public DriverResponse getFreeDriver() {
-        return driverService.getFreeDriver();
-    }
-
     @PutMapping("/{id}/free")
     public DriverResponse changeStatusToFree(@PathVariable("id") Long id) {
         return driverService.changeDriverStatusToFree(id);

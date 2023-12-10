@@ -5,8 +5,8 @@ import com.example.driverservice.dto.response.DriverPageResponse;
 import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.exception.DriverNotFoundException;
 import com.example.driverservice.exception.DriverStatusException;
-import com.example.driverservice.exception.FreeDriverNotFoundException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
+import com.example.driverservice.kafka.service.KafkaFreeDriverService;
 import com.example.driverservice.model.Driver;
 import com.example.driverservice.model.enums.Status;
 import com.example.driverservice.repository.DriverRepository;
@@ -30,7 +30,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DriverServiceImpl implements DriverService {
     private static final String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
-    private static final String FREE_DRIVER_NOT_FOUND = "Free driver not found";
     private static final String DRIVER_ALREADY_FREE = "Driver with id '%s' is already free";
     private static final String PHONE_NUMBER_EXIST = "Driver with phone number '%s' already exist";
     private final DriverRepository driverRepository;
@@ -39,6 +38,7 @@ public class DriverServiceImpl implements DriverService {
     private final ModelMapper modelMapper;
     private final BankWebClient bankWebClient;
     private final FieldValidator fieldValidator;
+    private final KafkaFreeDriverService kafkaFreeDriverService;
 
     @Override
     public DriverResponse createDriver(DriverRequest driverRequest) {
@@ -50,7 +50,9 @@ public class DriverServiceImpl implements DriverService {
                 });
         Driver newDriver = mapDriverRequestToDriver(driverRequest);
         newDriver = driverRepository.save(newDriver);
-        return mapDriverToDriverResponse(newDriver);
+        DriverResponse driverResponse = mapDriverToDriverResponse(newDriver);
+        kafkaFreeDriverService.sendFreeDriverToConsumer(driverResponse);
+        return driverResponse;
     }
 
     @Override
@@ -99,15 +101,6 @@ public class DriverServiceImpl implements DriverService {
     }
 
     @Override
-    public DriverResponse getFreeDriver() {
-        Driver freeDriver = driverRepository.findFirstByStatus(Status.FREE)
-                .orElseThrow(() -> new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND));
-        freeDriver.setStatus(Status.BUSY);
-        driverRepository.save(freeDriver);
-        return mapDriverToDriverResponse(freeDriver);
-    }
-
-    @Override
     public DriverResponse changeDriverStatusToFree(Long id) {
         Driver driver = driverRepository.findById(id)
                 .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
@@ -116,7 +109,9 @@ public class DriverServiceImpl implements DriverService {
         }
         driver.setStatus(Status.FREE);
         driver = driverRepository.save(driver);
-        return mapDriverToDriverResponse(driver);
+        DriverResponse driverResponse = mapDriverToDriverResponse(driver);
+        kafkaFreeDriverService.sendFreeDriverToConsumer(driverResponse);
+        return driverResponse;
     }
 
     @Override

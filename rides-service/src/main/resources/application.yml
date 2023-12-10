@@ -18,6 +18,13 @@ spring:
     hibernate:
       ddl-auto: none
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: free-driver-consumer-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
 driver-service:
   url: ${DRIVER_SERVICE_URI:http://localhost:8081/driver}
 
@@ -26,3 +33,6 @@ passenger-service:
 
 bank-service:
   url: ${BANK_SERVICE_URI:http://localhost:8083/bank}
+
+topic:
+  name: free_driver_topic

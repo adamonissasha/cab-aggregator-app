@@ -21,19 +21,22 @@ ext {
             'postgresql'        : '42.6.0',
             'liquibase'         : '4.24.0',
             'hibernateValidator': '8.0.1.Final',
-            'lombok'            : '1.18.26'
+            'lombok'            : '1.18.26',
+            'jedis'             : '5.1.0'
     ]
 }
 
 dependencies {
-    implementation "org.springframework.boot:spring-boot-starter"
     implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-integration"
+    implementation 'org.springframework.integration:spring-integration-kafka'
     implementation "org.modelmapper:modelmapper:${versions.modelMapper}"
     implementation "org.postgresql:postgresql:${versions.postgresql}"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
     implementation "org.hibernate.validator:hibernate-validator:${versions.hibernateValidator}"
     implementation "org.liquibase:liquibase-core:${versions.liquibase}"
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation "org.springframework.boot:spring-boot-starter-webflux"
+    implementation "redis.clients:jedis:${versions.jedis}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"

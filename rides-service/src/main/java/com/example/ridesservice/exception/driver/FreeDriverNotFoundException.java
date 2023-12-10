@@ -1,4 +1,4 @@
-package com.example.driverservice.exception;
+package com.example.ridesservice.exception.driver;
 
 public class FreeDriverNotFoundException extends RuntimeException {
     public FreeDriverNotFoundException(String message) {
