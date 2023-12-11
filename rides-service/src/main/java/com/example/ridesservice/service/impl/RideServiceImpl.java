@@ -1,7 +1,9 @@
 package com.example.ridesservice.service.impl;
 
+import com.example.ridesservice.dto.message.RatingMessage;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
+import com.example.ridesservice.dto.request.RatingRequest;
 import com.example.ridesservice.dto.request.RefillRequest;
 import com.example.ridesservice.dto.request.WithdrawalRequest;
 import com.example.ridesservice.dto.response.DriverResponse;
@@ -16,6 +18,7 @@ import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
 import com.example.ridesservice.exception.driver.FreeDriverNotFoundException;
 import com.example.ridesservice.exception.passenger.PassengerException;
+import com.example.ridesservice.kafka.service.KafkaSendRatingGateway;
 import com.example.ridesservice.mapper.RideMapper;
 import com.example.ridesservice.model.PromoCode;
 import com.example.ridesservice.model.Ride;
@@ -53,6 +56,7 @@ public class RideServiceImpl implements RideService {
     private static final String INCORRECT_PAYMENT_METHOD = "'%s' - incorrect payment method";
     private static final String RIDE_NOT_FOUND = "Ride with id '%s' not found";
     private static final String RIDE_NOT_STARTED = "The ride with id '%s' hasn't started";
+    private static final String RIDE_NOT_COMPLETED = "The ride with id '%s' hasn't completed";
     private static final String PASSENGER_RIDE_EXCEPTION = "Passenger with id '%s' has already book a ride";
     private static final String CARD_PAYMENT_METHOD = "If you have chosen CARD payment method, select the card for payment";
     private static final String FREE_DRIVER_NOT_FOUND = "Free driver not found";
@@ -68,6 +72,7 @@ public class RideServiceImpl implements RideService {
     private final FieldValidator fieldValidator;
     private final ObjectMapper objectMapper;
     private final Jedis jedis;
+    private final KafkaSendRatingGateway kafkaSendRatingGateway;
 
     @Override
     public PassengerRideResponse createRide(CreateRideRequest createRideRequest) {
@@ -152,7 +157,6 @@ public class RideServiceImpl implements RideService {
         return rideMapper.mapRidesPageToRidesPageResponse(ridesPage);
     }
 
-
     @Override
     public RideResponse canselRide(Long rideId) {
         Ride existingRide = getExistingRide(rideId);
@@ -222,6 +226,31 @@ public class RideServiceImpl implements RideService {
         return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride));
     }
 
+    @Override
+    public void ratePassenger(Long id, RatingRequest ratingRequest) {
+        RatingMessage ratingMessage = makeRideRatingMessage(id, ratingRequest);
+        kafkaSendRatingGateway.sendPassengerRating(ratingMessage);
+    }
+
+    @Override
+    public void rateDriver(Long id, RatingRequest ratingRequest) {
+        RatingMessage ratingMessage = makeRideRatingMessage(id, ratingRequest);
+        kafkaSendRatingGateway.sendDriverRating(ratingMessage);
+    }
+
+
+    private RatingMessage makeRideRatingMessage(Long id, RatingRequest ratingRequest) {
+        Ride ride = getExistingRide(id);
+        if (ride.getStatus() != RideStatus.COMPLETED) {
+            throw new RideStatusException(String.format(RIDE_NOT_COMPLETED, ride.getId()));
+        }
+        return RatingMessage.builder()
+                .rideId(id)
+                .passengerId(ride.getPassengerId())
+                .driverId(ride.getDriverId())
+                .rating(ratingRequest.getRating())
+                .build();
+    }
 
     private BigDecimal calculatePrice(PromoCode promoCode) {
         int minPrice = 5;

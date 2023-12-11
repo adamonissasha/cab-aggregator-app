@@ -17,9 +17,9 @@ import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
-public class KafkaProducerConfig {
+public class KafkaFreeDriverProducerConfig {
     private final KafkaProperties kafkaProperties;
-    @Value("${free-driver.topic.name}")
+    @Value("${topic.name.free-driver}")
     private String topicName;
 
     @Bean

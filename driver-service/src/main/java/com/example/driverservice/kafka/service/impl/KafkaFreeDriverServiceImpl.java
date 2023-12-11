@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KafkaFreeDriverServiceImpl implements KafkaFreeDriverService {
     private final KafkaTemplate<String, DriverResponse> kafkaTemplate;
-    @Value("${free-driver.topic.name}")
+    @Value("${topic.name.free-driver}")
     private String topicName;
 
     @Override

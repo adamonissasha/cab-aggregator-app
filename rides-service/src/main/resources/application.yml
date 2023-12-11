@@ -24,6 +24,10 @@ spring:
       group-id: free-driver-consumer-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
 
 driver-service:
   url: ${DRIVER_SERVICE_URI:http://localhost:8081/driver}
@@ -35,4 +39,8 @@ bank-service:
   url: ${BANK_SERVICE_URI:http://localhost:8083/bank}
 
 topic:
-  name: free_driver_topic
+  name:
+    free-driver: free_driver_topic
+    rate:
+      passenger: passenger_rating_topic
+      driver: driver_rating_topic

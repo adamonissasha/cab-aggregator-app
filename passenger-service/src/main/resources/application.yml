@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: passenger-service
+
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/passenger_service_db
@@ -17,6 +18,23 @@ spring:
         show_sql: true
     hibernate:
       ddl-auto: none
+
+  cloud:
+    function:
+      definition: ratePassenger
+    stream:
+      bindings:
+        ratePassenger-in-0:
+          destination: passenger_rating_topic
+          contentType: application/json
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092
+          key:
+            serializer: org.apache.kafka.common.serialization.StringSerializer
+          value:
+            serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 bank-service:
   url: ${BANK_SERVICE_URI:http://localhost:8083/bank}

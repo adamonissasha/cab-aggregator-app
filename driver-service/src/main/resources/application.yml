@@ -23,10 +23,16 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 
 bank-service:
   url: ${BANK_SERVICE_URI:http://localhost:8083/bank}
 
-free-driver:
-  topic:
-    name: free_driver_topic
+topic:
+  name:
+    free-driver: free_driver_topic
+    driver-rating: driver_rating_topic
+  group-id:
+    driver-rating: driver-rating-consumer-group

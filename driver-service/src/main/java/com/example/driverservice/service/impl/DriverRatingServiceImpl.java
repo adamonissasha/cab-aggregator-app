@@ -25,12 +25,18 @@ public class DriverRatingServiceImpl implements DriverRatingService {
 
 
     @Override
-    public DriverRatingResponse rateDriver(DriverRatingRequest driverRatingRequest, long driverId) {
-        DriverRating newDriverRating = mapDriverRatingRequestToDriverRating(driverRatingRequest);
-        newDriverRating.setDriver(driverRepository.findById(driverId)
-                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId))));
-        newDriverRating = driverRatingRepository.save(newDriverRating);
-        return mapDriverRatingToDriverRatingResponse(newDriverRating);
+    public void rateDriver(DriverRatingRequest driverRatingRequest) {
+        Long driverId = driverRatingRequest.getDriverId();
+        driverRepository.findById(driverId)
+                .ifPresent(driver -> {
+                    DriverRating newPassengerRating = DriverRating.builder()
+                            .passengerId(driverRatingRequest.getPassengerId())
+                            .rating(driverRatingRequest.getRating())
+                            .rideId(driverRatingRequest.getRideId())
+                            .driver(driver)
+                            .build();
+                    driverRatingRepository.save(newPassengerRating);
+                });
     }
 
     @Override

@@ -23,6 +23,11 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: ride_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
                   name: rating
                   type: int
                   constraints:

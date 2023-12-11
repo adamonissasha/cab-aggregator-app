@@ -24,12 +24,18 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     private static final String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
 
     @Override
-    public PassengerRatingResponse ratePassenger(long passengerId, PassengerRatingRequest passengerRatingRequest) {
-        PassengerRating newPassengerRating = mapPassengerRatingRequestToPassengerRating(passengerRatingRequest);
-        newPassengerRating.setPassenger(passengerRepository.findById(passengerId)
-                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId))));
-        newPassengerRating = passengerRatingRepository.save(newPassengerRating);
-        return mapPassengerRatingToPassengerRatingResponse(newPassengerRating);
+    public void ratePassenger(PassengerRatingRequest passengerRatingRequest) {
+        Long passengerId = passengerRatingRequest.getPassengerId();
+        passengerRepository.findById(passengerId)
+                .ifPresent(passenger -> {
+                    PassengerRating newPassengerRating = PassengerRating.builder()
+                            .driverId(passengerRatingRequest.getDriverId())
+                            .rating(passengerRatingRequest.getRating())
+                            .rideId(passengerRatingRequest.getRideId())
+                            .passenger(passenger)
+                            .build();
+                    passengerRatingRepository.save(newPassengerRating);
+                });
     }
 
     @Override
@@ -64,12 +70,6 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
         if (!passengerRepository.existsById(passengerId)) {
             throw new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
         }
-    }
-
-    public PassengerRating mapPassengerRatingRequestToPassengerRating(PassengerRatingRequest passengerRatingRequest) {
-        PassengerRating passengerRating = modelMapper.map(passengerRatingRequest, PassengerRating.class);
-        passengerRating.setId(null);
-        return passengerRating;
     }
 
     private PassengerRatingResponse mapPassengerRatingToPassengerRatingResponse(PassengerRating passengerRating) {

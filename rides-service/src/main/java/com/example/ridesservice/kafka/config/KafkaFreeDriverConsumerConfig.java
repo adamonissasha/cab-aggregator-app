@@ -17,10 +17,10 @@ import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
-public class KafkaConsumerConfig {
+public class KafkaFreeDriverConsumerConfig {
     private final KafkaProperties kafkaProperties;
     private final KafkaFreeDriverService kafkaFreeDriverService;
-    @Value("${topic.name}")
+    @Value("${topic.name.free-driver}")
     private String topicName;
 
     @Bean

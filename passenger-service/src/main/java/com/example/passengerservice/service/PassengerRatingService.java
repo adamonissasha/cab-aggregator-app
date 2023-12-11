@@ -6,7 +6,7 @@ import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.PassengerRatingResponse;
 
 public interface PassengerRatingService {
-    PassengerRatingResponse ratePassenger(long passengerId, PassengerRatingRequest passengerRatingRequest);
+    void ratePassenger(PassengerRatingRequest passengerRatingRequest);
 
     AllPassengerRatingsResponse getRatingsByPassengerId(long passengerId);
 
