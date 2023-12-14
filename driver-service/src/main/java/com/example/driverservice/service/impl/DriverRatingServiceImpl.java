@@ -5,6 +5,7 @@ import com.example.driverservice.dto.response.AllDriverRatingsResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.DriverRatingResponse;
 import com.example.driverservice.exception.DriverNotFoundException;
+import com.example.driverservice.model.Driver;
 import com.example.driverservice.model.DriverRating;
 import com.example.driverservice.repository.DriverRatingRepository;
 import com.example.driverservice.repository.DriverRepository;
@@ -27,16 +28,17 @@ public class DriverRatingServiceImpl implements DriverRatingService {
     @Override
     public void rateDriver(DriverRatingRequest driverRatingRequest) {
         Long driverId = driverRatingRequest.getDriverId();
-        driverRepository.findById(driverId)
-                .ifPresent(driver -> {
-                    DriverRating newPassengerRating = DriverRating.builder()
-                            .passengerId(driverRatingRequest.getPassengerId())
-                            .rating(driverRatingRequest.getRating())
-                            .rideId(driverRatingRequest.getRideId())
-                            .driver(driver)
-                            .build();
-                    driverRatingRepository.save(newPassengerRating);
-                });
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId)));
+
+        DriverRating newPassengerRating = DriverRating.builder()
+                .passengerId(driverRatingRequest.getPassengerId())
+                .rating(driverRatingRequest.getRating())
+                .rideId(driverRatingRequest.getRideId())
+                .driver(driver)
+                .build();
+
+        driverRatingRepository.save(newPassengerRating);
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.PassengerRatingResponse;
 import com.example.passengerservice.exception.PassengerNotFoundException;
+import com.example.passengerservice.model.Passenger;
 import com.example.passengerservice.model.PassengerRating;
 import com.example.passengerservice.repository.PassengerRatingRepository;
 import com.example.passengerservice.repository.PassengerRepository;
@@ -26,16 +27,18 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     @Override
     public void ratePassenger(PassengerRatingRequest passengerRatingRequest) {
         Long passengerId = passengerRatingRequest.getPassengerId();
-        passengerRepository.findById(passengerId)
-                .ifPresent(passenger -> {
-                    PassengerRating newPassengerRating = PassengerRating.builder()
-                            .driverId(passengerRatingRequest.getDriverId())
-                            .rating(passengerRatingRequest.getRating())
-                            .rideId(passengerRatingRequest.getRideId())
-                            .passenger(passenger)
-                            .build();
-                    passengerRatingRepository.save(newPassengerRating);
-                });
+
+        Passenger passenger = passengerRepository.findById(passengerId)
+                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId)));
+
+        PassengerRating newPassengerRating = PassengerRating.builder()
+                .driverId(passengerRatingRequest.getDriverId())
+                .rating(passengerRatingRequest.getRating())
+                .rideId(passengerRatingRequest.getRideId())
+                .passenger(passenger)
+                .build();
+
+        passengerRatingRepository.save(newPassengerRating);
     }
 
     @Override
