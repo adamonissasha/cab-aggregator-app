@@ -288,14 +288,14 @@ public class RideServiceImpl implements RideService {
     private DriverResponse getFreeDriver() {
         DriverResponse driverResponse;
         String driverResponseJson = jedis.lpop(REDIS_FREE_DRIVER_LIST_NAME);
-        if (driverResponseJson != null) {
-            try {
-                driverResponse = objectMapper.readValue(driverResponseJson, DriverResponse.class);
-                return driverResponse;
-            } catch (JsonProcessingException e) {
-                throw new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND);
-            }
-        } else {
+        if (driverResponseJson == null) {
+            throw new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND);
+        }
+
+        try {
+            driverResponse = objectMapper.readValue(driverResponseJson, DriverResponse.class);
+            return driverResponse;
+        } catch (JsonProcessingException e) {
             throw new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND);
         }
     }
