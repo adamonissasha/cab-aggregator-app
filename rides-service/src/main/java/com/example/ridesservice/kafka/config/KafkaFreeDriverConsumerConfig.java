@@ -18,22 +18,24 @@ import java.util.Map;
 @Configuration
 @RequiredArgsConstructor
 public class KafkaFreeDriverConsumerConfig {
-    private final KafkaProperties kafkaProperties;
-    private final KafkaFreeDriverService kafkaFreeDriverService;
+    private static final String FREE_DRIVER_MESSAGE = "freeDriverMessage:";
+    private static final String CONSUME_FREE_DRIVER_METHOD_NAME = "consumeFreeDriver";
     @Value("${topic.name.free-driver}")
     private String topicName;
+    private final KafkaProperties kafkaProperties;
+    private final KafkaFreeDriverService kafkaFreeDriverService;
 
     @Bean
     public IntegrationFlow consumeFromKafka(ConsumerFactory<String, String> consumerFactory) {
         return IntegrationFlow.from(Kafka.messageDrivenChannelAdapter(consumerFactory, topicName))
-                .handle(kafkaFreeDriverService, "consumeFreeDriver")
+                .handle(kafkaFreeDriverService, CONSUME_FREE_DRIVER_METHOD_NAME)
                 .get();
     }
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
         Map<String, Object> properties = kafkaProperties.buildConsumerProperties();
-        properties.put(JsonDeserializer.TYPE_MAPPINGS, "driverResponse:" + DriverResponse.class.getName());
+        properties.put(JsonDeserializer.TYPE_MAPPINGS, FREE_DRIVER_MESSAGE + DriverResponse.class.getName());
         return new DefaultKafkaConsumerFactory<>(properties);
     }
 }

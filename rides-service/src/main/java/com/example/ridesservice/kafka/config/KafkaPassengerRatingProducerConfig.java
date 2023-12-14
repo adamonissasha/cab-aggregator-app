@@ -21,14 +21,15 @@ import java.util.Map;
 @Configuration
 @RequiredArgsConstructor
 public class KafkaPassengerRatingProducerConfig {
-    private final KafkaProperties kafkaProperties;
-
+    private static final String RATING_MESSAGE = "ratingMessage:";
+    private static final String PASSENGER_RATING_CHANNEL_NAME = "passengerRatingKafkaChannel";
     @Value("${topic.name.rate.passenger}")
     private String passengerRatingTopicName;
+    private final KafkaProperties kafkaProperties;
 
     @Bean
     public IntegrationFlow sendPassengerRatingToKafkaFlow() {
-        return f -> f.channel("passengerRatingKafkaChannel")
+        return f -> f.channel(PASSENGER_RATING_CHANNEL_NAME)
                 .handle(Kafka.outboundChannelAdapter(passengerRatingKafkaTemplate())
                         .messageKey(m -> m.getHeaders().get(IntegrationMessageHeaderAccessor.SEQUENCE_NUMBER))
                         .topic(passengerRatingTopicName));
@@ -47,7 +48,7 @@ public class KafkaPassengerRatingProducerConfig {
     @Bean
     public ProducerFactory<String, String> passengerRatingProducerFactory() {
         Map<String, Object> properties = kafkaProperties.buildProducerProperties();
-        properties.put(JsonSerializer.TYPE_MAPPINGS, "ratingMessage:" + RatingMessage.class.getName());
+        properties.put(JsonSerializer.TYPE_MAPPINGS, RATING_MESSAGE + RatingMessage.class.getName());
         return new DefaultKafkaProducerFactory<>(properties);
     }
 }

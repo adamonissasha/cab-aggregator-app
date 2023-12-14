@@ -19,13 +19,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KafkaFreeDriverProducerConfig {
     private final KafkaProperties kafkaProperties;
+    private static final String FREE_DRIVER_MESSAGE = "freeDriverMessage:";
+    private static final int PARTITIONS_COUNT = 1;
+    private static final int REPLICAS_COUNT = 1;
     @Value("${topic.name.free-driver}")
     private String topicName;
 
     @Bean
     public ProducerFactory<String, DriverResponse> producerFactory() {
         Map<String, Object> properties = kafkaProperties.buildProducerProperties();
-        properties.put(JsonSerializer.TYPE_MAPPINGS, "driverResponse:" + DriverResponse.class.getName());
+        properties.put(JsonSerializer.TYPE_MAPPINGS, FREE_DRIVER_MESSAGE + DriverResponse.class.getName());
         return new DefaultKafkaProducerFactory<>(properties);
     }
 
@@ -37,8 +40,8 @@ public class KafkaFreeDriverProducerConfig {
     @Bean
     public NewTopic sendFreeDriverTopic() {
         return TopicBuilder.name(topicName)
-                .partitions(1)
-                .replicas(1)
+                .partitions(PARTITIONS_COUNT)
+                .replicas(REPLICAS_COUNT)
                 .build();
     }
 }

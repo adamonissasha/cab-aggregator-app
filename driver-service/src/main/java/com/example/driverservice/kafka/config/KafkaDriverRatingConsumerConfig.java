@@ -16,11 +16,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class KafkaDriverRatingConsumerConfig {
     private final KafkaProperties kafkaProperties;
+    private static final String RATING_MESSAGE = "ratingMessage:";
 
     @Bean
     public ConsumerFactory<String, DriverRatingRequest> consumerFactory() {
         Map<String, Object> properties = kafkaProperties.buildConsumerProperties();
-        properties.put(JsonSerializer.TYPE_MAPPINGS, "ratingMessage:" + DriverRatingRequest.class.getName());
+        properties.put(JsonSerializer.TYPE_MAPPINGS, RATING_MESSAGE + DriverRatingRequest.class.getName());
         return new DefaultKafkaConsumerFactory<>(properties);
     }
 
