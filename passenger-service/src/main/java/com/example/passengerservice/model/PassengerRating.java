@@ -32,5 +32,7 @@ public class PassengerRating {
 
     private Long driverId;
 
+    private Long rideId;
+
     private Integer rating;
 }

@@ -33,4 +33,6 @@ public class DriverRating {
     private Driver driver;
 
     private Integer rating;
+
+    private Long rideId;
 }

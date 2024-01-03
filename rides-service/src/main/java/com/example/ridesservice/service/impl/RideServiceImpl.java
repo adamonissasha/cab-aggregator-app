@@ -1,7 +1,9 @@
 package com.example.ridesservice.service.impl;
 
+import com.example.ridesservice.dto.message.RatingMessage;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
+import com.example.ridesservice.dto.request.RatingRequest;
 import com.example.ridesservice.dto.request.RefillRequest;
 import com.example.ridesservice.dto.request.WithdrawalRequest;
 import com.example.ridesservice.dto.response.DriverResponse;
@@ -14,7 +16,9 @@ import com.example.ridesservice.exception.IncorrectPaymentMethodException;
 import com.example.ridesservice.exception.PaymentMethodException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
+import com.example.ridesservice.exception.driver.FreeDriverNotFoundException;
 import com.example.ridesservice.exception.passenger.PassengerException;
+import com.example.ridesservice.kafka.service.KafkaSendRatingGateway;
 import com.example.ridesservice.mapper.RideMapper;
 import com.example.ridesservice.model.PromoCode;
 import com.example.ridesservice.model.Ride;
@@ -28,6 +32,8 @@ import com.example.ridesservice.util.FieldValidator;
 import com.example.ridesservice.webClient.BankWebClient;
 import com.example.ridesservice.webClient.DriverWebClient;
 import com.example.ridesservice.webClient.PassengerWebClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +41,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import redis.clients.jedis.Jedis;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -49,8 +56,11 @@ public class RideServiceImpl implements RideService {
     private static final String INCORRECT_PAYMENT_METHOD = "'%s' - incorrect payment method";
     private static final String RIDE_NOT_FOUND = "Ride with id '%s' not found";
     private static final String RIDE_NOT_STARTED = "The ride with id '%s' hasn't started";
+    private static final String RIDE_NOT_COMPLETED = "The ride with id '%s' hasn't completed";
     private static final String PASSENGER_RIDE_EXCEPTION = "Passenger with id '%s' has already book a ride";
     private static final String CARD_PAYMENT_METHOD = "If you have chosen CARD payment method, select the card for payment";
+    private static final String FREE_DRIVER_NOT_FOUND = "Free driver not found";
+    private static final String REDIS_FREE_DRIVER_LIST_NAME = "freeDrivers";
     private final StopService stopService;
     private final PromoCodeService promoCodeService;
     private final RideRepository rideRepository;
@@ -60,6 +70,9 @@ public class RideServiceImpl implements RideService {
     private final PassengerWebClient passengerWebClient;
     private final Random random = new Random();
     private final FieldValidator fieldValidator;
+    private final ObjectMapper objectMapper;
+    private final Jedis jedis;
+    private final KafkaSendRatingGateway kafkaSendRatingGateway;
 
     @Override
     public PassengerRideResponse createRide(CreateRideRequest createRideRequest) {
@@ -72,7 +85,7 @@ public class RideServiceImpl implements RideService {
         BigDecimal price = calculatePrice(promoCode);
         Long passengerId = passengerWebClient.getPassenger(createRideRequest.getPassengerId()).getId();
         checkPassengerRides(passengerId);
-        DriverResponse driver = driverWebClient.getFreeDriver();
+        DriverResponse driver = getFreeDriver();
 
         Ride newRide = Ride.builder()
                 .passengerId(passengerId)
@@ -144,7 +157,6 @@ public class RideServiceImpl implements RideService {
         return rideMapper.mapRidesPageToRidesPageResponse(ridesPage);
     }
 
-
     @Override
     public RideResponse canselRide(Long rideId) {
         Ride existingRide = getExistingRide(rideId);
@@ -214,6 +226,31 @@ public class RideServiceImpl implements RideService {
         return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride));
     }
 
+    @Override
+    public void ratePassenger(Long id, RatingRequest ratingRequest) {
+        RatingMessage ratingMessage = makeRideRatingMessage(id, ratingRequest);
+        kafkaSendRatingGateway.sendPassengerRating(ratingMessage);
+    }
+
+    @Override
+    public void rateDriver(Long id, RatingRequest ratingRequest) {
+        RatingMessage ratingMessage = makeRideRatingMessage(id, ratingRequest);
+        kafkaSendRatingGateway.sendDriverRating(ratingMessage);
+    }
+
+
+    private RatingMessage makeRideRatingMessage(Long id, RatingRequest ratingRequest) {
+        Ride ride = getExistingRide(id);
+        if (ride.getStatus() != RideStatus.COMPLETED) {
+            throw new RideStatusException(String.format(RIDE_NOT_COMPLETED, ride.getId()));
+        }
+        return RatingMessage.builder()
+                .rideId(id)
+                .passengerId(ride.getPassengerId())
+                .driverId(ride.getDriverId())
+                .rating(ratingRequest.getRating())
+                .build();
+    }
 
     private BigDecimal calculatePrice(PromoCode promoCode) {
         int minPrice = 5;
@@ -245,6 +282,21 @@ public class RideServiceImpl implements RideService {
                 .anyMatch(ride -> ride.getStatus() == RideStatus.CREATED ||
                         ride.getStatus() == RideStatus.STARTED)) {
             throw new PassengerException(String.format(PASSENGER_RIDE_EXCEPTION, passengerId));
+        }
+    }
+
+    private DriverResponse getFreeDriver() {
+        DriverResponse driverResponse;
+        String driverResponseJson = jedis.lpop(REDIS_FREE_DRIVER_LIST_NAME);
+        if (driverResponseJson == null) {
+            throw new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND);
+        }
+
+        try {
+            driverResponse = objectMapper.readValue(driverResponseJson, DriverResponse.class);
+            return driverResponse;
+        } catch (JsonProcessingException e) {
+            throw new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND);
         }
     }
 

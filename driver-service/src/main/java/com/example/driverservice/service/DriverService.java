@@ -13,8 +13,6 @@ public interface DriverService {
 
     DriverPageResponse getAllDrivers(int page, int size, String sortBy);
 
-    DriverResponse getFreeDriver();
-
     DriverResponse changeDriverStatusToFree(Long id);
 
     void deleteDriverById(long id);

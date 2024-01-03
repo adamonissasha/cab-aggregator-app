@@ -2,6 +2,7 @@ package com.example.ridesservice.controller;
 
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
+import com.example.ridesservice.dto.request.RatingRequest;
 import com.example.ridesservice.dto.response.PassengerRideResponse;
 import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
 import com.example.ridesservice.dto.response.RideResponse;
@@ -73,5 +74,17 @@ public class RideController {
                                             @RequestParam(defaultValue = "10") @Min(1) int size,
                                             @RequestParam(defaultValue = "id") String sortBy) {
         return rideService.getDriverRides(driverId, page, size, sortBy);
+    }
+
+    @PostMapping("/{id}/passenger/rate")
+    public void ratePassenger(@PathVariable("id") Long id,
+                              @Valid @RequestBody RatingRequest ratingRequest) {
+        rideService.ratePassenger(id, ratingRequest);
+    }
+
+    @PostMapping("/{id}/driver/rate")
+    public void rateDriver(@PathVariable("id") Long id,
+                           @Valid @RequestBody RatingRequest ratingRequest) {
+        rideService.rateDriver(id, ratingRequest);
     }
 }

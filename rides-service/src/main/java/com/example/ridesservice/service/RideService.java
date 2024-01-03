@@ -2,6 +2,7 @@ package com.example.ridesservice.service;
 
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
+import com.example.ridesservice.dto.request.RatingRequest;
 import com.example.ridesservice.dto.response.PassengerRideResponse;
 import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
 import com.example.ridesservice.dto.response.RideResponse;
@@ -23,4 +24,8 @@ public interface RideService {
     PassengerRidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy);
 
     RidesPageResponse getDriverRides(Long driverId, int page, int size, String sortBy);
+
+    void ratePassenger(Long id, RatingRequest ratingRequest);
+
+    void rateDriver(Long id, RatingRequest ratingRequest);
 }

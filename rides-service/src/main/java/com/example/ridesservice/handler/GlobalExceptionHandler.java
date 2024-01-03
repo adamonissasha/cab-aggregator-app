@@ -13,6 +13,7 @@ import com.example.ridesservice.exception.bank.BankAccountNotFoundException;
 import com.example.ridesservice.exception.bank.BankCardBalanceException;
 import com.example.ridesservice.exception.driver.CarNotFoundException;
 import com.example.ridesservice.exception.driver.DriverNotFoundException;
+import com.example.ridesservice.exception.driver.FreeDriverNotFoundException;
 import com.example.ridesservice.exception.passenger.PassengerException;
 import com.example.ridesservice.exception.passenger.PassengerNotFoundException;
 import jakarta.validation.ConstraintViolation;
@@ -40,6 +41,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = DriverNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleDriverNotFoundException(DriverNotFoundException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.NOT_FOUND.value())
+                .message(ex.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(value = FreeDriverNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ExceptionResponse handleFreeDriverNotFoundException(FreeDriverNotFoundException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())

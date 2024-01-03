@@ -1,17 +1,19 @@
-package com.example.driverservice.dto.request;
+package com.example.ridesservice.dto.message;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.context.annotation.PropertySource;
+import lombok.ToString;
 
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@PropertySource("classpath:messages.properties")
-public class DriverRatingRequest {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class RatingMessage {
     private Long driverId;
     private Long passengerId;
     private Long rideId;
