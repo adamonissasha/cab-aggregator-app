@@ -74,12 +74,6 @@ public class DriverRatingServiceImpl implements DriverRatingService {
                 .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId)));
     }
 
-    public DriverRating mapDriverRatingRequestToDriverRating(DriverRatingRequest driverRatingRequest) {
-        DriverRating driverRating = modelMapper.map(driverRatingRequest, DriverRating.class);
-        driverRating.setId(null);
-        return driverRating;
-    }
-
     private DriverRatingResponse mapDriverRatingToDriverRatingResponse(DriverRating driverRating) {
         return modelMapper.map(driverRating, DriverRatingResponse.class);
     }
