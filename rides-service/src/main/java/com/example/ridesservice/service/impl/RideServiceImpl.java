@@ -158,7 +158,7 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public RideResponse canselRide(Long rideId) {
+    public RideResponse cancelRide(Long rideId) {
         Ride existingRide = getExistingRide(rideId);
 
         checkRideStatusNotEquals(existingRide, Arrays.asList(
@@ -285,9 +285,10 @@ public class RideServiceImpl implements RideService {
         }
     }
 
-    private DriverResponse getFreeDriver() {
+    public DriverResponse getFreeDriver() {
         DriverResponse driverResponse;
         String driverResponseJson = jedis.lpop(REDIS_FREE_DRIVER_LIST_NAME);
+
         if (driverResponseJson == null) {
             throw new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND);
         }

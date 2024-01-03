@@ -13,7 +13,7 @@ public interface RideService {
 
     PassengerRideResponse editRide(Long rideId, EditRideRequest editRideRequest);
 
-    RideResponse canselRide(Long rideId);
+    RideResponse cancelRide(Long rideId);
 
     RideResponse startRide(Long rideId);
 

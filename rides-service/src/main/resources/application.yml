@@ -44,3 +44,7 @@ topic:
     rate:
       passenger: passenger_rating_topic
       driver: driver_rating_topic
+
+jedis:
+  host: localhost
+  port: 6379

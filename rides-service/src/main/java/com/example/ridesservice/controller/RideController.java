@@ -42,7 +42,7 @@ public class RideController {
 
     @PutMapping("/{rideId}/cancel")
     public RideResponse canselRide(@PathVariable("rideId") Long rideId) {
-        return rideService.canselRide(rideId);
+        return rideService.cancelRide(rideId);
     }
 
     @PutMapping("/{rideId}/start")
