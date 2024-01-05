@@ -27,7 +27,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -52,21 +51,32 @@ public class PassengerRatingServiceTest {
         PassengerRatingRequest passengerRatingRequest = TestPassengerRatingUtil.getPassengerRatingRequest();
         Passenger existingPassenger = TestPassengerUtil.getFirstPassenger();
 
-        when(passengerRepository.findById(passengerRatingRequest.getPassengerId())).thenReturn(Optional.of(existingPassenger));
-        when(passengerRatingRepository.save(any(PassengerRating.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(passengerRepository.findById(passengerRatingRequest.getPassengerId()))
+                .thenReturn(Optional.of(existingPassenger));
+        when(passengerRatingRepository.save(any(PassengerRating.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         assertDoesNotThrow(() -> passengerRatingService.ratePassenger(passengerRatingRequest));
-        verify(passengerRatingRepository, times(1)).save(any(PassengerRating.class));
+
+        verify(passengerRatingRepository, times(1))
+                .save(any(PassengerRating.class));
+        verify(passengerRepository, times(1))
+                .findById(passengerRatingRequest.getPassengerId());
     }
 
     @Test
     public void testRatePassenger_WhenPassengerNotFound_ShouldThrowPassengerNotFoundException() {
         PassengerRatingRequest passengerRatingRequest = TestPassengerRatingUtil.getPassengerRatingRequest();
 
-        when(passengerRepository.findById(passengerRatingRequest.getPassengerId())).thenReturn(Optional.empty());
+        when(passengerRepository.findById(passengerRatingRequest.getPassengerId()))
+                .thenReturn(Optional.empty());
 
         assertThrows(PassengerNotFoundException.class, () -> passengerRatingService.ratePassenger(passengerRatingRequest));
-        verify(passengerRatingRepository, never()).save(any(PassengerRating.class));
+
+        verify(passengerRatingRepository, never())
+                .save(any(PassengerRating.class));
+        verify(passengerRepository, times(1))
+                .findById(passengerRatingRequest.getPassengerId());
     }
 
     @Test
@@ -80,26 +90,41 @@ public class PassengerRatingServiceTest {
         PassengerRatingResponse firstPassengerRatingResponse = TestPassengerRatingUtil.getFirstPassengerRatingResponse();
         PassengerRatingResponse secondPassengerRatingResponse = TestPassengerRatingUtil.getSecondPassengerRatingResponse();
         List<PassengerRatingResponse> expectedPassengerRatings = Arrays.asList(firstPassengerRatingResponse, secondPassengerRatingResponse);
+        AllPassengerRatingsResponse expected = AllPassengerRatingsResponse.builder()
+                .passengerRatings(expectedPassengerRatings)
+                .build();
 
-        when(passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId)).thenReturn(passengerRatings);
-        when(modelMapper.map(firstPassengerRating, PassengerRatingResponse.class)).thenReturn(firstPassengerRatingResponse);
-        when(modelMapper.map(secondPassengerRating, PassengerRatingResponse.class)).thenReturn(secondPassengerRatingResponse);
-        when(passengerRepository.existsById(passengerId)).thenReturn(true);
+        when(passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId))
+                .thenReturn(passengerRatings);
+        when(modelMapper.map(firstPassengerRating, PassengerRatingResponse.class))
+                .thenReturn(firstPassengerRatingResponse);
+        when(modelMapper.map(secondPassengerRating, PassengerRatingResponse.class))
+                .thenReturn(secondPassengerRatingResponse);
+        when(passengerRepository.existsById(passengerId))
+                .thenReturn(true);
 
-        AllPassengerRatingsResponse result = passengerRatingService.getRatingsByPassengerId(passengerId);
+        AllPassengerRatingsResponse actual = passengerRatingService.getRatingsByPassengerId(passengerId);
 
         assertDoesNotThrow(() -> passengerRatingService.validatePassengerExists(passengerId));
-        assertNotNull(result);
-        assertEquals(expectedPassengerRatings.size(), result.getPassengerRatings().size());
+        assertEquals(expected, actual);
+
+        verify(passengerRatingRepository, times(1))
+                .getPassengerRatingsByPassengerId(passengerId);
+        verify(passengerRepository, times(2))
+                .existsById(passengerId);
     }
 
     @Test
     void testGetRatingsByPassengerId_WhenPassengerNotExists_ShouldThrowPassengerNotFoundException() {
         Long passengerId = TestPassengerUtil.getFirstPassengerId();
 
-        when(passengerRepository.existsById(passengerId)).thenReturn(false);
+        when(passengerRepository.existsById(passengerId))
+                .thenReturn(false);
 
         assertThrows(PassengerNotFoundException.class, () -> passengerRatingService.getRatingsByPassengerId(passengerId));
+
+        verify(passengerRepository, times(1))
+                .existsById(passengerId);
     }
 
     @Test
@@ -109,22 +134,37 @@ public class PassengerRatingServiceTest {
         PassengerRating secondPassengerRating = TestPassengerRatingUtil.getSecondPassengerRating();
         List<PassengerRating> passengerRatings = Arrays.asList(firstPassengerRating, secondPassengerRating);
         Double expectedAverageRating = TestPassengerRatingUtil.getAveragePassengerRating();
+        AveragePassengerRatingResponse expected =
+                AveragePassengerRatingResponse.builder()
+                        .averageRating(expectedAverageRating)
+                        .passengerId(passengerId)
+                        .build();
 
-        when(passengerRepository.existsById(passengerId)).thenReturn(true);
-        when(passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId)).thenReturn(passengerRatings);
+        when(passengerRepository.existsById(passengerId))
+                .thenReturn(true);
+        when(passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId))
+                .thenReturn(passengerRatings);
 
-        AveragePassengerRatingResponse response = passengerRatingService.getAveragePassengerRating(passengerId);
+        AveragePassengerRatingResponse actual = passengerRatingService.getAveragePassengerRating(passengerId);
 
-        assertEquals(expectedAverageRating, response.getAverageRating(), 0.01);
-        assertEquals(passengerId, response.getPassengerId());
+        assertEquals(expected, actual);
+
+        verify(passengerRepository, times(1))
+                .existsById(passengerId);
+        verify(passengerRatingRepository, times(1))
+                .getPassengerRatingsByPassengerId(passengerId);
     }
 
     @Test
     void testGetAveragePassengerRating_WhenPassengerNotExists_ShouldThrowPassengerNotFoundException() {
         Long passengerId = TestPassengerUtil.getFirstPassengerId();
 
-        when(passengerRepository.existsById(passengerId)).thenReturn(false);
+        when(passengerRepository.existsById(passengerId))
+                .thenReturn(false);
 
         assertThrows(PassengerNotFoundException.class, () -> passengerRatingService.getAveragePassengerRating(passengerId));
+
+        verify(passengerRepository, times(1))
+                .existsById(passengerId);
     }
 }
