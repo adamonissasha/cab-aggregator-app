@@ -3,6 +3,7 @@ package com.example.ridesservice.service;
 
 import com.example.ridesservice.dto.request.StopRequest;
 import com.example.ridesservice.dto.response.StopResponse;
+import com.example.ridesservice.dto.response.StopsResponse;
 import com.example.ridesservice.model.Ride;
 import com.example.ridesservice.model.Stop;
 import com.example.ridesservice.repository.StopRepository;
@@ -55,26 +56,30 @@ public class StopServiceTest {
         List<StopRequest> stopRequests = Arrays.asList(firstStopRequest, secondStopRequest);
         List<StopResponse> stopResponses = Arrays.asList(firstStopResponse, secondStopResponse);
 
-        when(stopRepository.save(any(Stop.class))).thenReturn(firstStop, secondStop);
-        when(modelMapper.map(any(Stop.class), eq(StopResponse.class))).thenReturn(firstStopResponse, secondStopResponse);
+        when(stopRepository.save(any(Stop.class)))
+                .thenReturn(firstStop, secondStop);
+        when(modelMapper.map(any(Stop.class), eq(StopResponse.class)))
+                .thenReturn(firstStopResponse, secondStopResponse);
 
-        List<StopResponse> createdStops = stopService.createStops(stopRequests, ride);
+        List<StopResponse> createdStops = stopService.createStops(stopRequests, ride).getStops();
 
         assertEquals(stopResponses.size(), createdStops.size());
         for (int i = 0; i < stopResponses.size(); i++) {
             assertEquals(stopResponses.get(i).getNumber(), createdStops.get(i).getNumber());
             assertEquals(stopResponses.get(i).getAddress(), createdStops.get(i).getAddress());
         }
-        verify(stopRepository, times(stopRequests.size())).save(any(Stop.class));
+
+        verify(stopRepository, times(stopRequests.size()))
+                .save(any(Stop.class));
     }
 
     @Test
     void testCreateStops_WhenEmptyStopRequestsProvided_ShouldReturnEmptyList() {
         Ride ride = TestRideUtil.getFirstRide();
         List<StopRequest> stopRequests = Collections.emptyList();
-        List<StopResponse> createdStops = stopService.createStops(stopRequests, ride);
+        StopsResponse actual = stopService.createStops(stopRequests, ride);
 
-        assertTrue(createdStops.isEmpty());
+        assertTrue(actual.getStops().isEmpty());
     }
 
     @Test
@@ -99,14 +104,23 @@ public class StopServiceTest {
                         .build())
                 .toList();
 
-        when(stopRepository.findByRide(ride)).thenReturn(stops);
-        doNothing().when(stopRepository).deleteAll(stops);
-        when(stopRepository.saveAll(anyList())).thenReturn(newStops);
-        when(modelMapper.map(any(Stop.class), eq(StopResponse.class))).thenReturn(firstStopResponse, secondStopResponse);
+        StopsResponse expected = StopsResponse.builder()
+                .stops(List.of(firstStopResponse, secondStopResponse))
+                .build();
 
-        List<StopResponse> actualStopResponses = stopService.editStops(stopRequests, ride);
+        when(stopRepository.findByRide(ride))
+                .thenReturn(stops);
+        doNothing()
+                .when(stopRepository)
+                .deleteAll(stops);
+        when(stopRepository.saveAll(anyList()))
+                .thenReturn(newStops);
+        when(modelMapper.map(any(Stop.class), eq(StopResponse.class)))
+                .thenReturn(firstStopResponse, secondStopResponse);
 
-        assertEquals(stops.size(), actualStopResponses.size());
+        StopsResponse actual = stopService.editStops(stopRequests, ride);
+
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -118,8 +132,12 @@ public class StopServiceTest {
 
         StopResponse firstStopResponse = TestStopUtil.getStopResponse();
         StopResponse secondStopResponse = TestStopUtil.getSecondStopResponse();
+        StopsResponse expected = StopsResponse.builder()
+                .stops(List.of(firstStopResponse, secondStopResponse))
+                .build();
 
-        when(stopRepository.findByRide(ride)).thenReturn(Collections.emptyList());
+        when(stopRepository.findByRide(ride))
+                .thenReturn(Collections.emptyList());
 
         List<Stop> savedNewStops = stopRequests.stream()
                 .map(stopRequest -> Stop.builder()
@@ -129,12 +147,14 @@ public class StopServiceTest {
                         .build())
                 .toList();
 
-        when(stopRepository.saveAll(anyList())).thenReturn(savedNewStops);
-        when(modelMapper.map(any(Stop.class), eq(StopResponse.class))).thenReturn(firstStopResponse, secondStopResponse);
+        when(stopRepository.saveAll(anyList()))
+                .thenReturn(savedNewStops);
+        when(modelMapper.map(any(Stop.class), eq(StopResponse.class)))
+                .thenReturn(firstStopResponse, secondStopResponse);
 
-        List<StopResponse> actualStopResponses = stopService.editStops(stopRequests, ride);
+        StopsResponse actual = stopService.editStops(stopRequests, ride);
 
-        assertEquals(stopRequests.size(), actualStopResponses.size());
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -147,15 +167,18 @@ public class StopServiceTest {
         StopResponse firstStopResponse = TestStopUtil.getStopResponse();
         StopResponse secondStopResponse = TestStopUtil.getSecondStopResponse();
         List<StopResponse> stopResponses = Arrays.asList(firstStopResponse, secondStopResponse);
+        StopsResponse expected = StopsResponse.builder()
+                .stops(stopResponses)
+                .build();
 
         when(stopRepository.findByRide(ride)).thenReturn(stops);
 
         when(modelMapper.map(firstStop, StopResponse.class)).thenReturn(stopResponses.get(0));
         when(modelMapper.map(secondStop, StopResponse.class)).thenReturn(stopResponses.get(1));
 
-        List<StopResponse> actualStopResponses = stopService.getRideStops(ride);
+        StopsResponse actual = stopService.getRideStops(ride);
 
-        assertEquals(stopResponses.size(), actualStopResponses.size());
+        assertEquals(expected, actual);
     }
 
     @Test
@@ -164,8 +187,8 @@ public class StopServiceTest {
 
         when(stopRepository.findByRide(ride)).thenReturn(Collections.emptyList());
 
-        List<StopResponse> actualStopResponses = stopService.getRideStops(ride);
+        StopsResponse actual = stopService.getRideStops(ride);
 
-        assertTrue(actualStopResponses.isEmpty());
+        assertTrue(actual.getStops().isEmpty());
     }
 }

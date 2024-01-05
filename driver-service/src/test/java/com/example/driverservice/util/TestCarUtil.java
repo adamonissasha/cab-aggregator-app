@@ -54,12 +54,21 @@ public class TestCarUtil {
                 .build();
     }
 
-    public static CarResponse getCarResponse() {
+    public static CarResponse getFirstCarResponse() {
         return CarResponse.builder()
                 .id(FIRST_CAR_ID)
                 .number(FIRST_CAR_NUMBER)
                 .color(FIRST_CAR_COLOR)
                 .carMake(FIRST_CAR_MAKE)
+                .build();
+    }
+
+    public static CarResponse getSecondCarResponse() {
+        return CarResponse.builder()
+                .id(SECOND_CAR_ID)
+                .number(SECOND_CAR_NUMBER)
+                .color(SECOND_CAR_COLOR)
+                .carMake(SECOND_CAR_MAKE)
                 .build();
     }
 

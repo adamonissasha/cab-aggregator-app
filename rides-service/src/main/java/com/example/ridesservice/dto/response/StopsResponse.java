@@ -15,6 +15,6 @@ import java.util.List;
 @Setter
 @Builder
 @EqualsAndHashCode
-public class AllPromoCodesResponse {
-    private List<PromoCodeResponse> promoCodes;
+public class StopsResponse {
+    private List<StopResponse> stops;
 }

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,18 +48,25 @@ public class PromoCodeServiceTest {
     void testCreatePromoCode_WhenDatesAreValidAndPromoCodeUnique_ShouldCreatePromoCode() {
         PromoCodeRequest promoCodeRequest = TestPromoCodeUtil.getPromoCodeRequest();
         PromoCode promoCode = TestPromoCodeUtil.getFirstPromoCode();
-        PromoCodeResponse expectedResponse = TestPromoCodeUtil.getFirstPromoCodeResponse();
+        PromoCodeResponse expected = TestPromoCodeUtil.getFirstPromoCodeResponse();
 
-        when(modelMapper.map(promoCodeRequest, PromoCode.class)).thenReturn(promoCode);
-        when(promoCodeRepository.findByCode(promoCodeRequest.getCode())).thenReturn(Optional.empty());
-        when(promoCodeRepository.save(any(PromoCode.class))).thenReturn(promoCode);
-        when(modelMapper.map(promoCode, PromoCodeResponse.class)).thenReturn(expectedResponse);
+        when(modelMapper.map(promoCodeRequest, PromoCode.class))
+                .thenReturn(promoCode);
+        when(promoCodeRepository.findByCode(promoCodeRequest.getCode()))
+                .thenReturn(Optional.empty());
+        when(promoCodeRepository.save(any(PromoCode.class)))
+                .thenReturn(promoCode);
+        when(modelMapper.map(promoCode, PromoCodeResponse.class))
+                .thenReturn(expected);
 
-        PromoCodeResponse result = promoCodeService.createPromoCode(promoCodeRequest);
+        PromoCodeResponse actual = promoCodeService.createPromoCode(promoCodeRequest);
 
-        assertNotNull(result);
-        assertEquals(expectedResponse, result);
-        verify(promoCodeRepository, times(1)).save(any(PromoCode.class));
+        assertEquals(expected, actual);
+
+        verify(promoCodeRepository, times(1))
+                .save(any(PromoCode.class));
+        verify(promoCodeRepository, times(1))
+                .findByCode(promoCodeRequest.getCode());
     }
 
     @Test
@@ -69,7 +75,9 @@ public class PromoCodeServiceTest {
         promoCodeRequest.setStartDate(LocalDate.now().minusDays(10));
 
         assertThrows(IncorrectDateException.class, () -> promoCodeService.createPromoCode(promoCodeRequest));
-        verify(promoCodeRepository, never()).save(any(PromoCode.class));
+
+        verify(promoCodeRepository, never())
+                .save(any(PromoCode.class));
     }
 
     @Test
@@ -77,10 +85,15 @@ public class PromoCodeServiceTest {
         PromoCodeRequest promoCodeRequest = TestPromoCodeUtil.getPromoCodeRequest();
         PromoCode existingPromoCode = TestPromoCodeUtil.getSecondPromoCode();
 
-        when(promoCodeRepository.findByCode(existingPromoCode.getCode())).thenReturn(Optional.of(existingPromoCode));
+        when(promoCodeRepository.findByCode(existingPromoCode.getCode()))
+                .thenReturn(Optional.of(existingPromoCode));
 
         assertThrows(PromoCodeAlreadyExistsException.class, () -> promoCodeService.createPromoCode(promoCodeRequest));
-        verify(promoCodeRepository, never()).save(any(PromoCode.class));
+
+        verify(promoCodeRepository, never())
+                .save(any(PromoCode.class));
+        verify(promoCodeRepository, times(1))
+                .findByCode(existingPromoCode.getCode());
     }
 
     @Test
@@ -89,19 +102,30 @@ public class PromoCodeServiceTest {
         PromoCodeRequest promoCodeRequest = TestPromoCodeUtil.getPromoCodeRequest();
         PromoCode existingPromoCode = TestPromoCodeUtil.getFirstPromoCode();
         PromoCode updatedPromoCode = TestPromoCodeUtil.getSecondPromoCode();
-        PromoCodeResponse promoCodeResponse = TestPromoCodeUtil.getSecondPromoCodeResponse();
+        PromoCodeResponse expected = TestPromoCodeUtil.getSecondPromoCodeResponse();
 
-        when(modelMapper.map(promoCodeRequest, PromoCode.class)).thenReturn(updatedPromoCode);
-        when(promoCodeRepository.findById(id)).thenReturn(Optional.of(existingPromoCode));
-        when(promoCodeRepository.findByCode(updatedPromoCode.getCode())).thenReturn(Optional.empty());
-        when(promoCodeRepository.save(any(PromoCode.class))).thenReturn(updatedPromoCode);
-        when(modelMapper.map(updatedPromoCode, PromoCodeResponse.class)).thenReturn(promoCodeResponse);
+        when(modelMapper.map(promoCodeRequest, PromoCode.class))
+                .thenReturn(updatedPromoCode);
+        when(promoCodeRepository.findById(id))
+                .thenReturn(Optional.of(existingPromoCode));
+        when(promoCodeRepository.findByCode(updatedPromoCode.getCode()))
+                .thenReturn(Optional.empty());
+        when(promoCodeRepository.save(any(PromoCode.class)))
+                .thenReturn(updatedPromoCode);
+        when(modelMapper.map(updatedPromoCode, PromoCodeResponse.class))
+                .thenReturn(expected);
 
 
-        PromoCodeResponse result = promoCodeService.editPromoCode(id, promoCodeRequest);
+        PromoCodeResponse actual = promoCodeService.editPromoCode(id, promoCodeRequest);
 
-        assertEquals(result, promoCodeResponse);
-        assertNotNull(result);
+        assertEquals(expected, actual);
+
+        verify(promoCodeRepository, times(1))
+                .findById(id);
+        verify(promoCodeRepository, times(1))
+                .findByCode(updatedPromoCode.getCode());
+        verify(promoCodeRepository, times(1))
+                .save(any(PromoCode.class));
     }
 
     @Test
@@ -111,7 +135,9 @@ public class PromoCodeServiceTest {
         promoCodeRequest.setStartDate(LocalDate.now().minusDays(5));
 
         assertThrows(IncorrectDateException.class, () -> promoCodeService.editPromoCode(id, promoCodeRequest));
-        verify(promoCodeRepository, never()).save(any(PromoCode.class));
+
+        verify(promoCodeRepository, never())
+                .save(any(PromoCode.class));
     }
 
     @Test
@@ -121,11 +147,19 @@ public class PromoCodeServiceTest {
         PromoCode existingPromoCode = TestPromoCodeUtil.getFirstPromoCode();
         PromoCode newPromoCode = TestPromoCodeUtil.getSecondPromoCode();
 
-        when(promoCodeRepository.findById(id)).thenReturn(Optional.of(existingPromoCode));
-        when(promoCodeRepository.findByCode(newPromoCode.getCode())).thenReturn(Optional.of(newPromoCode));
+        when(promoCodeRepository.findById(id))
+                .thenReturn(Optional.of(existingPromoCode));
+        when(promoCodeRepository.findByCode(newPromoCode.getCode()))
+                .thenReturn(Optional.of(newPromoCode));
 
         assertThrows(PromoCodeAlreadyExistsException.class, () -> promoCodeService.editPromoCode(id, promoCodeRequest));
-        verify(promoCodeRepository, never()).save(any(PromoCode.class));
+
+        verify(promoCodeRepository, never())
+                .save(any(PromoCode.class));
+        verify(promoCodeRepository, times(1))
+                .findById(id);
+        verify(promoCodeRepository, times(1))
+                .findByCode(newPromoCode.getCode());
     }
 
     @Test
@@ -133,34 +167,49 @@ public class PromoCodeServiceTest {
         Long id = TestPromoCodeUtil.getFirstPromoCodeId();
         PromoCodeRequest promoCodeRequest = TestPromoCodeUtil.getPromoCodeRequest();
 
-        when(promoCodeRepository.findById(id)).thenReturn(Optional.empty());
+        when(promoCodeRepository.findById(id))
+                .thenReturn(Optional.empty());
 
         assertThrows(PromoCodeNotFoundException.class, () -> promoCodeService.editPromoCode(id, promoCodeRequest));
-        verify(promoCodeRepository, never()).findByCode(anyString());
-        verify(promoCodeRepository, never()).save(any(PromoCode.class));
+
+        verify(promoCodeRepository, never())
+                .findByCode(anyString());
+        verify(promoCodeRepository, never())
+                .save(any(PromoCode.class));
+        verify(promoCodeRepository, times(1))
+                .findById(id);
     }
 
     @Test
     void testGetPromoCodeById_WhenPromoCodeExists_ShouldReturnPromoCodeResponse() {
         Long promoCodeId = TestPromoCodeUtil.getFirstPromoCodeId();
         PromoCode promoCode = TestPromoCodeUtil.getFirstPromoCode();
-        PromoCodeResponse expectedPromoCodeResponse = TestPromoCodeUtil.getFirstPromoCodeResponse();
+        PromoCodeResponse expected = TestPromoCodeUtil.getFirstPromoCodeResponse();
 
-        when(promoCodeRepository.findById(promoCodeId)).thenReturn(Optional.of(promoCode));
-        when(modelMapper.map(promoCode, PromoCodeResponse.class)).thenReturn(expectedPromoCodeResponse);
+        when(promoCodeRepository.findById(promoCodeId))
+                .thenReturn(Optional.of(promoCode));
+        when(modelMapper.map(promoCode, PromoCodeResponse.class))
+                .thenReturn(expected);
 
-        PromoCodeResponse actualPromoCodeResponse = promoCodeService.getPromoCodeById(promoCodeId);
+        PromoCodeResponse actual = promoCodeService.getPromoCodeById(promoCodeId);
 
-        assertEquals(expectedPromoCodeResponse, actualPromoCodeResponse);
+        assertEquals(expected, actual);
+
+        verify(promoCodeRepository, times(1))
+                .findById(promoCodeId);
     }
 
     @Test
     void testGetPromoCodeById_WhenPromoCodeNotFound_ShouldThrowPromoCodeNotFoundException() {
         Long promoCodeId = TestPromoCodeUtil.getFirstPromoCodeId();
 
-        when(promoCodeRepository.findById(promoCodeId)).thenReturn(Optional.empty());
+        when(promoCodeRepository.findById(promoCodeId))
+                .thenReturn(Optional.empty());
 
         assertThrows(PromoCodeNotFoundException.class, () -> promoCodeService.getPromoCodeById(promoCodeId));
+
+        verify(promoCodeRepository, times(1))
+                .findById(promoCodeId);
     }
 
     @Test
@@ -172,55 +221,74 @@ public class PromoCodeServiceTest {
         PromoCodeResponse firstPromoCodeResponse = TestPromoCodeUtil.getFirstPromoCodeResponse();
         PromoCodeResponse secondPromoCodeResponse = TestPromoCodeUtil.getSecondPromoCodeResponse();
 
-        when(promoCodeRepository.findAll()).thenReturn(promoCodes);
-        when(promoCodeService.mapPromoCodeToPromoCodeResponse(firstPromoCode)).thenReturn(firstPromoCodeResponse);
-        when(promoCodeService.mapPromoCodeToPromoCodeResponse(secondPromoCode)).thenReturn(secondPromoCodeResponse);
+        when(promoCodeRepository.findAll())
+                .thenReturn(promoCodes);
+        when(promoCodeService.mapPromoCodeToPromoCodeResponse(firstPromoCode))
+                .thenReturn(firstPromoCodeResponse);
+        when(promoCodeService.mapPromoCodeToPromoCodeResponse(secondPromoCode))
+                .thenReturn(secondPromoCodeResponse);
 
-        AllPromoCodesResponse expectedResponse = AllPromoCodesResponse.builder()
+        AllPromoCodesResponse expected = AllPromoCodesResponse.builder()
                 .promoCodes(Arrays.asList(firstPromoCodeResponse, secondPromoCodeResponse))
                 .build();
 
-        AllPromoCodesResponse actualResponse = promoCodeService.getAllPromoCodes();
+        AllPromoCodesResponse actual = promoCodeService.getAllPromoCodes();
 
-        assertEquals(expectedResponse.getPromoCodes().size(), actualResponse.getPromoCodes().size());
+        assertEquals(expected, actual);
+
+        verify(promoCodeRepository, times(1))
+                .findAll();
     }
 
     @Test
     void testGetAllPromoCodes_WhenNoPromoCodesExist_ShouldReturnEmptyResponse() {
-        when(promoCodeRepository.findAll()).thenReturn(List.of());
+        List<PromoCodeResponse> expectedPromoCodeResponses = List.of();
+        AllPromoCodesResponse expected = AllPromoCodesResponse.builder()
+                .promoCodes(expectedPromoCodeResponses)
+                .build();
 
-        AllPromoCodesResponse actualResponse = promoCodeService.getAllPromoCodes();
+        when(promoCodeRepository.findAll())
+                .thenReturn(List.of());
 
-        assertEquals(0, actualResponse.getPromoCodes().size());
+        AllPromoCodesResponse actual = promoCodeService.getAllPromoCodes();
+
+        assertEquals(expected, actual);
     }
 
     @Test
     void testGetPromoCodeByName_WhenPromoCodeExists_ShouldReturnPromoCode() {
         String code = TestPromoCodeUtil.getFirstPromoCode().getCode();
-        PromoCode promoCode = TestPromoCodeUtil.getFirstPromoCode();
-        promoCode.setStartDate(LocalDate.now().minusDays(5));
+        PromoCode expected = TestPromoCodeUtil.getFirstPromoCode();
+        expected.setStartDate(LocalDate.now().minusDays(5));
 
-        when(promoCodeRepository.findByCode(code)).thenReturn(Optional.of(promoCode));
+        when(promoCodeRepository.findByCode(code))
+                .thenReturn(Optional.of(expected));
 
-        PromoCode result = promoCodeService.getPromoCodeByName(code);
+        PromoCode actual = promoCodeService.getPromoCodeByName(code);
 
-        assertNotNull(result);
-        assertEquals(promoCode, result);
+        assertEquals(expected, actual);
+
+        verify(promoCodeRepository, times(1))
+                .findByCode(code);
     }
 
     @Test
     void testGetPromoCodeByName_WhenPromoCodeNotFound_ShouldThrowPromoCodeNotFoundException() {
         String promoCodeName = TestPromoCodeUtil.getFirstPromoCode().getCode();
 
-        when(promoCodeRepository.findByCode(promoCodeName)).thenReturn(Optional.empty());
+        when(promoCodeRepository.findByCode(promoCodeName))
+                .thenReturn(Optional.empty());
 
         assertThrows(PromoCodeNotFoundException.class, () -> promoCodeService.getPromoCodeByName(promoCodeName));
+
+        verify(promoCodeRepository, times(1))
+                .findByCode(promoCodeName);
     }
 
     @Test
     void testGetPromoCodeByName_WhenPromoCodeNameIsNull_ShouldReturnNull() {
-        PromoCode result = promoCodeService.getPromoCodeByName(null);
+        PromoCode actual = promoCodeService.getPromoCodeByName(null);
 
-        assertNull(result);
+        assertNull(actual);
     }
 }

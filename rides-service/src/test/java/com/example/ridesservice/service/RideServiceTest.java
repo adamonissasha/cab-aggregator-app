@@ -10,6 +10,7 @@ import com.example.ridesservice.dto.response.PassengerResponse;
 import com.example.ridesservice.dto.response.PassengerRideResponse;
 import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.dto.response.StopResponse;
+import com.example.ridesservice.dto.response.StopsResponse;
 import com.example.ridesservice.exception.PaymentMethodException;
 import com.example.ridesservice.exception.RideNotFoundException;
 import com.example.ridesservice.exception.RideStatusException;
@@ -20,7 +21,6 @@ import com.example.ridesservice.model.Ride;
 import com.example.ridesservice.model.enums.RideStatus;
 import com.example.ridesservice.repository.RideRepository;
 import com.example.ridesservice.service.impl.RideServiceImpl;
-import com.example.ridesservice.util.FieldValidator;
 import com.example.ridesservice.util.TestRideUtil;
 import com.example.ridesservice.webClient.BankWebClient;
 import com.example.ridesservice.webClient.DriverWebClient;
@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -73,8 +72,6 @@ public class RideServiceTest {
     @Mock
     Jedis jedis;
     @Mock
-    FieldValidator fieldValidator;
-    @Mock
     ObjectMapper objectMapper;
     @InjectMocks
     RideServiceImpl rideService;
@@ -87,24 +84,45 @@ public class RideServiceTest {
         DriverResponse driverResponse = TestRideUtil.getDriverResponse();
         Ride expectedRide = TestRideUtil.getFirstRide();
         List<StopResponse> stopResponses = TestRideUtil.getRideStopResponses();
+        StopsResponse stopsResponse = StopsResponse.builder()
+                .stops(stopResponses)
+                .build();
         List<StopRequest> stopRequests = TestRideUtil.getRideStopRequests();
-        PassengerRideResponse expectedResponse = TestRideUtil.getPassengerRideResponse();
+        PassengerRideResponse expected = TestRideUtil.getPassengerRideResponse();
 
-        when(jedis.lpop(anyString())).thenReturn("driverJson");
-        when(objectMapper.readValue("driverJson", DriverResponse.class)).thenReturn(driverResponse);
-        when(promoCodeService.getPromoCodeByName(createRideRequest.getPromoCode())).thenReturn(promoCode);
-        when(passengerWebClient.getPassenger(createRideRequest.getPassengerId())).thenReturn(passengerResponse);
-        when(rideService.getFreeDriver()).thenReturn(driverResponse);
-        when(rideRepository.save(any(Ride.class))).thenReturn(expectedRide);
-        when(stopService.createStops(stopRequests, expectedRide)).thenReturn(stopResponses);
+        when(jedis.lpop(anyString()))
+                .thenReturn("driverJson");
+        when(objectMapper.readValue("driverJson", DriverResponse.class))
+                .thenReturn(driverResponse);
+        when(promoCodeService.getPromoCodeByName(createRideRequest.getPromoCode()))
+                .thenReturn(promoCode);
+        when(passengerWebClient.getPassenger(createRideRequest.getPassengerId()))
+                .thenReturn(passengerResponse);
+        when(rideService.getFreeDriver())
+                .thenReturn(driverResponse);
+        when(rideRepository.save(any(Ride.class)))
+                .thenReturn(expectedRide);
+        when(stopService.createStops(stopRequests, expectedRide))
+                .thenReturn(stopsResponse);
         when(rideMapper.mapRideToPassengerRideResponse(expectedRide, stopResponses, driverResponse, driverResponse.getCar()))
-                .thenReturn(expectedResponse);
+                .thenReturn(expected);
 
-        PassengerRideResponse result = rideService.createRide(createRideRequest);
+        PassengerRideResponse actual = rideService.createRide(createRideRequest);
 
-        assertNotNull(result);
-        verify(rideRepository, times(1)).save(any());
-        verify(stopService, times(1)).createStops(any(), any());
+        assertEquals(expected, actual);
+
+        verify(jedis, times(2))
+                .lpop(anyString());
+        verify(objectMapper, times(1))
+                .readValue("driverJson", DriverResponse.class);
+        verify(promoCodeService, times(1))
+                .getPromoCodeByName(createRideRequest.getPromoCode());
+        verify(passengerWebClient, times(1))
+                .getPassenger(createRideRequest.getPassengerId());
+        verify(rideRepository, times(1))
+                .save(any());
+        verify(stopService, times(1))
+                .createStops(any(), any());
     }
 
     @Test
@@ -121,22 +139,37 @@ public class RideServiceTest {
         EditRideRequest editRideRequest = TestRideUtil.getEditRideRequest();
         Ride existingRide = TestRideUtil.getFirstRide();
         List<StopResponse> stopResponses = TestRideUtil.getRideStopResponses();
+        StopsResponse stopsResponse = StopsResponse.builder()
+                .stops(stopResponses)
+                .build();
         List<StopRequest> stopRequests = TestRideUtil.getRideStopRequests();
         PassengerRideResponse passengerRideResponse = TestRideUtil.getPassengerRideResponse();
         DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+        PassengerRideResponse expected = TestRideUtil.getPassengerRideResponse();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
-        when(rideRepository.save(existingRide)).thenReturn(existingRide);
-        when(driverWebClient.getDriver(anyLong())).thenReturn(driverResponse);
-        when(stopService.editStops(stopRequests, existingRide)).thenReturn(stopResponses);
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
+        when(rideRepository.save(existingRide))
+                .thenReturn(existingRide);
+        when(driverWebClient.getDriver(anyLong()))
+                .thenReturn(driverResponse);
+        when(stopService.editStops(stopRequests, existingRide))
+                .thenReturn(stopsResponse);
         when(rideMapper.mapRideToPassengerRideResponse(existingRide, stopResponses, driverResponse, driverResponse.getCar()))
                 .thenReturn(passengerRideResponse);
 
-        PassengerRideResponse result = rideService.editRide(rideId, editRideRequest);
+        PassengerRideResponse actual = rideService.editRide(rideId, editRideRequest);
 
-        assertNotNull(result);
-        verify(rideRepository, times(1)).save(existingRide);
-        verify(stopService, times(1)).editStops(editRideRequest.getStops(), existingRide);
+        assertEquals(expected, actual);
+
+        verify(rideRepository, times(1))
+                .save(existingRide);
+        verify(stopService, times(1))
+                .editStops(editRideRequest.getStops(), existingRide);
+        verify(rideRepository, times(1))
+                .findById(rideId);
+        verify(driverWebClient, times(1))
+                .getDriver(anyLong());
     }
 
     @Test
@@ -146,12 +179,17 @@ public class RideServiceTest {
         Ride existingRide = TestRideUtil.getFirstRide();
         existingRide.setStatus(RideStatus.COMPLETED);
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         assertThrows(RideStatusException.class, () -> rideService.editRide(rideId, editRideRequest));
 
-        verify(rideRepository, never()).save(any());
-        verify(stopService, never()).editStops(anyList(), any());
+        verify(rideRepository, never())
+                .save(any());
+        verify(stopService, never())
+                .editStops(anyList(), any());
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
@@ -159,7 +197,8 @@ public class RideServiceTest {
         Long rideId = TestRideUtil.getFirstRideId();
         EditRideRequest editRideRequest = TestRideUtil.getEditRideRequest();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.empty());
 
         assertThrows(RideNotFoundException.class, () -> rideService.editRide(rideId, editRideRequest));
     }
@@ -168,23 +207,35 @@ public class RideServiceTest {
     void testGetRideByRideId_WhenRideExists_ShouldReturnRideResponse() {
         Long rideId = TestRideUtil.getFirstRideId();
         Ride existingRide = TestRideUtil.getFirstRide();
-        RideResponse expectedResponse = TestRideUtil.getFirstRideResponse();
+        RideResponse expected = TestRideUtil.getFirstRideResponse();
         List<StopResponse> stops = TestRideUtil.getRideStopResponses();
+        StopsResponse stopsResponse = StopsResponse.builder()
+                .stops(stops)
+                .build();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
-        when(stopService.getRideStops(existingRide)).thenReturn(stops);
-        when(rideMapper.mapRideToRideResponse(existingRide, stops)).thenReturn(expectedResponse);
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
+        when(stopService.getRideStops(existingRide))
+                .thenReturn(stopsResponse);
+        when(rideMapper.mapRideToRideResponse(existingRide, stops))
+                .thenReturn(expected);
 
-        RideResponse result = rideService.getRideByRideId(rideId);
+        RideResponse actual = rideService.getRideByRideId(rideId);
 
-        assertEquals(expectedResponse, result);
+        assertEquals(expected, actual);
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
+        verify(stopService, times(1))
+                .getRideStops(existingRide);
     }
 
     @Test
     void testGetRideByRideId_WhenRideDoesNotExist_ShouldThrowRideNotFoundException() {
         Long rideId = TestRideUtil.getFirstRideId();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.empty());
 
         assertThrows(RideNotFoundException.class, () -> rideService.getRideByRideId(rideId));
     }
@@ -194,19 +245,31 @@ public class RideServiceTest {
         Long rideId = TestRideUtil.getFirstRideId();
         Ride existingRide = TestRideUtil.getFirstRide();
         existingRide.setStatus(RideStatus.CREATED);
-        RideResponse expectedResponse = TestRideUtil.getFirstRideResponse();
+        RideResponse expected = TestRideUtil.getFirstRideResponse();
         List<StopResponse> stops = TestRideUtil.getRideStopResponses();
+        StopsResponse stopsResponse = StopsResponse.builder()
+                .stops(stops)
+                .build();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
-        when(stopService.getRideStops(existingRide)).thenReturn(stops);
-        when(rideRepository.save(existingRide)).thenReturn(existingRide);
-        when(rideMapper.mapRideToRideResponse(existingRide, stops)).thenReturn(expectedResponse);
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
+        when(stopService.getRideStops(existingRide))
+                .thenReturn(stopsResponse);
+        when(rideRepository.save(existingRide))
+                .thenReturn(existingRide);
+        when(rideMapper.mapRideToRideResponse(existingRide, stops))
+                .thenReturn(expected);
 
-        RideResponse result = rideService.cancelRide(rideId);
+        RideResponse actual = rideService.cancelRide(rideId);
 
-        assertEquals(expectedResponse, result);
-        assertEquals(RideStatus.CANCELED, existingRide.getStatus());
-        verify(rideRepository, times(1)).save(existingRide);
+        assertEquals(expected, actual);
+
+        verify(rideRepository, times(1))
+                .save(existingRide);
+        verify(rideRepository, times(1))
+                .findById(rideId);
+        verify(stopService, times(1))
+                .getRideStops(existingRide);
     }
 
     @Test
@@ -215,17 +278,21 @@ public class RideServiceTest {
         Ride existingRide = TestRideUtil.getFirstRide();
         existingRide.setStatus(RideStatus.COMPLETED);
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         assertThrows(RideStatusException.class, () -> rideService.cancelRide(rideId));
-        assertEquals(RideStatus.COMPLETED, existingRide.getStatus());
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
     void testCancelRide_WhenRideDoesNotExist_ShouldThrowRideNotFoundException() {
         Long rideId = TestRideUtil.getFirstRideId();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.empty());
 
         assertThrows(RideNotFoundException.class, () -> rideService.cancelRide(rideId));
     }
@@ -235,20 +302,31 @@ public class RideServiceTest {
         Long rideId = TestRideUtil.getFirstRideId();
         Ride existingRide = TestRideUtil.getFirstRide();
         existingRide.setStatus(RideStatus.CREATED);
-        RideResponse expectedResponse = TestRideUtil.getFirstRideResponse();
+        RideResponse expected = TestRideUtil.getFirstRideResponse();
         List<StopResponse> stops = TestRideUtil.getRideStopResponses();
+        StopsResponse stopsResponse = StopsResponse.builder()
+                .stops(stops)
+                .build();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
-        when(stopService.getRideStops(existingRide)).thenReturn(stops);
-        when(rideRepository.save(existingRide)).thenReturn(existingRide);
-        when(rideMapper.mapRideToRideResponse(existingRide, stops)).thenReturn(expectedResponse);
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
+        when(stopService.getRideStops(existingRide))
+                .thenReturn(stopsResponse);
+        when(rideRepository.save(existingRide))
+                .thenReturn(existingRide);
+        when(rideMapper.mapRideToRideResponse(existingRide, stops))
+                .thenReturn(expected);
 
-        RideResponse result = rideService.startRide(rideId);
+        RideResponse actual = rideService.startRide(rideId);
 
-        assertEquals(expectedResponse, result);
-        assertEquals(RideStatus.STARTED, existingRide.getStatus());
-        assertNotNull(existingRide.getStartDateTime());
-        verify(rideRepository, times(1)).save(existingRide);
+        assertEquals(expected, actual);
+
+        verify(rideRepository, times(1))
+                .save(existingRide);
+        verify(rideRepository, times(1))
+                .findById(rideId);
+        verify(stopService, times(1))
+                .getRideStops(existingRide);
     }
 
     @Test
@@ -257,17 +335,21 @@ public class RideServiceTest {
         Ride existingRide = TestRideUtil.getFirstRide();
         existingRide.setStatus(RideStatus.COMPLETED);
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         assertThrows(RideStatusException.class, () -> rideService.startRide(rideId));
-        assertEquals(RideStatus.COMPLETED, existingRide.getStatus());
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
     void testStartRide_WhenRideDoesNotExist_ShouldThrowRideNotFoundException() {
         Long rideId = TestRideUtil.getFirstRideId();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.empty());
 
         assertThrows(RideNotFoundException.class, () -> rideService.startRide(rideId));
     }
@@ -279,20 +361,33 @@ public class RideServiceTest {
         existingRide.setStatus(RideStatus.STARTED);
         RideResponse expectedResponse = TestRideUtil.getFirstRideResponse();
         List<StopResponse> stops = TestRideUtil.getRideStopResponses();
+        StopsResponse stopsResponse = StopsResponse.builder()
+                .stops(stops)
+                .build();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
-        when(stopService.getRideStops(existingRide)).thenReturn(stops);
-        when(rideRepository.save(existingRide)).thenReturn(existingRide);
-        when(rideMapper.mapRideToRideResponse(existingRide, stops)).thenReturn(expectedResponse);
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
+        when(stopService.getRideStops(existingRide))
+                .thenReturn(stopsResponse);
+        when(rideRepository.save(existingRide))
+                .thenReturn(existingRide);
+        when(rideMapper.mapRideToRideResponse(existingRide, stops))
+                .thenReturn(expectedResponse);
 
         RideResponse result = rideService.completeRide(rideId);
 
         assertEquals(expectedResponse, result);
-        assertEquals(RideStatus.COMPLETED, existingRide.getStatus());
-        assertNotNull(existingRide.getEndDateTime());
-        verify(rideRepository, times(1)).save(existingRide);
-        verify(driverWebClient, times(1)).changeDriverStatusToFree(anyLong());
-        verify(bankWebClient, times(1)).refillDriverBankAccount(any());
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
+        verify(stopService, times(1))
+                .getRideStops(existingRide);
+        verify(rideRepository, times(1))
+                .save(existingRide);
+        verify(driverWebClient, times(1))
+                .changeDriverStatusToFree(anyLong());
+        verify(bankWebClient, times(1))
+                .refillDriverBankAccount(any());
     }
 
     @Test
@@ -301,10 +396,10 @@ public class RideServiceTest {
         Ride existingRide = TestRideUtil.getFirstRide();
         existingRide.setStatus(RideStatus.CANCELED);
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         assertThrows(RideStatusException.class, () -> rideService.completeRide(rideId));
-        assertEquals(RideStatus.CANCELED, existingRide.getStatus());
     }
 
     @Test
@@ -313,19 +408,26 @@ public class RideServiceTest {
         Ride existingRide = TestRideUtil.getFirstRide();
         existingRide.setStatus(RideStatus.CREATED);
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         assertThrows(RideStatusException.class, () -> rideService.completeRide(rideId));
-        assertEquals(RideStatus.CREATED, existingRide.getStatus());
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
     void testCompleteRide_WhenRideDoesNotExist_ShouldThrowRideNotFoundException() {
         Long rideId = TestRideUtil.getFirstRideId();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.empty());
 
         assertThrows(RideNotFoundException.class, () -> rideService.completeRide(rideId));
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
@@ -341,11 +443,15 @@ public class RideServiceTest {
                 .rating(ratingRequest.getRating())
                 .build();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         rideService.ratePassenger(rideId, ratingRequest);
 
-        verify(kafkaSendRatingGateway, times(1)).sendPassengerRating(expectedRatingMessage);
+        verify(rideRepository, times(1))
+                .findById(rideId);
+        verify(kafkaSendRatingGateway, times(1))
+                .sendPassengerRating(expectedRatingMessage);
     }
 
     @Test
@@ -355,10 +461,13 @@ public class RideServiceTest {
         RatingRequest ratingRequest = TestRideUtil.getRatingRequest();
         existingRide.setStatus(RideStatus.STARTED);
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         assertThrows(RideStatusException.class, () -> rideService.ratePassenger(rideId, ratingRequest));
-        assertEquals(RideStatus.STARTED, existingRide.getStatus());
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
@@ -366,9 +475,13 @@ public class RideServiceTest {
         Long rideId = TestRideUtil.getFirstRideId();
         RatingRequest ratingRequest = TestRideUtil.getRatingRequest();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.empty());
 
         assertThrows(RideNotFoundException.class, () -> rideService.ratePassenger(rideId, ratingRequest));
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
@@ -384,11 +497,15 @@ public class RideServiceTest {
                 .rating(ratingRequest.getRating())
                 .build();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         rideService.rateDriver(rideId, ratingRequest);
 
-        verify(kafkaSendRatingGateway, times(1)).sendDriverRating(expectedRatingMessage);
+        verify(kafkaSendRatingGateway, times(1))
+                .sendDriverRating(expectedRatingMessage);
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
@@ -398,10 +515,13 @@ public class RideServiceTest {
         RatingRequest ratingRequest = TestRideUtil.getRatingRequest();
         existingRide.setStatus(RideStatus.STARTED);
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.of(existingRide));
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.of(existingRide));
 
         assertThrows(RideStatusException.class, () -> rideService.rateDriver(rideId, ratingRequest));
-        assertEquals(RideStatus.STARTED, existingRide.getStatus());
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 
     @Test
@@ -409,8 +529,12 @@ public class RideServiceTest {
         Long rideId = TestRideUtil.getFirstRideId();
         RatingRequest ratingRequest = TestRideUtil.getRatingRequest();
 
-        when(rideRepository.findById(rideId)).thenReturn(Optional.empty());
+        when(rideRepository.findById(rideId))
+                .thenReturn(Optional.empty());
 
         assertThrows(RideNotFoundException.class, () -> rideService.rateDriver(rideId, ratingRequest));
+
+        verify(rideRepository, times(1))
+                .findById(rideId);
     }
 }

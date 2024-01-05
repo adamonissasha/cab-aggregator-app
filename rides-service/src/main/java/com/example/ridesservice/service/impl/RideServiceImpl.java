@@ -101,7 +101,7 @@ public class RideServiceImpl implements RideService {
                 .status(RideStatus.CREATED)
                 .build();
         newRide = rideRepository.save(newRide);
-        List<StopResponse> stops = stopService.createStops(createRideRequest.getStops(), newRide);
+        List<StopResponse> stops = stopService.createStops(createRideRequest.getStops(), newRide).getStops();
 
         return rideMapper.mapRideToPassengerRideResponse(newRide, stops, driver, driver.getCar());
     }
@@ -129,7 +129,7 @@ public class RideServiceImpl implements RideService {
         existingRide.setEndAddress(newEndAddress);
         existingRide.setPaymentMethod(paymentMethod);
         existingRide = rideRepository.save(existingRide);
-        List<StopResponse> stops = stopService.editStops(editRideRequest.getStops(), existingRide);
+        List<StopResponse> stops = stopService.editStops(editRideRequest.getStops(), existingRide).getStops();
 
         return rideMapper.mapRideToPassengerRideResponse(existingRide, stops, driver, driver.getCar());
     }
@@ -138,7 +138,7 @@ public class RideServiceImpl implements RideService {
     public RideResponse getRideByRideId(Long rideId) {
         Ride ride = getExistingRide(rideId);
         return rideMapper.mapRideToRideResponse(ride,
-                stopService.getRideStops(ride));
+                stopService.getRideStops(ride).getStops());
     }
 
     @Override
@@ -170,7 +170,7 @@ public class RideServiceImpl implements RideService {
         existingRide.setStatus(RideStatus.CANCELED);
         rideRepository.save(existingRide);
 
-        return rideMapper.mapRideToRideResponse(existingRide, stopService.getRideStops(existingRide));
+        return rideMapper.mapRideToRideResponse(existingRide, stopService.getRideStops(existingRide).getStops());
     }
 
     @Override
@@ -187,7 +187,7 @@ public class RideServiceImpl implements RideService {
         ride.setStartDateTime(LocalDateTime.now());
         rideRepository.save(ride);
 
-        return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride));
+        return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride).getStops());
     }
 
     @Override
@@ -223,7 +223,7 @@ public class RideServiceImpl implements RideService {
                 .sum(ridePrice)
                 .build());
 
-        return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride));
+        return rideMapper.mapRideToRideResponse(ride, stopService.getRideStops(ride).getStops());
     }
 
     @Override

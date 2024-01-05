@@ -89,7 +89,7 @@ public class TestDriverUtil {
                 .lastName(FIRST_DRIVER_LAST_NAME)
                 .email(FIRST_DRIVER_EMAIL)
                 .phoneNumber(FIRST_DRIVER_PHONE_NUMBER)
-                .car(TestCarUtil.getCarResponse())
+                .car(TestCarUtil.getFirstCarResponse())
                 .status(Status.FREE.name())
                 .rating(DRIVER_RATING)
                 .build();
@@ -102,7 +102,7 @@ public class TestDriverUtil {
                 .lastName(SECOND_DRIVER_LAST_NAME)
                 .email(SECOND_DRIVER_EMAIL)
                 .phoneNumber(SECOND_DRIVER_PHONE_NUMBER)
-                .car(TestCarUtil.getCarResponse())
+                .car(TestCarUtil.getFirstCarResponse())
                 .status(Status.FREE.name())
                 .rating(DRIVER_RATING)
                 .build();
