@@ -36,14 +36,6 @@ public class TestPassengerUtil {
         return FIRST_PASSENGER_PHONE_NUMBER;
     }
 
-    public static Long getPassengerCarId() {
-        return PASSENGER_CAR_ID;
-    }
-
-    public static String getCarNotFoundMessage() {
-        return CAR_NOT_FOUND_MESSAGE;
-    }
-
     public static Passenger getFirstPassenger() {
         return Passenger.builder()
                 .id(FIRST_PASSENGER_ID)

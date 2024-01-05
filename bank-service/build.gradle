@@ -42,6 +42,7 @@ dependencies {
     implementation "org.hibernate.validator:hibernate-validator:${versions.hibernateValidator}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testImplementation "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
 }
 
