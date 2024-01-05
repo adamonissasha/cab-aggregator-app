@@ -27,7 +27,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -52,21 +51,32 @@ public class DriverRatingServiceTest {
         DriverRatingRequest driverRatingRequest = TestDriverRatingUtil.getDriverRatingRequest();
         Driver existingDriver = TestDriverUtil.getFirstDriver();
 
-        when(driverRepository.findById(driverRatingRequest.getDriverId())).thenReturn(Optional.of(existingDriver));
-        when(driverRatingRepository.save(any(DriverRating.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(driverRepository.findById(driverRatingRequest.getDriverId()))
+                .thenReturn(Optional.of(existingDriver));
+        when(driverRatingRepository.save(any(DriverRating.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
         assertDoesNotThrow(() -> driverRatingService.rateDriver(driverRatingRequest));
-        verify(driverRatingRepository, times(1)).save(any(DriverRating.class));
+
+        verify(driverRatingRepository, times(1))
+                .save(any(DriverRating.class));
+        verify(driverRepository, times(1))
+                .findById(driverRatingRequest.getDriverId());
     }
 
     @Test
     public void testRateDriver_WhenDriverNotFound_ShouldThrowDriverNotFoundException() {
         DriverRatingRequest driverRatingRequest = TestDriverRatingUtil.getDriverRatingRequest();
 
-        when(driverRepository.findById(driverRatingRequest.getDriverId())).thenReturn(Optional.empty());
+        when(driverRepository.findById(driverRatingRequest.getDriverId()))
+                .thenReturn(Optional.empty());
 
         assertThrows(DriverNotFoundException.class, () -> driverRatingService.rateDriver(driverRatingRequest));
-        verify(driverRatingRepository, never()).save(any(DriverRating.class));
+
+        verify(driverRatingRepository, never())
+                .save(any(DriverRating.class));
+        verify(driverRepository, times(1))
+                .findById(driverRatingRequest.getDriverId());
     }
 
     @Test
@@ -82,25 +92,37 @@ public class DriverRatingServiceTest {
         DriverRatingResponse secondDriverRatingResponse = TestDriverRatingUtil.getSecondDriverRatingResponse();
         List<DriverRatingResponse> expectedDriverRatings = Arrays.asList(firstDriverRatingResponse, secondDriverRatingResponse);
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(driver));
-        when(driverRatingRepository.getDriverRatingsByDriverId(driverId)).thenReturn(driverRatings);
-        when(modelMapper.map(firstDriverRating, DriverRatingResponse.class)).thenReturn(firstDriverRatingResponse);
-        when(modelMapper.map(secondDriverRating, DriverRatingResponse.class)).thenReturn(secondDriverRatingResponse);
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.of(driver));
+        when(driverRatingRepository.getDriverRatingsByDriverId(driverId))
+                .thenReturn(driverRatings);
+        when(modelMapper.map(firstDriverRating, DriverRatingResponse.class))
+                .thenReturn(firstDriverRatingResponse);
+        when(modelMapper.map(secondDriverRating, DriverRatingResponse.class))
+                .thenReturn(secondDriverRatingResponse);
 
         AllDriverRatingsResponse result = driverRatingService.getRatingsByDriverId(driverId);
 
         assertDoesNotThrow(() -> driverRatingService.validateDriverExists(driverId));
-        assertNotNull(result);
         assertEquals(expectedDriverRatings.size(), result.getDriverRatings().size());
+
+        verify(driverRepository, times(2))
+                .findById(driverId);
+        verify(driverRatingRepository, times(1))
+                .getDriverRatingsByDriverId(driverId);
     }
 
     @Test
     void testGetRatingsByDriverId_WhenDriverNotExists_ShouldThrowDriverNotFoundException() {
         Long driverId = TestDriverUtil.getFirstDriverId();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.empty());
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.empty());
 
         assertThrows(DriverNotFoundException.class, () -> driverRatingService.getRatingsByDriverId(driverId));
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
     }
 
     @Test
@@ -111,22 +133,36 @@ public class DriverRatingServiceTest {
         DriverRating secondDriverRating = TestDriverRatingUtil.getSecondDriverRating();
         List<DriverRating> driverRatings = Arrays.asList(firstDriverRating, secondDriverRating);
         Double expectedAverageRating = TestDriverRatingUtil.getAverageDriverRating();
+        AverageDriverRatingResponse expected = AverageDriverRatingResponse.builder()
+                .averageRating(expectedAverageRating)
+                .passengerId(firstDriverRating.getPassengerId())
+                .build();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(driver));
-        when(driverRatingRepository.getDriverRatingsByDriverId(driverId)).thenReturn(driverRatings);
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.of(driver));
+        when(driverRatingRepository.getDriverRatingsByDriverId(driverId))
+                .thenReturn(driverRatings);
 
-        AverageDriverRatingResponse response = driverRatingService.getAverageDriverRating(driverId);
+        AverageDriverRatingResponse actual = driverRatingService.getAverageDriverRating(driverId);
 
-        assertEquals(expectedAverageRating, response.getAverageRating(), 0.01);
-        assertEquals(driverId, response.getPassengerId());
+        assertEquals(expected, actual);
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
+        verify(driverRatingRepository, times(1))
+                .getDriverRatingsByDriverId(driverId);
     }
 
     @Test
     void testGetAverageDriverRating_WhenDriverNotExists_ShouldThrowDriverNotFoundException() {
         Long driverId = TestDriverUtil.getFirstDriverId();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.empty());
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.empty());
 
         assertThrows(DriverNotFoundException.class, () -> driverRatingService.getAverageDriverRating(driverId));
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
     }
 }

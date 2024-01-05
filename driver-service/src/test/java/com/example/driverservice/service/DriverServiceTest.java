@@ -32,13 +32,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -72,26 +70,41 @@ public class DriverServiceTest {
     @Test
     public void testCreateDriver_WhenPhoneNumberUniqueAndCarExists_ShouldCreateDriver() {
         DriverRequest driverRequest = TestDriverUtil.getDriverRequest();
-        CarResponse carResponse = TestCarUtil.getCarResponse();
+        CarResponse carResponse = TestCarUtil.getFirstCarResponse();
         Driver newDriver = TestDriverUtil.getFirstDriver();
-        DriverResponse expectedDriverResponse = TestDriverUtil.getDriverResponse();
+        DriverResponse expected = TestDriverUtil.getDriverResponse();
         AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
 
-        when(carService.getCarById(driverRequest.getCarId())).thenReturn(carResponse);
-        when(driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())).thenReturn(Optional.empty());
-        when(modelMapper.map(any(DriverRequest.class), eq(Driver.class))).thenReturn(newDriver);
-        when(driverRepository.save(any(Driver.class))).thenReturn(TestDriverUtil.getFirstDriver());
-        when(driverRatingService.getAverageDriverRating(anyLong())).thenReturn(driverRating);
-        when(modelMapper.map(any(Driver.class), eq(DriverResponse.class))).thenReturn(expectedDriverResponse);
-        doNothing().when(kafkaFreeDriverService).sendFreeDriverToConsumer(any(DriverResponse.class));
+        when(carService.getCarById(driverRequest.getCarId()))
+                .thenReturn(carResponse);
+        when(driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())).
+                thenReturn(Optional.empty());
+        when(modelMapper.map(any(DriverRequest.class), eq(Driver.class)))
+                .thenReturn(newDriver);
+        when(driverRepository.save(any(Driver.class)))
+                .thenReturn(TestDriverUtil.getFirstDriver());
+        when(driverRatingService.getAverageDriverRating(anyLong()))
+                .thenReturn(driverRating);
+        when(modelMapper.map(any(Driver.class), eq(DriverResponse.class)))
+                .thenReturn(expected);
+        doNothing()
+                .when(kafkaFreeDriverService)
+                .sendFreeDriverToConsumer(any(DriverResponse.class));
 
-        DriverResponse actualDriverResponse = driverService.createDriver(driverRequest);
+        DriverResponse actual = driverService.createDriver(driverRequest);
 
-        assertNotNull(actualDriverResponse);
-        assertEquals(expectedDriverResponse, actualDriverResponse);
-        verify(driverRepository, times(1)).save(any(Driver.class));
-        verify(driverRatingService, times(1)).getAverageDriverRating(anyLong());
-        verify(kafkaFreeDriverService, times(1)).sendFreeDriverToConsumer(expectedDriverResponse);
+        assertEquals(expected, actual);
+
+        verify(carService, times(2))
+                .getCarById(driverRequest.getCarId());
+        verify(driverRepository, times(1))
+                .findDriverByPhoneNumber(driverRequest.getPhoneNumber());
+        verify(driverRepository, times(1))
+                .save(any(Driver.class));
+        verify(driverRatingService, times(1))
+                .getAverageDriverRating(anyLong());
+        verify(kafkaFreeDriverService, times(1))
+                .sendFreeDriverToConsumer(expected);
     }
 
     @Test
@@ -100,9 +113,13 @@ public class DriverServiceTest {
         Driver existingDriver = TestDriverUtil.getFirstDriver();
         String existingDriverPhoneNumber = TestDriverUtil.getFirstDriverPhoneNumber();
 
-        when(driverRepository.findDriverByPhoneNumber(existingDriverPhoneNumber)).thenReturn(Optional.of(existingDriver));
+        when(driverRepository.findDriverByPhoneNumber(existingDriverPhoneNumber))
+                .thenReturn(Optional.of(existingDriver));
 
         assertThrows(PhoneNumberUniqueException.class, () -> driverService.createDriver(driverRequest));
+
+        verify(driverRepository, times(1))
+                .findDriverByPhoneNumber(existingDriverPhoneNumber);
     }
 
     @Test
@@ -113,6 +130,9 @@ public class DriverServiceTest {
                 .thenThrow(new CarNotFoundException(String.format(TestDriverUtil.getCarNotFoundMessage(), anyLong())));
 
         assertThrows(CarNotFoundException.class, () -> driverService.createDriver(driverRequest));
+
+        verify(carService, times(1))
+                .getCarById(anyLong());
     }
 
     @Test
@@ -121,20 +141,34 @@ public class DriverServiceTest {
         DriverRequest driverRequest = TestDriverUtil.getDriverRequest();
         Driver updatedDriver = TestDriverUtil.getFirstDriver();
         Driver existingDriver = TestDriverUtil.getSecondDriver();
-        DriverResponse expectedDriverResponse = TestDriverUtil.getDriverResponse();
+        DriverResponse expected = TestDriverUtil.getDriverResponse();
         AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(existingDriver));
-        when(driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())).thenReturn(Optional.empty());
-        when(modelMapper.map(driverRequest, Driver.class)).thenReturn(updatedDriver);
-        when(driverRepository.save(updatedDriver)).thenReturn(updatedDriver);
-        when(driverRatingService.getAverageDriverRating(anyLong())).thenReturn(driverRating);
-        when(modelMapper.map(updatedDriver, DriverResponse.class)).thenReturn(expectedDriverResponse);
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.of(existingDriver));
+        when(driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber()))
+                .thenReturn(Optional.empty());
+        when(modelMapper.map(driverRequest, Driver.class))
+                .thenReturn(updatedDriver);
+        when(driverRepository.save(updatedDriver))
+                .thenReturn(updatedDriver);
+        when(driverRatingService.getAverageDriverRating(anyLong()))
+                .thenReturn(driverRating);
+        when(modelMapper.map(updatedDriver, DriverResponse.class))
+                .thenReturn(expected);
 
-        DriverResponse actualDriverResponse = driverService.editDriver(driverId, driverRequest);
+        DriverResponse actual = driverService.editDriver(driverId, driverRequest);
 
-        assertNotNull(actualDriverResponse);
-        assertEquals(expectedDriverResponse, actualDriverResponse);
+        assertEquals(expected, actual);
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
+        verify(driverRepository, times(1))
+                .findDriverByPhoneNumber(driverRequest.getPhoneNumber());
+        verify(driverRepository, times(1))
+                .save(updatedDriver);
+        verify(driverRatingService, times(1))
+                .getAverageDriverRating(anyLong());
     }
 
     @Test
@@ -144,10 +178,17 @@ public class DriverServiceTest {
         Driver updatedDriver = TestDriverUtil.getFirstDriver();
         Driver existingDriver = TestDriverUtil.getSecondDriver();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(updatedDriver));
-        when(driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber())).thenReturn(Optional.of(existingDriver));
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.of(updatedDriver));
+        when(driverRepository.findDriverByPhoneNumber(driverRequest.getPhoneNumber()))
+                .thenReturn(Optional.of(existingDriver));
 
         assertThrows(PhoneNumberUniqueException.class, () -> driverService.editDriver(driverId, driverRequest));
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
+        verify(driverRepository, times(1))
+                .findDriverByPhoneNumber(driverRequest.getPhoneNumber());
     }
 
     @Test
@@ -155,35 +196,50 @@ public class DriverServiceTest {
         Long driverId = TestDriverUtil.getFirstDriverId();
         DriverRequest driverRequest = TestDriverUtil.getDriverRequest();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.empty());
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.empty());
 
         assertThrows(DriverNotFoundException.class, () -> driverService.editDriver(driverId, driverRequest));
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
     }
 
     @Test
     void testGetDriverById_WhenDriverExists_ShouldReturnDriverResponse() {
         Long driverId = TestDriverUtil.getFirstDriverId();
         Driver existingDriver = TestDriverUtil.getFirstDriver();
-        DriverResponse expectedDriverResponse = TestDriverUtil.getDriverResponse();
+        DriverResponse expected = TestDriverUtil.getDriverResponse();
         AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(existingDriver));
-        when(driverRatingService.getAverageDriverRating(anyLong())).thenReturn(driverRating);
-        when(modelMapper.map(existingDriver, DriverResponse.class)).thenReturn(expectedDriverResponse);
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.of(existingDriver));
+        when(driverRatingService.getAverageDriverRating(anyLong()))
+                .thenReturn(driverRating);
+        when(modelMapper.map(existingDriver, DriverResponse.class))
+                .thenReturn(expected);
 
-        DriverResponse actualDriverResponse = driverService.getDriverById(driverId);
+        DriverResponse actual = driverService.getDriverById(driverId);
 
-        assertNotNull(actualDriverResponse);
-        assertEquals(expectedDriverResponse, actualDriverResponse);
+        assertEquals(expected, actual);
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
+        verify(driverRatingService, times(1))
+                .getAverageDriverRating(anyLong());
     }
 
     @Test
     public void testGetDriverById_WhenDriverNotFound_ShouldThrowDriverNotFoundException() {
         Long driverId = TestDriverUtil.getFirstDriverId();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.empty());
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.empty());
 
         assertThrows(DriverNotFoundException.class, () -> driverService.getDriverById(driverId));
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
     }
 
     @Test
@@ -197,26 +253,39 @@ public class DriverServiceTest {
         DriverResponse firstDriverResponse = TestDriverUtil.getDriverResponse();
         DriverResponse secondDriverResponse = TestDriverUtil.getSecondDriverResponse();
 
-        List<Driver> mockDrivers = new ArrayList<>();
-        mockDrivers.add(firstDriver);
-        mockDrivers.add(secondDriver);
+        List<Driver> drivers = List.of(firstDriver, secondDriver);
+        List<DriverResponse> driverResponses = List.of(firstDriverResponse, secondDriverResponse);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<Driver> mockDriverPage = new PageImpl<>(mockDrivers, pageable, mockDrivers.size());
+        Page<Driver> mockDriverPage = new PageImpl<>(drivers, pageable, drivers.size());
+        DriverPageResponse expected = DriverPageResponse.builder()
+                .drivers(driverResponses)
+                .currentPage(page)
+                .pageSize(size)
+                .totalElements(2)
+                .totalPages(1)
+                .build();
 
-        doNothing().when(fieldValidator).checkSortField(eq(Driver.class), eq(sortBy));
-        when(driverRatingService.getAverageDriverRating(anyLong())).thenReturn(driverRating);
-        when(modelMapper.map(firstDriver, DriverResponse.class)).thenReturn(firstDriverResponse);
-        when(modelMapper.map(secondDriver, DriverResponse.class)).thenReturn(secondDriverResponse);
-        when(driverRepository.findAll(any(Pageable.class))).thenReturn(mockDriverPage);
+        doNothing()
+                .when(fieldValidator)
+                .checkSortField(eq(Driver.class), eq(sortBy));
+        when(driverRatingService.getAverageDriverRating(anyLong()))
+                .thenReturn(driverRating);
+        when(modelMapper.map(firstDriver, DriverResponse.class))
+                .thenReturn(firstDriverResponse);
+        when(modelMapper.map(secondDriver, DriverResponse.class))
+                .thenReturn(secondDriverResponse);
+        when(driverRepository.findAll(any(Pageable.class)))
+                .thenReturn(mockDriverPage);
 
-        DriverPageResponse result = driverService.getAllDrivers(page, size, sortBy);
+        DriverPageResponse actual = driverService.getAllDrivers(page, size, sortBy);
 
-        assertNotNull(result);
-        assertEquals(1, result.getTotalPages());
-        assertEquals(size, result.getTotalElements());
-        assertEquals(page, result.getCurrentPage());
-        assertEquals(size, result.getDrivers().size());
+        assertEquals(expected, actual);
+
+        verify(driverRatingService, times(2))
+                .getAverageDriverRating(anyLong());
+        verify(driverRepository, times(1))
+                .findAll(any(Pageable.class));
     }
 
     @Test
@@ -224,23 +293,32 @@ public class DriverServiceTest {
         Long driverId = TestDriverUtil.getFirstDriverId();
         Driver driver = TestDriverUtil.getFirstDriver();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(driver));
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.of(driver));
 
         driverService.deleteDriverById(driverId);
 
         assertFalse(driver.isActive());
-        verify(driverRepository, times(1)).save(driver);
-        verify(bankWebClient, times(1)).deleteDriverBankAccount(driverId);
-        verify(bankWebClient, times(1)).deleteDriverBankCards(driverId);
+
+        verify(driverRepository, times(1))
+                .save(driver);
+        verify(bankWebClient, times(1))
+                .deleteDriverBankAccount(driverId);
+        verify(bankWebClient, times(1))
+                .deleteDriverBankCards(driverId);
     }
 
     @Test
     public void testDeleteDriverById_WhenDriverNotFound_ShouldThrowDriverNotFoundException() {
         Long driverId = TestDriverUtil.getFirstDriverId();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.empty());
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.empty());
 
         assertThrows(DriverNotFoundException.class, () -> driverService.deleteDriverById(driverId));
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
     }
 
     @Test
@@ -251,17 +329,27 @@ public class DriverServiceTest {
         AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
         DriverResponse driverResponse = TestDriverUtil.getDriverResponse();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(existingDriver));
-        when(driverRepository.save(existingDriver)).thenReturn(existingDriver);
-        when(driverRatingService.getAverageDriverRating(anyLong())).thenReturn(driverRating);
-        when(modelMapper.map(existingDriver, DriverResponse.class)).thenReturn(driverResponse);
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.of(existingDriver));
+        when(driverRepository.save(existingDriver))
+                .thenReturn(existingDriver);
+        when(driverRatingService.getAverageDriverRating(anyLong()))
+                .thenReturn(driverRating);
+        when(modelMapper.map(existingDriver, DriverResponse.class))
+                .thenReturn(driverResponse);
 
         driverResponse = driverService.changeDriverStatusToFree(driverId);
 
         assertEquals(Status.FREE, existingDriver.getStatus());
-        assertNotNull(driverResponse);
-        verify(driverRepository, times(1)).save(existingDriver);
-        verify(kafkaFreeDriverService, times(1)).sendFreeDriverToConsumer(driverResponse);
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
+        verify(driverRatingService, times(1))
+                .getAverageDriverRating(anyLong());
+        verify(driverRepository, times(1))
+                .save(existingDriver);
+        verify(kafkaFreeDriverService, times(1))
+                .sendFreeDriverToConsumer(driverResponse);
     }
 
     @Test
@@ -269,22 +357,33 @@ public class DriverServiceTest {
         Long driverId = TestDriverUtil.getFirstDriverId();
         Driver existingDriver = TestDriverUtil.getFirstDriver();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.of(existingDriver));
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.of(existingDriver));
 
         assertThrows(DriverStatusException.class, () -> driverService.changeDriverStatusToFree(driverId));
-        verify(driverRepository, never()).save(existingDriver);
-        verify(kafkaFreeDriverService, never()).sendFreeDriverToConsumer(any(DriverResponse.class));
+
+        verify(driverRepository, times(1))
+                .findById(driverId);
+        verify(driverRepository, never())
+                .save(existingDriver);
+        verify(kafkaFreeDriverService, never())
+                .sendFreeDriverToConsumer(any(DriverResponse.class));
     }
 
     @Test
     public void testChangeDriverStatusToFree_WhenDriverNotFound_ShouldThrowDriverNotFoundException() {
         Long driverId = TestDriverUtil.getFirstDriverId();
 
-        when(driverRepository.findById(driverId)).thenReturn(Optional.empty());
+        when(driverRepository.findById(driverId))
+                .thenReturn(Optional.empty());
 
         assertThrows(DriverNotFoundException.class, () -> driverService.changeDriverStatusToFree(driverId));
 
-        verify(driverRepository, never()).save(any(Driver.class));
-        verify(kafkaFreeDriverService, never()).sendFreeDriverToConsumer(any(DriverResponse.class));
+        verify(driverRepository, times(1))
+                .findById(driverId);
+        verify(driverRepository, never())
+                .save(any(Driver.class));
+        verify(kafkaFreeDriverService, never())
+                .sendFreeDriverToConsumer(any(DriverResponse.class));
     }
 }
