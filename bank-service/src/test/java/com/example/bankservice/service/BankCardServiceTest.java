@@ -18,7 +18,6 @@ import com.example.bankservice.repository.BankCardRepository;
 import com.example.bankservice.service.impl.BankCardServiceImpl;
 import com.example.bankservice.util.FieldValidator;
 import com.example.bankservice.util.TestBankCardUtil;
-import com.example.bankservice.webClient.DriverWebClient;
 import com.example.bankservice.webClient.PassengerWebClient;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -27,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -106,16 +104,17 @@ public class BankCardServiceTest {
     void testEditBankCard_WhenCardExistsAndIsValid_ShouldEditBankCard() {
         Long cardId = TestBankCardUtil.getBankCardId();
         UpdateBankCardRequest updateRequest = TestBankCardUtil.getUpdateBankCardRequest();
-        BankCard existingBankCard = TestBankCardUtil.getSecondBankCard();
         BankCard updatedBankCard = TestBankCardUtil.getFirstBankCard();
         BankCardResponse expected = TestBankCardUtil.getFirstBankCardResponse();
 
         when(bankCardRepository.findById(cardId))
-                .thenReturn(Optional.of(existingBankCard));
+                .thenReturn(Optional.of(updatedBankCard));
         when(bankCardRepository.findBankCardByNumber(updateRequest.getNumber()))
                 .thenReturn(Optional.empty());
         when(bankCardRepository.save(updatedBankCard))
                 .thenReturn(updatedBankCard);
+        when(passengerWebClient.getPassenger(updatedBankCard.getBankUserId()))
+                .thenReturn(expected.getBankUser());
         when(bankCardMapper.mapBankCardToBankCardResponse(updatedBankCard, expected.getBankUser()))
                 .thenReturn(expected);
 
@@ -129,6 +128,8 @@ public class BankCardServiceTest {
                 .findBankCardByNumber(updateRequest.getNumber());
         verify(bankCardRepository, times(1))
                 .save(updatedBankCard);
+        verify(passengerWebClient, times(1))
+                .getPassenger(updatedBankCard.getBankUserId());
     }
 
     @Test
@@ -293,13 +294,9 @@ public class BankCardServiceTest {
         int page = TestBankCardUtil.getPageNumber();
         int size = TestBankCardUtil.getPageSize();
         String sortBy = TestBankCardUtil.getSortField();
-        BankCard firstBankCard = TestBankCardUtil.getFirstBankCard();
-        BankCard secondBankCard = TestBankCardUtil.getFirstBankCard();
-        BankCardResponse firstBankCardResponse = TestBankCardUtil.getFirstBankCardResponse();
-        BankCardResponse secondBankCardResponse = TestBankCardUtil.getFirstBankCardResponse();
-
-        List<BankCard> bankCards = List.of(firstBankCard, secondBankCard);
-        List<BankCardResponse> bankCardResponses = List.of(firstBankCardResponse, secondBankCardResponse);
+        List<BankCard> bankCards = TestBankCardUtil.getBankCards();
+        BankCard firstBankCard = bankCards.get(0);
+        List<BankCardResponse> bankCardResponses = TestBankCardUtil.getBankCardResponses();
 
         Pageable pageable = PageRequest.of(page, size);
         Page<BankCard> bankCardPage = new PageImpl<>(bankCards, pageable, bankCards.size());
@@ -321,9 +318,9 @@ public class BankCardServiceTest {
         when(passengerWebClient.getPassenger(firstBankCard.getBankUserId()))
                 .thenReturn(TestBankCardUtil.getBankUserResponse());
         when(bankCardMapper.mapBankCardToBankCardResponse(firstBankCard, TestBankCardUtil.getBankUserResponse()))
-                .thenReturn(firstBankCardResponse);
-        when(bankCardMapper.mapBankCardToBankCardResponse(secondBankCard, TestBankCardUtil.getBankUserResponse()))
-                .thenReturn(secondBankCardResponse);
+                .thenReturn(bankCardResponses.get(0));
+        when(bankCardMapper.mapBankCardToBankCardResponse(bankCards.get(1), TestBankCardUtil.getBankUserResponse()))
+                .thenReturn(bankCardResponses.get(1));
 
         BankCardPageResponse actual = bankCardService.getBankCardsByBankUser(firstBankCard.getBankUserId(),
                 firstBankCard.getBankUser(), page, size, sortBy);
@@ -473,5 +470,4 @@ public class BankCardServiceTest {
         verify(bankCardRepository, times(1))
                 .findById(bankCardId);
     }
-
 }

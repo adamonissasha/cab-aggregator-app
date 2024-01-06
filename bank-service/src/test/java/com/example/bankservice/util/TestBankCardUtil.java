@@ -13,6 +13,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestBankCardUtil {
@@ -28,8 +29,6 @@ public class TestBankCardUtil {
     static BigDecimal SECOND_CARD_BALANCE = BigDecimal.valueOf(250.6);
     static Long FIRST_BANK_USER_ID = 1L;
     static Long SECOND_BANK_USER_ID = 1L;
-    static BankUser FIRST_BANK_USER = BankUser.PASSENGER;
-    static BankUser SECOND_BANK_USER = BankUser.DRIVER;
     static String FIRST_BANK_USER_FIRST_NAME = "Sasha";
     static String FIRST_BANK_USER_LAST_NAME = "Adamonis";
     static String FIRST_BANK_USER_EMAIL = "sasha@gmail.com";
@@ -53,7 +52,7 @@ public class TestBankCardUtil {
                 .balance(FIRST_CARD_BALANCE)
                 .bankUserId(FIRST_BANK_USER_ID)
                 .isDefault(true)
-                .bankUser(FIRST_BANK_USER)
+                .bankUser(BankUser.PASSENGER)
                 .build();
     }
 
@@ -66,7 +65,7 @@ public class TestBankCardUtil {
                 .balance(SECOND_CARD_BALANCE)
                 .bankUserId(SECOND_BANK_USER_ID)
                 .isDefault(false)
-                .bankUser(SECOND_BANK_USER)
+                .bankUser(BankUser.PASSENGER)
                 .build();
     }
 
@@ -77,7 +76,7 @@ public class TestBankCardUtil {
                 .cvv(SECOND_CARD_CVV)
                 .balance(SECOND_CARD_BALANCE)
                 .bankUserId(SECOND_BANK_USER_ID)
-                .bankUser(SECOND_BANK_USER)
+                .bankUser(BankUser.PASSENGER)
                 .build();
     }
 
@@ -96,7 +95,7 @@ public class TestBankCardUtil {
                 .expiryDate(FIRST_CARD_EXPIRY_DATE)
                 .balance(FIRST_CARD_BALANCE)
                 .isDefault(true)
-                .bankUserRole(FIRST_BANK_USER.name())
+                .bankUserRole(BankUser.PASSENGER.name())
                 .bankUser(getBankUserResponse())
                 .build();
     }
@@ -108,7 +107,7 @@ public class TestBankCardUtil {
                 .expiryDate(SECOND_CARD_EXPIRY_DATE)
                 .balance(SECOND_CARD_BALANCE)
                 .isDefault(true)
-                .bankUserRole(SECOND_BANK_USER.name())
+                .bankUserRole(BankUser.PASSENGER.name())
                 .bankUser(getBankUserResponse())
                 .build();
     }
@@ -152,5 +151,13 @@ public class TestBankCardUtil {
 
     public static String getSortField() {
         return SORT_FIELD;
+    }
+
+    public static List<BankCard> getBankCards() {
+        return List.of(getFirstBankCard(), getSecondBankCard());
+    }
+
+    public static List<BankCardResponse> getBankCardResponses() {
+        return List.of(getFirstBankCardResponse(), getSecondBankCardResponse());
     }
 }

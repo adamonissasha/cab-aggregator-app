@@ -190,13 +190,9 @@ public class CarServiceTest {
         int page = TestCarUtil.getPageNumber();
         int size = TestCarUtil.getPageSize();
         String sortBy = TestCarUtil.getSortField();
-        Car firstCar = TestCarUtil.getFirstCar();
-        Car secondCar = TestCarUtil.getSecondCar();
-        CarResponse firstCarResponse = TestCarUtil.getFirstCarResponse();
-        CarResponse secondCarResponse = TestCarUtil.getSecondCarResponse();
+        List<Car> cars = TestCarUtil.getCars();
+        List<CarResponse> carResponses = TestCarUtil.getCarResponses();
 
-        List<Car> cars = List.of(firstCar, secondCar);
-        List<CarResponse> carResponses = List.of(firstCarResponse, secondCarResponse);
         CarPageResponse expected = CarPageResponse.builder()
                 .cars(carResponses)
                 .currentPage(page)
@@ -211,10 +207,10 @@ public class CarServiceTest {
         doNothing()
                 .when(fieldValidator)
                 .checkSortField(eq(Car.class), eq(sortBy));
-        when(modelMapper.map(firstCar, CarResponse.class))
-                .thenReturn(firstCarResponse);
-        when(modelMapper.map(secondCar, CarResponse.class))
-                .thenReturn(secondCarResponse);
+        when(modelMapper.map(cars.get(0), CarResponse.class))
+                .thenReturn(carResponses.get(0));
+        when(modelMapper.map(cars.get(1), CarResponse.class))
+                .thenReturn(carResponses.get(1));
         when(carRepository.findAll(any(Pageable.class)))
                 .thenReturn(mockCarPage);
 

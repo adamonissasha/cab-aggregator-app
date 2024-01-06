@@ -6,6 +6,8 @@ import com.example.driverservice.model.Car;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestCarUtil {
     static Long FIRST_CAR_ID = 1L;
@@ -82,5 +84,13 @@ public class TestCarUtil {
 
     public static String  getSortField() {
         return SORT_FIELD;
+    }
+
+    public static List<Car> getCars() {
+        return List.of(getFirstCar(), getSecondCar());
+    }
+
+    public static List<CarResponse> getCarResponses() {
+        return List.of(getFirstCarResponse(), getSecondCarResponse());
     }
 }

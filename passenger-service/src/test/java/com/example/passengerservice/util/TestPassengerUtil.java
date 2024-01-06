@@ -7,9 +7,10 @@ import com.example.passengerservice.model.Passenger;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestPassengerUtil {
-    static String CAR_NOT_FOUND_MESSAGE = "Car with id '%s' not found";
     static Long FIRST_PASSENGER_ID = 1L;
     static Long SECOND_PASSENGER_ID = 2L;
     static String FIRST_PASSENGER_FIRST_NAME = "Ivan";
@@ -22,7 +23,6 @@ public class TestPassengerUtil {
     static String SECOND_PASSENGER_PHONE_NUMBER = "+375297654321";
     static String FIRST_PASSENGER_PASSWORD = "123";
     static String SECOND_PASSENGER_PASSWORD = "321";
-    static Long PASSENGER_CAR_ID = 1L;
     static Double PASSENGER_RATING = 4.5;
     static int PAGE_NUMBER = 0;
     static int PAGE_SIZE = 2;
@@ -106,5 +106,13 @@ public class TestPassengerUtil {
 
     public static String getSortField() {
         return SORT_FIELD;
+    }
+
+    public static List<Passenger> getPassengers() {
+        return List.of(getFirstPassenger(), getSecondPassenger());
+    }
+
+    public static List<PassengerResponse> getPassengerResponses() {
+        return List.of(getPassengerResponse(), getSecondPassengerResponse());
     }
 }

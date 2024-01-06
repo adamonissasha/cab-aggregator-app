@@ -8,6 +8,8 @@ import com.example.driverservice.model.enums.Status;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestDriverUtil {
     static String CAR_NOT_FOUND_MESSAGE = "Car with id '%s' not found";
@@ -124,5 +126,13 @@ public class TestDriverUtil {
 
     public static String getSortField() {
         return SORT_FIELD;
+    }
+
+    public static List<Driver> getDrivers() {
+        return List.of(getFirstDriver(), getSecondDriver());
+    }
+
+    public static List<DriverResponse> getDriverResponses() {
+        return List.of(getDriverResponse(), getSecondDriverResponse());
     }
 }

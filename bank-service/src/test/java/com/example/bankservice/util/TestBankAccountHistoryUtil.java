@@ -10,6 +10,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestBankAccountHistoryUtil {
@@ -68,5 +69,13 @@ public class TestBankAccountHistoryUtil {
                 .operationDateTime(SECOND_OPERATION_DATE_TIME)
                 .sum(SECOND_BANK_ACCOUNT_HISTORY_SUM)
                 .build();
+    }
+
+    public static List<BankAccountHistory> getBankAccountHistoryList() {
+        return List.of(getFirstBankAccountHistory(), getSecondBankAccountHistory());
+    }
+
+    public static List<BankAccountHistoryResponse> getBankAccountHistoryResponses() {
+        return List.of(getFirstBankAccountHistoryResponse(), getSecondBankAccountHistoryResponse());
     }
 }

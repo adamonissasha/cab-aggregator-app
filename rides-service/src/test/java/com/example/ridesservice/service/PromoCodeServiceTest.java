@@ -20,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -214,22 +213,18 @@ public class PromoCodeServiceTest {
 
     @Test
     void testGetAllPromoCodes_WhenPromoCodesExist_ShouldReturnAllPromoCodes() {
-        PromoCode firstPromoCode = TestPromoCodeUtil.getFirstPromoCode();
-        PromoCode secondPromoCode = TestPromoCodeUtil.getSecondPromoCode();
-        List<PromoCode> promoCodes = Arrays.asList(firstPromoCode, secondPromoCode);
-
-        PromoCodeResponse firstPromoCodeResponse = TestPromoCodeUtil.getFirstPromoCodeResponse();
-        PromoCodeResponse secondPromoCodeResponse = TestPromoCodeUtil.getSecondPromoCodeResponse();
+        List<PromoCode> promoCodes = TestPromoCodeUtil.getPromoCodes();
+        List<PromoCodeResponse> promoCodeResponses = TestPromoCodeUtil.getPromoCodeResponses();
 
         when(promoCodeRepository.findAll())
                 .thenReturn(promoCodes);
-        when(promoCodeService.mapPromoCodeToPromoCodeResponse(firstPromoCode))
-                .thenReturn(firstPromoCodeResponse);
-        when(promoCodeService.mapPromoCodeToPromoCodeResponse(secondPromoCode))
-                .thenReturn(secondPromoCodeResponse);
+        when(promoCodeService.mapPromoCodeToPromoCodeResponse(promoCodes.get(0)))
+                .thenReturn(promoCodeResponses.get(0));
+        when(promoCodeService.mapPromoCodeToPromoCodeResponse(promoCodes.get(1)))
+                .thenReturn(promoCodeResponses.get(1));
 
         AllPromoCodesResponse expected = AllPromoCodesResponse.builder()
-                .promoCodes(Arrays.asList(firstPromoCodeResponse, secondPromoCodeResponse))
+                .promoCodes(promoCodeResponses)
                 .build();
 
         AllPromoCodesResponse actual = promoCodeService.getAllPromoCodes();

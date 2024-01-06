@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestPromoCodeUtil {
@@ -73,5 +74,13 @@ public class TestPromoCodeUtil {
                 .endDate(SECOND_PROMO_CODE_END_DATE)
                 .discountPercent(SECOND_PROMO_CODE_DISCOUNT_PERCENT)
                 .build();
+    }
+
+    public static List<PromoCode> getPromoCodes() {
+        return List.of(getFirstPromoCode(), getSecondPromoCode());
+    }
+
+    public static List<PromoCodeResponse> getPromoCodeResponses() {
+        return List.of(getFirstPromoCodeResponse(), getSecondPromoCodeResponse());
     }
 }

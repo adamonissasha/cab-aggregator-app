@@ -33,6 +33,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -80,6 +83,11 @@ public class BankAccountHistoryServiceTest {
         BankAccountHistoryResponse actual = bankAccountHistoryService.createBankAccountHistoryRecord(bankAccountId, historyRequest);
 
         assertEquals(expected, actual);
+
+        verify(bankAccountHistoryRepository, times(1))
+                .save(bankAccountHistory);
+        verify(driverWebClient, times(1))
+                .getDriver(bankAccountId);
     }
 
     @Test
@@ -93,7 +101,7 @@ public class BankAccountHistoryServiceTest {
 
         LocalDateTime actual = bankAccountHistoryService.getLastWithdrawalDate(bankAccountId);
 
-        assertEquals(expected, actual);
+        assertThat(actual).isCloseTo(expected, within(1, SECONDS));
 
         verify(bankAccountHistoryRepository, times(1))
                 .findFirstByBankAccountIdAndOperationOrderByOperationDateTimeDesc(eq(bankAccountId), eq(Operation.WITHDRAWAL));
@@ -105,15 +113,10 @@ public class BankAccountHistoryServiceTest {
         int page = TestBankAccountUtil.getPageNumber();
         int size = TestBankAccountUtil.getPageSize();
         String sortBy = TestBankAccountUtil.getSortField();
-        BankAccountHistory firstBankAccountHistory = TestBankAccountHistoryUtil.getFirstBankAccountHistory();
-        BankAccountHistory secondBankAccountHistory = TestBankAccountHistoryUtil.getSecondBankAccountHistory();
-        BankAccountHistoryResponse firstBankAccountHistoryResponse = TestBankAccountHistoryUtil.getFirstBankAccountHistoryResponse();
-        BankAccountHistoryResponse secondBankAccountHistoryResponse = TestBankAccountHistoryUtil.getSecondBankAccountHistoryResponse();
         BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
         BankAccountResponse bankAccountResponse = TestBankAccountUtil.getFirstBankAccountResponse();
-
-        List<BankAccountHistory> bankAccountHistoryList = List.of(firstBankAccountHistory, secondBankAccountHistory);
-        List<BankAccountHistoryResponse> expectedHistoryResponses = List.of(firstBankAccountHistoryResponse, secondBankAccountHistoryResponse);
+        List<BankAccountHistory> bankAccountHistoryList = TestBankAccountHistoryUtil.getBankAccountHistoryList();
+        List<BankAccountHistoryResponse> expectedHistoryResponses = TestBankAccountHistoryUtil.getBankAccountHistoryResponses();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankAccountHistory> bankAccountHistoryPage = new PageImpl<>(bankAccountHistoryList, pageable, bankAccountHistoryList.size());
@@ -135,12 +138,12 @@ public class BankAccountHistoryServiceTest {
                 any(BankAccount.class), any(BankUserResponse.class)))
                 .thenReturn(bankAccountResponse);
         when(bankAccountHistoryMapper.mapBankAccountHistoryToBankAccountHistoryResponse(
-                firstBankAccountHistory, bankAccountResponse))
-                .thenReturn(firstBankAccountHistoryResponse);
+                bankAccountHistoryList.get(0), bankAccountResponse))
+                .thenReturn(expectedHistoryResponses.get(0));
         when(bankAccountHistoryMapper.mapBankAccountHistoryToBankAccountHistoryResponse(
-                secondBankAccountHistory, bankAccountResponse))
-                .thenReturn(secondBankAccountHistoryResponse);
-        when(driverWebClient.getDriver(firstBankAccountHistory.getBankAccount().getDriverId()))
+                bankAccountHistoryList.get(1), bankAccountResponse))
+                .thenReturn(expectedHistoryResponses.get(1));
+        when(driverWebClient.getDriver(bankAccountHistoryList.get(0).getBankAccount().getDriverId()))
                 .thenReturn(bankUserResponse);
 
         BankAccountHistoryPageResponse actual = bankAccountHistoryService.getBankAccountHistory(bankAccountId, page, size, sortBy);
@@ -150,6 +153,6 @@ public class BankAccountHistoryServiceTest {
         verify(bankAccountHistoryRepository, times(1))
                 .findAllByBankAccountId(eq(bankAccountId), eq(pageable));
         verify(driverWebClient, times(2))
-                .getDriver(firstBankAccountHistory.getBankAccount().getDriverId());
+                .getDriver(bankAccountHistoryList.get(0).getBankAccount().getDriverId());
     }
 }

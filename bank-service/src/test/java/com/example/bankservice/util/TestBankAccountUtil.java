@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestBankAccountUtil {
@@ -122,5 +123,13 @@ public class TestBankAccountUtil {
 
     public static String getSortField() {
         return SORT_FIELD;
+    }
+
+    public static List<BankAccount> getBankAccounts() {
+        return List.of(getFirstBankAccount(), getSecondBankAccount());
+    }
+
+    public static List<BankAccountResponse> getBankAccountResponses() {
+        return List.of(getFirstBankAccountResponse(), getSecondBankAccountResponse());
     }
 }

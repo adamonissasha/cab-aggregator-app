@@ -193,14 +193,9 @@ public class BankAccountServiceTest {
         int page = TestBankAccountUtil.getPageNumber();
         int size = TestBankAccountUtil.getPageSize();
         String sortBy = TestBankAccountUtil.getSortField();
-        BankAccount firstBankAccount = TestBankAccountUtil.getFirstBankAccount();
-        BankAccount secondBankAccount = TestBankAccountUtil.getSecondBankAccount();
-        BankAccountResponse firstBankAccountResponse = TestBankAccountUtil.getFirstBankAccountResponse();
-        BankAccountResponse secondBankAccountResponse = TestBankAccountUtil.getSecondBankAccountResponse();
         BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
-
-        List<BankAccount> activeBankAccounts = List.of(firstBankAccount, secondBankAccount);
-        List<BankAccountResponse> expectedResponses = List.of(firstBankAccountResponse, secondBankAccountResponse);
+        List<BankAccount> activeBankAccounts = TestBankAccountUtil.getBankAccounts();
+        List<BankAccountResponse> expectedResponses = TestBankAccountUtil.getBankAccountResponses();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankAccount> bankAccountPage = new PageImpl<>(activeBankAccounts, pageable, activeBankAccounts.size());
@@ -218,12 +213,12 @@ public class BankAccountServiceTest {
                 .checkSortField(any(), eq(sortBy));
         when(bankAccountRepository.findAll(pageable))
                 .thenReturn(bankAccountPage);
-        when(driverWebClient.getDriver(firstBankAccount.getDriverId()))
+        when(driverWebClient.getDriver(activeBankAccounts.get(0).getDriverId()))
                 .thenReturn(bankUserResponse);
-        when(bankAccountMapper.mapBankAccountToBankAccountResponse(firstBankAccount, bankUserResponse))
-                .thenReturn(firstBankAccountResponse);
-        when(bankAccountMapper.mapBankAccountToBankAccountResponse(secondBankAccount, bankUserResponse))
-                .thenReturn(secondBankAccountResponse);
+        when(bankAccountMapper.mapBankAccountToBankAccountResponse(activeBankAccounts.get(0), bankUserResponse))
+                .thenReturn(expectedResponses.get(0));
+        when(bankAccountMapper.mapBankAccountToBankAccountResponse(activeBankAccounts.get(1), bankUserResponse))
+                .thenReturn(expectedResponses.get(1));
 
         BankAccountPageResponse actual = bankAccountService.getAllActiveBankAccounts(page, size, sortBy);
 
@@ -232,7 +227,7 @@ public class BankAccountServiceTest {
         verify(bankAccountRepository, times(1))
                 .findAll(pageable);
         verify(driverWebClient, times(2))
-                .getDriver(firstBankAccount.getDriverId());
+                .getDriver(activeBankAccounts.get(0).getDriverId());
     }
 
     @Test
@@ -240,14 +235,9 @@ public class BankAccountServiceTest {
         int page = TestBankAccountUtil.getPageNumber();
         int size = TestBankAccountUtil.getPageSize();
         String sortBy = TestBankAccountUtil.getSortField();
-        BankAccount firstBankAccount = TestBankAccountUtil.getFirstBankAccount();
-        BankAccount secondBankAccount = TestBankAccountUtil.getSecondBankAccount();
-        BankAccountResponse firstBankAccountResponse = TestBankAccountUtil.getFirstBankAccountResponse();
-        BankAccountResponse secondBankAccountResponse = TestBankAccountUtil.getSecondBankAccountResponse();
         BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
-
-        List<BankAccount> bankAccounts = List.of(firstBankAccount, secondBankAccount);
-        List<BankAccountResponse> expectedResponses = List.of(firstBankAccountResponse, secondBankAccountResponse);
+        List<BankAccount> bankAccounts = TestBankAccountUtil.getBankAccounts();
+        List<BankAccountResponse> expectedResponses = TestBankAccountUtil.getBankAccountResponses();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankAccount> bankAccountPage = new PageImpl<>(bankAccounts, pageable, bankAccounts.size());
@@ -265,12 +255,12 @@ public class BankAccountServiceTest {
                 .checkSortField(any(), eq(sortBy));
         when(bankAccountRepository.findAll(pageable))
                 .thenReturn(bankAccountPage);
-        when(driverWebClient.getDriver(firstBankAccount.getDriverId()))
+        when(driverWebClient.getDriver(bankAccounts.get(0).getDriverId()))
                 .thenReturn(bankUserResponse);
-        when(bankAccountMapper.mapBankAccountToBankAccountResponse(firstBankAccount, bankUserResponse))
-                .thenReturn(firstBankAccountResponse);
-        when(bankAccountMapper.mapBankAccountToBankAccountResponse(secondBankAccount, bankUserResponse))
-                .thenReturn(secondBankAccountResponse);
+        when(bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccounts.get(0), bankUserResponse))
+                .thenReturn(expectedResponses.get(0));
+        when(bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccounts.get(1), bankUserResponse))
+                .thenReturn(expectedResponses.get(1));
 
         BankAccountPageResponse actual = bankAccountService.getAllBankAccounts(page, size, sortBy);
 
@@ -279,7 +269,7 @@ public class BankAccountServiceTest {
         verify(bankAccountRepository, times(1))
                 .findAll(pageable);
         verify(driverWebClient, times(2))
-                .getDriver(firstBankAccount.getDriverId());
+                .getDriver(bankAccounts.get(0).getDriverId());
     }
 
     @Test

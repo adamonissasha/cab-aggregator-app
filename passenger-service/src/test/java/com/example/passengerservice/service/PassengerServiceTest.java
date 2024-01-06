@@ -215,13 +215,8 @@ public class PassengerServiceTest {
         int size = TestPassengerUtil.getPageSize();
         String sortBy = TestPassengerUtil.getSortField();
         AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getPassengerRating();
-        Passenger firstPassenger = TestPassengerUtil.getFirstPassenger();
-        Passenger secondPassenger = TestPassengerUtil.getSecondPassenger();
-        PassengerResponse firstPassengerResponse = TestPassengerUtil.getPassengerResponse();
-        PassengerResponse secondPassengerResponse = TestPassengerUtil.getSecondPassengerResponse();
-
-        List<Passenger> passengers = List.of(firstPassenger, secondPassenger);
-        List<PassengerResponse> passengerResponses = List.of(firstPassengerResponse, secondPassengerResponse);
+        List<Passenger> passengers = TestPassengerUtil.getPassengers();
+        List<PassengerResponse> passengerResponses = TestPassengerUtil.getPassengerResponses();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Passenger> mockPassengerPage = new PageImpl<>(passengers, pageable, passengers.size());
@@ -238,10 +233,10 @@ public class PassengerServiceTest {
                 .checkSortField(any(), eq(sortBy));
         when(passengerRatingService.getAveragePassengerRating(anyLong()))
                 .thenReturn(passengerRating);
-        when(modelMapper.map(firstPassenger, PassengerResponse.class))
-                .thenReturn(firstPassengerResponse);
-        when(modelMapper.map(secondPassenger, PassengerResponse.class))
-                .thenReturn(secondPassengerResponse);
+        when(modelMapper.map(passengers.get(0), PassengerResponse.class))
+                .thenReturn(passengerResponses.get(0));
+        when(modelMapper.map(passengers.get(1), PassengerResponse.class))
+                .thenReturn(passengerResponses.get(1));
         when(passengerRepository.findAll(any(Pageable.class)))
                 .thenReturn(mockPassengerPage);
 

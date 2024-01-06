@@ -248,13 +248,8 @@ public class DriverServiceTest {
         int size = TestDriverUtil.getPageSize();
         String sortBy = TestDriverUtil.getSortField();
         AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
-        Driver firstDriver = TestDriverUtil.getFirstDriver();
-        Driver secondDriver = TestDriverUtil.getSecondDriver();
-        DriverResponse firstDriverResponse = TestDriverUtil.getDriverResponse();
-        DriverResponse secondDriverResponse = TestDriverUtil.getSecondDriverResponse();
-
-        List<Driver> drivers = List.of(firstDriver, secondDriver);
-        List<DriverResponse> driverResponses = List.of(firstDriverResponse, secondDriverResponse);
+        List<Driver> drivers = TestDriverUtil.getDrivers();
+        List<DriverResponse> driverResponses = TestDriverUtil.getDriverResponses();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Driver> mockDriverPage = new PageImpl<>(drivers, pageable, drivers.size());
@@ -271,10 +266,10 @@ public class DriverServiceTest {
                 .checkSortField(eq(Driver.class), eq(sortBy));
         when(driverRatingService.getAverageDriverRating(anyLong()))
                 .thenReturn(driverRating);
-        when(modelMapper.map(firstDriver, DriverResponse.class))
-                .thenReturn(firstDriverResponse);
-        when(modelMapper.map(secondDriver, DriverResponse.class))
-                .thenReturn(secondDriverResponse);
+        when(modelMapper.map(drivers.get(0), DriverResponse.class))
+                .thenReturn(driverResponses.get(0));
+        when(modelMapper.map(drivers.get(1), DriverResponse.class))
+                .thenReturn(driverResponses.get(1));
         when(driverRepository.findAll(any(Pageable.class)))
                 .thenReturn(mockDriverPage);
 
