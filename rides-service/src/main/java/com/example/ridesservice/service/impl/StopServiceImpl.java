@@ -21,18 +21,19 @@ public class StopServiceImpl implements StopService {
 
     @Override
     public StopsResponse createStops(List<StopRequest> stopRequests, Ride ride) {
-        return StopsResponse.builder()
-                .stops(stopRequests.stream()
-                        .map(stopRequest -> Stop.builder()
-                                .number(stopRequest.getNumber())
-                                .address(stopRequest.getAddress())
-                                .ride(ride)
-                                .build())
-                        .map(stopRepository::save)
-                        .map(this::mapStopToStopResponse)
-                        .toList())
-                .build();
+        List<StopResponse> stopResponses = stopRequests.stream()
+                .map(stopRequest -> Stop.builder()
+                        .number(stopRequest.getNumber())
+                        .address(stopRequest.getAddress())
+                        .ride(ride)
+                        .build())
+                .map(stopRepository::save)
+                .map(this::mapStopToStopResponse)
+                .toList();
 
+        return StopsResponse.builder()
+                .stops(stopResponses)
+                .build();
     }
 
     @Override
@@ -56,13 +57,16 @@ public class StopServiceImpl implements StopService {
 
     @Override
     public StopsResponse getRideStops(Ride ride) {
+        List<StopResponse> stopResponses = stopRepository.findByRide(ride)
+                .stream()
+                .map(this::mapStopToStopResponse)
+                .toList();
+
         return StopsResponse.builder()
-                .stops(stopRepository.findByRide(ride)
-                        .stream()
-                        .map(this::mapStopToStopResponse)
-                        .toList())
+                .stops(stopResponses)
                 .build();
     }
+
 
     public StopResponse mapStopToStopResponse(Stop stop) {
         return modelMapper.map(stop, StopResponse.class);

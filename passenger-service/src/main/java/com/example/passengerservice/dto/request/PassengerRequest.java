@@ -15,6 +15,9 @@ import lombok.Setter;
 @Setter
 @Builder
 public class PassengerRequest {
+    private static final String PASSENGER_PHONE_NUMBER_FORMAT = "^\\+375\\d{9}$";
+    private static final String PASSENGER_PASSWORD_FORMAT =  "^(?=.*\\d).{8,}$";
+
     @NotBlank(message = "{passenger.first-name.required}")
     private String firstName;
 
@@ -26,10 +29,10 @@ public class PassengerRequest {
     private String email;
 
     @NotBlank(message = "{passenger.phone-number.required}")
-    @Pattern(regexp = "^\\+375\\d{9}$", message = "{passenger.phone-number.format}")
+    @Pattern(regexp = PASSENGER_PHONE_NUMBER_FORMAT, message = "{passenger.phone-number.format}")
     private String phoneNumber;
 
     @NotBlank(message = "{passenger.password.required}")
-    @Pattern(regexp = "^(?=.*\\d).{8,}$", message = "{passenger.password.format}")
+    @Pattern(regexp = PASSENGER_PASSWORD_FORMAT, message = "{passenger.password.format}")
     private String password;
 }

@@ -18,16 +18,21 @@ import java.math.BigDecimal;
 @Setter
 @Builder
 public class BankCardRequest {
+    private static final String BANK_CARD_NUMBER_FORMAT = "^\\d{4} \\d{4} \\d{4} \\d{4}$";
+    private static final String BANK_CARD_EXPIRY_DATE_FORMAT = "^(0[1-9]|1[0-2])/\\d{2}$";
+    private static final String BANK_CARD_CVV_FORMAT = "^\\d{3}$";
+
+
     @NotBlank(message = "{bank.card.number.required}")
-    @Pattern(regexp = "^\\d{4} \\d{4} \\d{4} \\d{4}$", message = "{bank.card.number.format}")
+    @Pattern(regexp = BANK_CARD_NUMBER_FORMAT, message = "{bank.card.number.format}")
     private String number;
 
     @NotBlank(message = "{bank.card.expiry-date.required}")
-    @Pattern(regexp = "^(0[1-9]|1[0-2])/\\d{2}$", message = "{bank.card.expiry-date.format}")
+    @Pattern(regexp = BANK_CARD_EXPIRY_DATE_FORMAT, message = "{bank.card.expiry-date.format}")
     private String expiryDate;
 
     @NotBlank(message = "{bank.card.cvv.required}")
-    @Pattern(regexp = "^\\d{3}$", message = "{bank.card.cvv.format}")
+    @Pattern(regexp = BANK_CARD_CVV_FORMAT, message = "{bank.card.cvv.format}")
     private String cvv;
 
     private BigDecimal balance;
