@@ -3,9 +3,11 @@ package com.example.bankservice.dto.response;
 import com.example.bankservice.model.enums.Operation;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +17,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode
+@ToString
 public class BankAccountHistoryResponse {
     private long id;
     private BankAccountResponse bankAccount;

@@ -78,7 +78,7 @@ public class RideMapper {
                 .map(ride -> {
                     DriverResponse driver = driverWebClient.getDriver(ride.getDriverId());
                     CarResponse car = driverWebClient.getCar(ride.getCarId());
-                    return mapRideToPassengerRideResponse(ride, stopService.getRideStops(ride), driver, car);
+                    return mapRideToPassengerRideResponse(ride, stopService.getRideStops(ride).getStops(), driver, car);
                 })
                 .toList();
 
@@ -94,7 +94,7 @@ public class RideMapper {
     public RidesPageResponse mapRidesPageToRidesPageResponse(Page<Ride> ridesPage) {
         List<RideResponse> rideResponses = ridesPage.getContent()
                 .stream()
-                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride)))
+                .map(ride -> mapRideToRideResponse(ride, stopService.getRideStops(ride).getStops()))
                 .toList();
 
         return RidesPageResponse.builder()

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +14,11 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class DriverRequest {
+    private static final String DRIVER_PHONE_NUMBER_FORMAT = "^\\+375\\d{9}$";
+    private static final String DRIVER_PASSWORD_FORMAT = "^(?=.*\\d).{8,}$";
+
     @NotBlank(message = "{driver.first-name.required}")
     private String firstName;
 
@@ -25,11 +30,11 @@ public class DriverRequest {
     private String email;
 
     @NotBlank(message = "{driver.phone-number.required}")
-    @Pattern(regexp = "^\\+375\\d{9}$", message = "{driver.phone-number.format}")
+    @Pattern(regexp = DRIVER_PHONE_NUMBER_FORMAT, message = "{driver.phone-number.format}")
     private String phoneNumber;
 
     @NotBlank(message = "{driver.password.required}")
-    @Pattern(regexp = "^(?=.*\\d).{8,}$", message = "{driver.password.format}")
+    @Pattern(regexp = DRIVER_PASSWORD_FORMAT, message = "{driver.password.format}")
     private String password;
 
     @NotNull(message = "{driver.car-id.not-null}")

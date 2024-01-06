@@ -1,6 +1,7 @@
 package com.example.passengerservice.dto.request;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class PassengerRatingRequest {
     private Long driverId;
     private Long passengerId;
