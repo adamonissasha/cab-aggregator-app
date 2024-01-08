@@ -1,4 +1,4 @@
-package com.example.driverservice.service;
+package com.example.driverservice.junit;
 
 import com.example.driverservice.dto.request.DriverRequest;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
@@ -13,6 +13,8 @@ import com.example.driverservice.kafka.service.KafkaFreeDriverService;
 import com.example.driverservice.model.Driver;
 import com.example.driverservice.model.enums.Status;
 import com.example.driverservice.repository.DriverRepository;
+import com.example.driverservice.service.CarService;
+import com.example.driverservice.service.DriverRatingService;
 import com.example.driverservice.service.impl.DriverServiceImpl;
 import com.example.driverservice.util.FieldValidator;
 import com.example.driverservice.util.TestCarUtil;
@@ -257,8 +259,8 @@ public class DriverServiceTest {
                 .drivers(driverResponses)
                 .currentPage(page)
                 .pageSize(size)
-                .totalElements(2)
-                .totalPages(1)
+                .totalElements(6)
+                .totalPages(3)
                 .build();
 
         doNothing()

@@ -1,4 +1,4 @@
-package com.example.driverservice.service;
+package com.example.driverservice.junit;
 
 import com.example.driverservice.dto.request.CarRequest;
 import com.example.driverservice.dto.response.CarPageResponse;
@@ -75,9 +75,9 @@ public class CarServiceTest {
 
     @Test
     public void testCreateCar_WhenCarNumberAlreadyExists_ShouldThrowCarNumberUniqueException() {
-        CarRequest carRequest = TestCarUtil.getCarRequest();
-        Car existingCar = TestCarUtil.getFirstCar();
-        String existingCarNumber = TestCarUtil.getFirstCarNumber();
+        CarRequest carRequest = TestCarUtil.getCarRequestWithExistingNumber();
+        Car existingCar = TestCarUtil.getCarWithExistingNumber();
+        String existingCarNumber = existingCar.getNumber();
 
         when(carRepository.findCarByNumber(existingCarNumber))
                 .thenReturn(Optional.of(existingCar));
@@ -197,8 +197,8 @@ public class CarServiceTest {
                 .cars(carResponses)
                 .currentPage(page)
                 .pageSize(size)
-                .totalElements(2)
-                .totalPages(1)
+                .totalElements(4)
+                .totalPages(2)
                 .build();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());

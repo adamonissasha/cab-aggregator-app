@@ -1,4 +1,4 @@
-package com.example.driverservice.service;
+package com.example.driverservice.junit;
 
 import com.example.driverservice.dto.request.DriverRatingRequest;
 import com.example.driverservice.dto.response.AllDriverRatingsResponse;
@@ -135,7 +135,7 @@ public class DriverRatingServiceTest {
         Double expectedAverageRating = TestDriverRatingUtil.getAverageDriverRating();
         AverageDriverRatingResponse expected = AverageDriverRatingResponse.builder()
                 .averageRating(expectedAverageRating)
-                .passengerId(firstDriverRating.getPassengerId())
+                .driverId(firstDriverRating.getDriver().getId())
                 .build();
 
         when(driverRepository.findById(driverId))

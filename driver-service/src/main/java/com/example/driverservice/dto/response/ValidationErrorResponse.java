@@ -1,9 +1,17 @@
 package com.example.driverservice.dto.response;
 
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+
 import java.util.List;
 
-public record ValidationErrorResponse(List<String> errors) {
-    public void addValidationError(String error) {
-        errors.add(error);
-    }
+@Getter
+@Builder
+@EqualsAndHashCode
+@ToString
+public class ValidationErrorResponse {
+    private  List<String> errors;
+    private int statusCode;
 }
