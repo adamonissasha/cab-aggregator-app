@@ -1,4 +1,4 @@
-package com.example.passengerservice.service;
+package com.example.passengerservice.junit;
 
 import com.example.passengerservice.dto.request.PassengerRequest;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
@@ -8,6 +8,7 @@ import com.example.passengerservice.exception.PassengerNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
 import com.example.passengerservice.model.Passenger;
 import com.example.passengerservice.repository.PassengerRepository;
+import com.example.passengerservice.service.PassengerRatingService;
 import com.example.passengerservice.service.impl.PassengerServiceImpl;
 import com.example.passengerservice.util.FieldValidator;
 import com.example.passengerservice.util.TestPassengerUtil;
@@ -224,8 +225,8 @@ public class PassengerServiceTest {
                 .passengers(passengerResponses)
                 .currentPage(page)
                 .pageSize(size)
-                .totalElements(2)
-                .totalPages(1)
+                .totalElements(4)
+                .totalPages(2)
                 .build();
 
         doNothing()

@@ -23,12 +23,13 @@ repositories {
 
 ext {
     versions = [
-            'modelMapper'        : '3.1.1',
-            'postgresql'         : '42.6.0',
-            'liquibase'          : '4.24.0',
-            'hibernateValidator' : '8.0.1.Final',
-            'lombok'             : '1.18.26',
-            'springCloudVersion' : '2023.0.0'
+            'modelMapper'       : '3.1.1',
+            'postgresql'        : '42.6.0',
+            'liquibase'         : '4.24.0',
+            'hibernateValidator': '8.0.1.Final',
+            'lombok'            : '1.18.26',
+            'springCloudVersion': '2023.0.0',
+            'restAssured'       : '5.4.0'
     ]
 }
 
@@ -49,6 +50,7 @@ dependencies {
     testImplementation "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation 'org.springframework.cloud:spring-cloud-stream-test-binder'
+    testImplementation "io.rest-assured:rest-assured:${versions.restAssured}"
 }
 
 dependencyManagement {

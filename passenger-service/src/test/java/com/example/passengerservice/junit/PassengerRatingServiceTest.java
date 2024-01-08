@@ -1,4 +1,4 @@
-package com.example.passengerservice.service;
+package com.example.passengerservice.junit;
 
 import com.example.passengerservice.dto.request.PassengerRatingRequest;
 import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
