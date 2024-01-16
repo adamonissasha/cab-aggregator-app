@@ -1,4 +1,4 @@
-package com.example.ridesservice.service;
+package com.example.ridesservice.junit;
 
 import com.example.ridesservice.dto.message.RatingMessage;
 import com.example.ridesservice.dto.request.CreateRideRequest;
@@ -20,6 +20,8 @@ import com.example.ridesservice.model.PromoCode;
 import com.example.ridesservice.model.Ride;
 import com.example.ridesservice.model.enums.RideStatus;
 import com.example.ridesservice.repository.RideRepository;
+import com.example.ridesservice.service.PromoCodeService;
+import com.example.ridesservice.service.StopService;
 import com.example.ridesservice.service.impl.RideServiceImpl;
 import com.example.ridesservice.util.TestRideUtil;
 import com.example.ridesservice.webClient.BankWebClient;

@@ -1,4 +1,4 @@
-package com.example.ridesservice.service;
+package com.example.ridesservice.junit;
 
 
 import com.example.ridesservice.dto.request.StopRequest;

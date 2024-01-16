@@ -1,6 +1,7 @@
 package com.example.ridesservice.handler;
 
 import com.example.ridesservice.dto.response.ExceptionResponse;
+import com.example.ridesservice.dto.response.ValidationErrorResponse;
 import com.example.ridesservice.exception.IncorrectDateException;
 import com.example.ridesservice.exception.IncorrectFieldNameException;
 import com.example.ridesservice.exception.IncorrectPaymentMethodException;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestControllerAdvice
@@ -167,21 +169,29 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleConstraintViolationException(ConstraintViolationException ex) {
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
+        List<String> errors = new ArrayList<>();
         for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
-            errorResponse.addValidationError(violation.getMessage());
+            errors.add(violation.getMessage());
         }
-        return errorResponse;
+        return ValidationErrorResponse.builder()
+                .errors(errors)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
-        for (FieldError fieldError : fieldErrors) {
-            errorResponse.addValidationError(fieldError.getDefaultMessage());
-        }
-        return errorResponse;
+
+        List<String> errors = fieldErrors.stream()
+                .map(FieldError::getDefaultMessage)
+                .sorted()
+                .toList();
+
+        return ValidationErrorResponse.builder()
+                .errors(errors)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
     }
 }

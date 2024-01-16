@@ -1,4 +1,4 @@
-package com.example.ridesservice.service;
+package com.example.ridesservice.junit;
 
 import com.example.ridesservice.dto.request.PromoCodeRequest;
 import com.example.ridesservice.dto.response.AllPromoCodesResponse;
@@ -132,7 +132,10 @@ public class PromoCodeServiceTest {
         Long id = TestPromoCodeUtil.getFirstPromoCodeId();
         PromoCodeRequest promoCodeRequest = TestPromoCodeUtil.getPromoCodeRequest();
         promoCodeRequest.setStartDate(LocalDate.now().minusDays(5));
+        PromoCode promoCode = TestPromoCodeUtil.getFirstPromoCode();
 
+        when(promoCodeRepository.findById(id))
+                .thenReturn(Optional.of(promoCode));
         assertThrows(IncorrectDateException.class, () -> promoCodeService.editPromoCode(id, promoCodeRequest));
 
         verify(promoCodeRepository, never())
@@ -141,10 +144,10 @@ public class PromoCodeServiceTest {
 
     @Test
     void testEditPromoCode_WhenPromoCodeAlreadyExists_ShouldThrowPromoCodeAlreadyExistsException() {
-        Long id = TestPromoCodeUtil.getFirstPromoCodeId();
         PromoCodeRequest promoCodeRequest = TestPromoCodeUtil.getPromoCodeRequest();
         PromoCode existingPromoCode = TestPromoCodeUtil.getFirstPromoCode();
         PromoCode newPromoCode = TestPromoCodeUtil.getSecondPromoCode();
+        Long id = existingPromoCode.getId();
 
         when(promoCodeRepository.findById(id))
                 .thenReturn(Optional.of(existingPromoCode));
@@ -252,9 +255,10 @@ public class PromoCodeServiceTest {
 
     @Test
     void testGetPromoCodeByName_WhenPromoCodeExists_ShouldReturnPromoCode() {
-        String code = TestPromoCodeUtil.getFirstPromoCode().getCode();
-        PromoCode expected = TestPromoCodeUtil.getFirstPromoCode();
+        String code = TestPromoCodeUtil.getSecondPromoCode().getCode();
+        PromoCode expected = TestPromoCodeUtil.getSecondPromoCode();
         expected.setStartDate(LocalDate.now().minusDays(5));
+        expected.setEndDate(LocalDate.now().plusDays(5));
 
         when(promoCodeRepository.findByCode(code))
                 .thenReturn(Optional.of(expected));

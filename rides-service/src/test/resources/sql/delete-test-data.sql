@@ -1,0 +1,1 @@
+DELETE FROM promo_code WHERE id IN (98, 99);
