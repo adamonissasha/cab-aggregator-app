@@ -23,21 +23,22 @@ public class TestCarUtil {
     static String FIRST_CAR_NUMBER = "1234-AA-1";
     static String SECOND_CAR_NUMBER = "1234-BB-2";
     static String NEW_CAR_NUMBER = "1235-BB-2";
-    static String EXISTING_CAR_NUMBER = "1223-NM-4";
     static String FIRST_CAR_COLOR = "red";
     static String SECOND_CAR_COLOR = "black";
     static String NEW_CAR_COLOR = "white";
     static String FIRST_CAR_MAKE = "BMW";
     static String SECOND_CAR_MAKE = "Audi";
     static String NEW_CAR_MAKE = "Volvo";
-    static int PAGE_NUMBER = 1;
+    static int PAGE_NUMBER = 0;
     static int PAGE_SIZE = 2;
-    static String SORT_FIELD = "id";
+    static String CORRECT_SORT_FIELD = "id";
+    static String INCORRECT_SORT_FIELD = "age";
     static String CAR_NOT_FOUND = "Car with id '%s' not found";
     static String CAR_NUMBER_EXIST = "Car with number '%s' already exist";
     static String CAR_NUMBER_REQUIRED = "Car number is required";
     static String CAR_COLOR_REQUIRED = "Car color is required";
     static String CAR_MAKE_REQUIRED = "Car make is required";
+    static String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: [id, number, color, carMake]";
 
     public static Long getFirstCarId() {
         return FIRST_CAR_ID;
@@ -72,7 +73,7 @@ public class TestCarUtil {
     public static Car getCarWithExistingNumber() {
         return Car.builder()
                 .id(SECOND_CAR_ID)
-                .number(EXISTING_CAR_NUMBER)
+                .number(SECOND_CAR_NUMBER)
                 .color(SECOND_CAR_COLOR)
                 .carMake(SECOND_CAR_MAKE)
                 .build();
@@ -88,7 +89,7 @@ public class TestCarUtil {
 
     public static CarRequest getCarRequestWithExistingNumber() {
         return CarRequest.builder()
-                .number(EXISTING_CAR_NUMBER)
+                .number(SECOND_CAR_NUMBER)
                 .color(NEW_CAR_COLOR)
                 .carMake(NEW_CAR_MAKE)
                 .build();
@@ -138,8 +139,12 @@ public class TestCarUtil {
         return PAGE_SIZE;
     }
 
-    public static String getSortField() {
-        return SORT_FIELD;
+    public static String getCorrectSortField() {
+        return CORRECT_SORT_FIELD;
+    }
+
+    public static String getIncorrectSortField() {
+        return INCORRECT_SORT_FIELD;
     }
 
     public static List<Car> getCars() {
@@ -150,9 +155,9 @@ public class TestCarUtil {
         return List.of(getFirstCarResponse(), getSecondCarResponse());
     }
 
-    public static ExceptionResponse getPhoneNumberExistsExceptionResponse() {
+    public static ExceptionResponse getCarNumberExistsExceptionResponse() {
         return ExceptionResponse.builder()
-                .message(String.format(CAR_NUMBER_EXIST, EXISTING_CAR_NUMBER))
+                .message(String.format(CAR_NUMBER_EXIST, SECOND_CAR_NUMBER))
                 .statusCode(HttpStatus.CONFLICT.value())
                 .build();
     }
@@ -161,6 +166,13 @@ public class TestCarUtil {
         return ExceptionResponse.builder()
                 .message(String.format(CAR_NOT_FOUND, INVALID_CAR_ID))
                 .statusCode(HttpStatus.NOT_FOUND.value())
+                .build();
+    }
+
+    public static ExceptionResponse getIncorrectFieldExceptionResponse() {
+        return ExceptionResponse.builder()
+                .message(INCORRECT_FIELDS)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
                 .build();
     }
 
@@ -180,8 +192,8 @@ public class TestCarUtil {
     public static CarPageResponse getCarPageResponse() {
         return CarPageResponse.builder()
                 .cars(List.of(getFirstCarResponse(), getSecondCarResponse()))
-                .totalPages(2)
-                .totalElements(4)
+                .totalPages(1)
+                .totalElements(2)
                 .pageSize(PAGE_SIZE)
                 .currentPage(PAGE_NUMBER)
                 .build();

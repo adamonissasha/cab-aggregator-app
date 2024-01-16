@@ -44,9 +44,10 @@ public class TestDriverUtil {
     static Double FIRST_DRIVER_RATING = 0.0;
     static Double SECOND_DRIVER_RATING = 4.5;
     static Double THIRD_DRIVER_RATING = 0.0;
-    static int PAGE_NUMBER = 2;
+    static int PAGE_NUMBER = 0;
     static int PAGE_SIZE = 2;
-    static String SORT_FIELD = "id";
+    static String CORRECT_SORT_FIELD = "id";
+    static String INCORRECT_SORT_FIELD = "ids";
     static String PHONE_NUMBER_EXIST = "Driver with phone number '%s' already exist";
     static String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
     static String DRIVER_FIRST_NAME_REQUIRED_MESSAGE = "First name is required";
@@ -55,6 +56,7 @@ public class TestDriverUtil {
     static String DRIVER_PHONE_NUMBER_FORMAT_MESSAGE = "Phone number must match the format: +375xxxxxxxxx";
     static String DRIVER_PASSWORD_FORMAT_MESSAGE = "Password must contain at least one digit and be at least 8 characters long";
     static String DRIVER_ALREADY_FREE = "Driver with id '%s' is already free";
+    static String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: [id, firstName, lastName, email, phoneNumber, password, status, car, isActive]";
 
     public static Long getFirstDriverId() {
         return FIRST_DRIVER_ID;
@@ -74,10 +76,6 @@ public class TestDriverUtil {
 
     public static String getFirstDriverPhoneNumber() {
         return FIRST_DRIVER_PHONE_NUMBER;
-    }
-
-    public static Long getDriverCarId() {
-        return FIRST_DRIVER_CAR_ID;
     }
 
     public static String getCarNotFoundMessage() {
@@ -200,8 +198,12 @@ public class TestDriverUtil {
         return PAGE_SIZE;
     }
 
-    public static String getSortField() {
-        return SORT_FIELD;
+    public static String getCorrectSortField() {
+        return CORRECT_SORT_FIELD;
+    }
+
+    public static String getIncorrectSortField() {
+        return INCORRECT_SORT_FIELD;
     }
 
     public static List<Driver> getDrivers() {
@@ -248,11 +250,18 @@ public class TestDriverUtil {
                 .build();
     }
 
+    public static ExceptionResponse getIncorrectFieldExceptionResponse() {
+        return ExceptionResponse.builder()
+                .message(INCORRECT_FIELDS)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
+    }
+
     public static DriverPageResponse getDriverPageResponse() {
         return DriverPageResponse.builder()
                 .drivers(List.of(getSecondDriverResponse(), getThirdDriverResponse()))
-                .totalPages(3)
-                .totalElements(6)
+                .totalPages(1)
+                .totalElements(2)
                 .pageSize(PAGE_SIZE)
                 .currentPage(PAGE_NUMBER)
                 .build();

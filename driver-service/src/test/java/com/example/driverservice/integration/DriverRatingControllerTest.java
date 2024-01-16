@@ -3,15 +3,20 @@ package com.example.driverservice.integration;
 import com.example.driverservice.dto.response.AllDriverRatingsResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
+import com.example.driverservice.integration.client.DriverRatingClientTest;
 import com.example.driverservice.util.TestDriverRatingUtil;
 import com.example.driverservice.util.TestDriverUtil;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -19,26 +24,35 @@ import static org.assertj.core.api.Assertions.assertThat;
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:sql/delete-test-data.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+@Testcontainers
 public class DriverRatingControllerTest {
     @LocalServerPort
     private int port;
 
-    private static final String DRIVER_RATING_SERVICE_URL = "driver/{id}/rating";
+    private final DriverRatingClientTest driverRatingClientTest;
+
+    @Container
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
+
+    @Autowired
+    public DriverRatingControllerTest(DriverRatingClientTest driverRatingClientTest) {
+        this.driverRatingClientTest = driverRatingClientTest;
+    }
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
+        dynamicPropertyRegistry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+        dynamicPropertyRegistry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+        dynamicPropertyRegistry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+    }
 
     @Test
     void getAllDriverRatings_WhenDriverExists_ShouldReturnDriverResponse() {
         Long driverId = TestDriverUtil.getSecondDriverId();
         AllDriverRatingsResponse expected = TestDriverRatingUtil.getAllDriverRatingsResponse();
 
-        AllDriverRatingsResponse actual = given()
-                .port(port)
-                .pathParam("id", driverId)
-                .when()
-                .get(DRIVER_RATING_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.OK.value())
-                .extract()
-                .as(AllDriverRatingsResponse.class);
+        AllDriverRatingsResponse actual
+                = driverRatingClientTest.getAllDriverRatingsWhenDriverExistsRequest(port, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -48,15 +62,8 @@ public class DriverRatingControllerTest {
         Long invalidId = TestDriverUtil.getInvalidId();
         ExceptionResponse expected = TestDriverUtil.getDriverNotFoundExceptionResponse();
 
-        ExceptionResponse actual = given()
-                .port(port)
-                .pathParam("id", invalidId)
-                .when()
-                .get(DRIVER_RATING_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract()
-                .as(ExceptionResponse.class);
+        ExceptionResponse actual =
+                driverRatingClientTest.getDriverRatingsWhenDriverNotExistsRequest(port, invalidId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -66,15 +73,8 @@ public class DriverRatingControllerTest {
         Long driverId = TestDriverUtil.getSecondDriverId();
         AverageDriverRatingResponse expected = TestDriverRatingUtil.getAverageDriverRatingResponse();
 
-        AverageDriverRatingResponse actual = given()
-                .port(port)
-                .pathParam("id", driverId)
-                .when()
-                .get(DRIVER_RATING_SERVICE_URL + "/average")
-                .then()
-                .statusCode(HttpStatus.OK.value())
-                .extract()
-                .as(AverageDriverRatingResponse.class);
+        AverageDriverRatingResponse actual =
+                driverRatingClientTest.getAverageDriverRatingWhenDriverExistsRequest(port, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -84,15 +84,8 @@ public class DriverRatingControllerTest {
         Long invalidId = TestDriverUtil.getInvalidId();
         ExceptionResponse expected = TestDriverUtil.getDriverNotFoundExceptionResponse();
 
-        ExceptionResponse actual = given()
-                .port(port)
-                .pathParam("id", invalidId)
-                .when()
-                .get(DRIVER_RATING_SERVICE_URL + "/average")
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract()
-                .as(ExceptionResponse.class);
+        ExceptionResponse actual =
+                driverRatingClientTest.getAverageDriverRatingWhenDriverNotExistsRequest(port, invalidId);
 
         assertThat(actual).isEqualTo(expected);
     }

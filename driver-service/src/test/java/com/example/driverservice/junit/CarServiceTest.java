@@ -5,6 +5,7 @@ import com.example.driverservice.dto.response.CarPageResponse;
 import com.example.driverservice.dto.response.CarResponse;
 import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.CarNumberUniqueException;
+import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.model.Car;
 import com.example.driverservice.repository.CarRepository;
 import com.example.driverservice.service.impl.CarServiceImpl;
@@ -32,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -189,7 +192,7 @@ public class CarServiceTest {
     public void testGetAllCars_ShouldReturnCarsPage() {
         int page = TestCarUtil.getPageNumber();
         int size = TestCarUtil.getPageSize();
-        String sortBy = TestCarUtil.getSortField();
+        String sortBy = TestCarUtil.getCorrectSortField();
         List<Car> cars = TestCarUtil.getCars();
         List<CarResponse> carResponses = TestCarUtil.getCarResponses();
 
@@ -197,8 +200,8 @@ public class CarServiceTest {
                 .cars(carResponses)
                 .currentPage(page)
                 .pageSize(size)
-                .totalElements(4)
-                .totalPages(2)
+                .totalElements(2)
+                .totalPages(1)
                 .build();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
@@ -219,6 +222,24 @@ public class CarServiceTest {
         assertEquals(expected, actual);
 
         verify(carRepository, times(1))
+                .findAll(any(Pageable.class));
+    }
+
+    @Test
+    public void testGetAllCars_WhenIncorrectField_ShouldThrowIncorrectFieldException() {
+        int page = TestCarUtil.getPageNumber();
+        int size = TestCarUtil.getPageSize();
+        String sortBy = TestCarUtil.getIncorrectSortField();
+
+        doThrow(IncorrectFieldNameException.class)
+                .when(fieldValidator)
+                .checkSortField(eq(Car.class), eq(sortBy));
+
+        assertThrows(IncorrectFieldNameException.class, () -> carService.getAllCars(page, size, sortBy));
+
+        verify(fieldValidator, times(1))
+                .checkSortField(eq(Car.class), eq(sortBy));
+        verify(carRepository, never())
                 .findAll(any(Pageable.class));
     }
 }

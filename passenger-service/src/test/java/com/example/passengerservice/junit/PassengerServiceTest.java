@@ -4,6 +4,7 @@ import com.example.passengerservice.dto.request.PassengerRequest;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
+import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
 import com.example.passengerservice.model.Passenger;
@@ -38,6 +39,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -214,7 +217,7 @@ public class PassengerServiceTest {
     public void testGetAllPassengers_ShouldReturnPassengersPage() {
         int page = TestPassengerUtil.getPageNumber();
         int size = TestPassengerUtil.getPageSize();
-        String sortBy = TestPassengerUtil.getSortField();
+        String sortBy = TestPassengerUtil.getCorrectSortField();
         AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getPassengerRating();
         List<Passenger> passengers = TestPassengerUtil.getPassengers();
         List<PassengerResponse> passengerResponses = TestPassengerUtil.getPassengerResponses();
@@ -225,8 +228,8 @@ public class PassengerServiceTest {
                 .passengers(passengerResponses)
                 .currentPage(page)
                 .pageSize(size)
-                .totalElements(4)
-                .totalPages(2)
+                .totalElements(2)
+                .totalPages(1)
                 .build();
 
         doNothing()
@@ -249,6 +252,24 @@ public class PassengerServiceTest {
                 .findAll(any(Pageable.class));
         verify(passengerRatingService, times(2))
                 .getAveragePassengerRating(anyLong());
+    }
+
+    @Test
+    public void testGetAllPassengers_WhenIncorrectField_ShouldThrowIncorrectFieldException() {
+        int page = TestPassengerUtil.getPageNumber();
+        int size = TestPassengerUtil.getPageSize();
+        String sortBy = TestPassengerUtil.getIncorrectSortField();
+
+        doThrow(IncorrectFieldNameException.class)
+                .when(fieldValidator)
+                .checkSortField(eq(Passenger.class), eq(sortBy));
+
+        assertThrows(IncorrectFieldNameException.class, () -> passengerService.getAllPassengers(page, size, sortBy));
+
+        verify(fieldValidator, times(1))
+                .checkSortField(eq(Passenger.class), eq(sortBy));
+        verify(passengerRepository, never())
+                .findAll(any(Pageable.class));
     }
 
     @Test

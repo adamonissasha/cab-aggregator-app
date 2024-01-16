@@ -42,6 +42,9 @@ dependencies {
     testImplementation "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "io.rest-assured:rest-assured:${versions.restAssured}"
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation "org.testcontainers:junit-jupiter"
+    testImplementation 'org.testcontainers:postgresql'
 }
 
 dependencyManagement {

@@ -8,6 +8,7 @@ import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.DriverNotFoundException;
 import com.example.driverservice.exception.DriverStatusException;
+import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
 import com.example.driverservice.kafka.service.KafkaFreeDriverService;
 import com.example.driverservice.model.Driver;
@@ -44,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -248,7 +250,7 @@ public class DriverServiceTest {
     public void testGetAllDrivers_ShouldReturnDriversPage() {
         int page = TestDriverUtil.getPageNumber();
         int size = TestDriverUtil.getPageSize();
-        String sortBy = TestDriverUtil.getSortField();
+        String sortBy = TestDriverUtil.getCorrectSortField();
         AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
         List<Driver> drivers = TestDriverUtil.getDrivers();
         List<DriverResponse> driverResponses = TestDriverUtil.getDriverResponses();
@@ -259,8 +261,8 @@ public class DriverServiceTest {
                 .drivers(driverResponses)
                 .currentPage(page)
                 .pageSize(size)
-                .totalElements(6)
-                .totalPages(3)
+                .totalElements(2)
+                .totalPages(1)
                 .build();
 
         doNothing()
@@ -282,6 +284,24 @@ public class DriverServiceTest {
         verify(driverRatingService, times(2))
                 .getAverageDriverRating(anyLong());
         verify(driverRepository, times(1))
+                .findAll(any(Pageable.class));
+    }
+
+    @Test
+    public void testGetAllDrivers_WhenIncorrectField_ShouldThrowIncorrectFieldException() {
+        int page = TestDriverUtil.getPageNumber();
+        int size = TestDriverUtil.getPageSize();
+        String sortBy = TestDriverUtil.getIncorrectSortField();
+
+        doThrow(IncorrectFieldNameException.class)
+                .when(fieldValidator)
+                .checkSortField(eq(Driver.class), eq(sortBy));
+
+        assertThrows(IncorrectFieldNameException.class, () -> driverService.getAllDrivers(page, size, sortBy));
+
+        verify(fieldValidator, times(1))
+                .checkSortField(eq(Driver.class), eq(sortBy));
+        verify(driverRepository, never())
                 .findAll(any(Pageable.class));
     }
 

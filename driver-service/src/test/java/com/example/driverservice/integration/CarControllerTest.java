@@ -5,17 +5,20 @@ import com.example.driverservice.dto.response.CarPageResponse;
 import com.example.driverservice.dto.response.CarResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
 import com.example.driverservice.dto.response.ValidationErrorResponse;
+import com.example.driverservice.integration.client.CarClientTest;
 import com.example.driverservice.repository.CarRepository;
 import com.example.driverservice.util.TestCarUtil;
-import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -23,14 +26,28 @@ import static org.assertj.core.api.Assertions.assertThat;
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:sql/delete-test-data.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+@Testcontainers
 public class CarControllerTest {
     @LocalServerPort
-    private int port;
+    int port;
+
+    private final CarClientTest carClient;
+
     private final CarRepository carRepository;
-    private static final String CAR_SERVICE_URL = "driver/car";
+
+    @Container
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
+        dynamicPropertyRegistry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+        dynamicPropertyRegistry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+        dynamicPropertyRegistry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+    }
 
     @Autowired
-    public CarControllerTest(CarRepository carRepository) {
+    public CarControllerTest(CarClientTest carClient, CarRepository carRepository) {
+        this.carClient = carClient;
         this.carRepository = carRepository;
     }
 
@@ -39,16 +56,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequest();
         CarResponse expected = TestCarUtil.getNewCarResponse();
 
-        CarResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(carRequest)
-                .when()
-                .post(CAR_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract()
-                .as(CarResponse.class);
+        CarResponse actual = carClient.createCarWithUniqueCarNumberAndValidDataRequest(port, carRequest);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -61,18 +69,9 @@ public class CarControllerTest {
     @Test
     void createCar_WhenCarNumberAlreadyExists_ShouldReturnConflictResponse() {
         CarRequest carRequest = TestCarUtil.getCarRequestWithExistingNumber();
-        ExceptionResponse expected = TestCarUtil.getPhoneNumberExistsExceptionResponse();
+        ExceptionResponse expected = TestCarUtil.getCarNumberExistsExceptionResponse();
 
-        ExceptionResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(carRequest)
-                .when()
-                .post(CAR_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.CONFLICT.value())
-                .extract()
-                .as(ExceptionResponse.class);
+        ExceptionResponse actual = carClient.createCarWithExistingCarNumberRequest(port, carRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -82,16 +81,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequestWithInvalidData();
         ValidationErrorResponse expected = TestCarUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(carRequest)
-                .when()
-                .post(CAR_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .extract()
-                .as(ValidationErrorResponse.class);
+        ValidationErrorResponse actual = carClient.createCarWithInvalidDataRequest(port, carRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -103,17 +93,7 @@ public class CarControllerTest {
         CarResponse expected = TestCarUtil.getNewCarResponse();
         expected.setId(carId);
 
-        CarResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(carRequest)
-                .pathParam("id", carId)
-                .when()
-                .put(CAR_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.OK.value())
-                .extract()
-                .as(CarResponse.class);
+        CarResponse actual = carClient.editCarWithValidDataRequest(port, carRequest, carId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -124,17 +104,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequestWithInvalidData();
         ValidationErrorResponse expected = TestCarUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(carRequest)
-                .pathParam("id", carId)
-                .when()
-                .put(CAR_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .extract()
-                .as(ValidationErrorResponse.class);
+        ValidationErrorResponse actual = carClient.editCarWithInvalidDataRequest(port, carRequest, carId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -145,17 +115,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequest();
         ExceptionResponse expected = TestCarUtil.getCarNotFoundExceptionResponse();
 
-        ExceptionResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(carRequest)
-                .pathParam("id", invalidCarId)
-                .when()
-                .put(CAR_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract()
-                .as(ExceptionResponse.class);
+        ExceptionResponse actual = carClient.editCarWhenCarNotFoundRequest(port, carRequest, invalidCarId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -165,15 +125,7 @@ public class CarControllerTest {
         Long existingCarId = TestCarUtil.getSecondCarId();
         CarResponse expected = TestCarUtil.getSecondCarResponse();
 
-        CarResponse actual = given()
-                .port(port)
-                .pathParam("id", existingCarId)
-                .when()
-                .get(CAR_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.OK.value())
-                .extract()
-                .as(CarResponse.class);
+        CarResponse actual = carClient.getCarByIdRequest(port, existingCarId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -183,15 +135,7 @@ public class CarControllerTest {
         Long invalidCarId = TestCarUtil.getInvalidId();
         ExceptionResponse expected = TestCarUtil.getCarNotFoundExceptionResponse();
 
-        ExceptionResponse actual = given()
-                .port(port)
-                .pathParam("id", invalidCarId)
-                .when()
-                .get(CAR_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract()
-                .as(ExceptionResponse.class);
+        ExceptionResponse actual = carClient.getCarByIdWhenCarNotExistsRequest(port, invalidCarId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -200,20 +144,22 @@ public class CarControllerTest {
     void getAllCars_ShouldReturnCarPageResponse() {
         int page = TestCarUtil.getPageNumber();
         int size = TestCarUtil.getPageSize();
-        String sortBy = TestCarUtil.getSortField();
+        String sortBy = TestCarUtil.getCorrectSortField();
         CarPageResponse expected = TestCarUtil.getCarPageResponse();
 
-        CarPageResponse actual = given()
-                .port(port)
-                .param("page", page)
-                .param("size", size)
-                .param("sortBy", sortBy)
-                .when()
-                .get(CAR_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.OK.value())
-                .extract()
-                .as(CarPageResponse.class);
+        CarPageResponse actual = carClient.getAllCarsRequest(port, page, size, sortBy);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void getAllCars_WhenIncorrectField_ShouldReturnExceptionResponse() {
+        int page = TestCarUtil.getPageNumber();
+        int size = TestCarUtil.getPageSize();
+        String sortBy = TestCarUtil.getIncorrectSortField();
+        ExceptionResponse expected = TestCarUtil.getIncorrectFieldExceptionResponse();
+
+        ExceptionResponse actual = carClient.getAllCarsWhenIncorrectFieldRequest(port, page, size, sortBy);
 
         assertThat(actual).isEqualTo(expected);
     }

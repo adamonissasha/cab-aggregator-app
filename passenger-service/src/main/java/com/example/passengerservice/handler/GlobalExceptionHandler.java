@@ -4,7 +4,6 @@ import com.example.passengerservice.dto.response.ExceptionResponse;
 import com.example.passengerservice.dto.response.ValidationErrorResponse;
 import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
-import com.example.passengerservice.exception.PassengerRatingNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -17,23 +16,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
     @ExceptionHandler(value = PassengerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handlePassengerException(PassengerNotFoundException ex) {
-        return ExceptionResponse.builder()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .message(ex.getMessage())
-                .build();
-    }
-
-    @ExceptionHandler(value = PassengerRatingNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionResponse handlePassengerRatingException(PassengerRatingNotFoundException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())

@@ -36,9 +36,10 @@ public class TestPassengerUtil {
     static String INVALID_PASSENGER_PASSWORD = "321";
     static Double FIRST_PASSENGER_RATING = 4.5;
     static Double SECOND_PASSENGER_RATING = 0.0;
-    static int PAGE_NUMBER = 1;
+    static int PAGE_NUMBER = 0;
     static int PAGE_SIZE = 2;
-    static String SORT_FIELD = "id";
+    static String CORRECT_SORT_FIELD = "id";
+    static String INCORRECT_SORT_FIELD = "ids";
     static String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
     static String PHONE_NUMBER_EXIST = "Passenger with phone number '%s' already exist";
     static String PASSENGER_FIRST_NAME_REQUIRED_MESSAGE = "First name is required";
@@ -46,6 +47,7 @@ public class TestPassengerUtil {
     static String PASSENGER_EMAIL_FORMAT_MESSAGE = "Invalid email format";
     static String PASSENGER_PHONE_NUMBER_FORMAT_MESSAGE = "Phone number must match the format: +375xxxxxxxxx";
     static String PASSENGER_PASSWORD_FORMAT_MESSAGE = "Password must contain at least one digit and be at least 8 characters long";
+    static String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: [id, firstName, lastName, email, phoneNumber, password, isActive]";
 
     public static Long getFirstPassengerId() {
         return FIRST_PASSENGER_ID;
@@ -169,8 +171,12 @@ public class TestPassengerUtil {
         return PAGE_SIZE;
     }
 
-    public static String getSortField() {
-        return SORT_FIELD;
+    public static String getCorrectSortField() {
+        return CORRECT_SORT_FIELD;
+    }
+
+    public static String getIncorrectSortField() {
+        return INCORRECT_SORT_FIELD;
     }
 
     public static List<Passenger> getPassengers() {
@@ -195,6 +201,13 @@ public class TestPassengerUtil {
                 .build();
     }
 
+    public static ExceptionResponse getIncorrectFieldExceptionResponse() {
+        return ExceptionResponse.builder()
+                .message(INCORRECT_FIELDS)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
+    }
+
     public static ValidationErrorResponse getValidationErrorResponse() {
         List<String> errors = new ArrayList<>();
         errors.add(PASSENGER_PHONE_NUMBER_FORMAT_MESSAGE);
@@ -213,8 +226,8 @@ public class TestPassengerUtil {
     public static PassengerPageResponse getPassengerPageResponse() {
         return PassengerPageResponse.builder()
                 .passengers(List.of(getPassengerResponse(), getSecondPassengerResponse()))
-                .totalPages(2)
-                .totalElements(4)
+                .totalPages(1)
+                .totalElements(2)
                 .pageSize(PAGE_SIZE)
                 .currentPage(PAGE_NUMBER)
                 .build();

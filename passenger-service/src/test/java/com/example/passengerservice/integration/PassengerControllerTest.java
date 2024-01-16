@@ -5,17 +5,20 @@ import com.example.passengerservice.dto.response.ExceptionResponse;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
 import com.example.passengerservice.dto.response.ValidationErrorResponse;
+import com.example.passengerservice.integration.client.PassengerClientTest;
 import com.example.passengerservice.repository.PassengerRepository;
 import com.example.passengerservice.util.TestPassengerUtil;
-import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -23,16 +26,29 @@ import static org.assertj.core.api.Assertions.assertThat;
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:sql/delete-test-data.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+@Testcontainers
 public class PassengerControllerTest {
     @LocalServerPort
     private int port;
+
     private final PassengerRepository passengerRepository;
 
-    private static final String PASSENGER_SERVICE_URL = "passenger";
+    private final PassengerClientTest passengerClientTest;
+
+    @Container
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
+        dynamicPropertyRegistry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
+        dynamicPropertyRegistry.add("spring.datasource.username", postgreSQLContainer::getUsername);
+        dynamicPropertyRegistry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+    }
 
     @Autowired
-    public PassengerControllerTest(PassengerRepository passengerRepository) {
+    public PassengerControllerTest(PassengerRepository passengerRepository, PassengerClientTest passengerClientTest) {
         this.passengerRepository = passengerRepository;
+        this.passengerClientTest = passengerClientTest;
     }
 
     @Test
@@ -40,16 +56,7 @@ public class PassengerControllerTest {
         PassengerRequest passengerRequest = TestPassengerUtil.getUniquePassengerRequest();
         PassengerResponse expected = TestPassengerUtil.getNewPassengerResponse();
 
-        PassengerResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(passengerRequest)
-                .when()
-                .post(PASSENGER_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.CREATED.value())
-                .extract()
-                .as(PassengerResponse.class);
+        PassengerResponse actual = passengerClientTest.createPassengerWhenDataValidRequest(port, passengerRequest);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -64,16 +71,8 @@ public class PassengerControllerTest {
         PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequestWithExistingNumber();
         ExceptionResponse expected = TestPassengerUtil.getPhoneNumberExistsExceptionResponse();
 
-        ExceptionResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(passengerRequest)
-                .when()
-                .post(PASSENGER_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.CONFLICT.value())
-                .extract()
-                .as(ExceptionResponse.class);
+        ExceptionResponse actual =
+                passengerClientTest.createPassengerWhenPhoneNumberAlreadyExistsRequest(port, passengerRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -83,16 +82,8 @@ public class PassengerControllerTest {
         PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequestWithInvalidData();
         ValidationErrorResponse expected = TestPassengerUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(passengerRequest)
-                .when()
-                .post(PASSENGER_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .extract()
-                .as(ValidationErrorResponse.class);
+        ValidationErrorResponse actual =
+                passengerClientTest.createPassengerWhenDataNotValidRequest(port, passengerRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -103,17 +94,8 @@ public class PassengerControllerTest {
         PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequest();
         PassengerResponse expected = TestPassengerUtil.getPassengerResponse();
 
-        PassengerResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(passengerRequest)
-                .pathParam("id", passengerId)
-                .when()
-                .put(PASSENGER_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.OK.value())
-                .extract()
-                .as(PassengerResponse.class);
+        PassengerResponse actual =
+                passengerClientTest.editPassengerWhenValidDataRequest(port, passengerRequest, passengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -124,17 +106,8 @@ public class PassengerControllerTest {
         PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequestWithInvalidData();
         ValidationErrorResponse expected = TestPassengerUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(passengerRequest)
-                .pathParam("id", passengerId)
-                .when()
-                .put(PASSENGER_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .extract()
-                .as(ValidationErrorResponse.class);
+        ValidationErrorResponse actual =
+                passengerClientTest.editPassengerWhenInvalidDataRequest(port, passengerRequest, passengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -145,17 +118,8 @@ public class PassengerControllerTest {
         PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequest();
         ExceptionResponse expected = TestPassengerUtil.getPassengerNotFoundExceptionResponse();
 
-        ExceptionResponse actual = given()
-                .port(port)
-                .contentType(ContentType.JSON)
-                .body(passengerRequest)
-                .pathParam("id", invalidPassengerId)
-                .when()
-                .put(PASSENGER_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract()
-                .as(ExceptionResponse.class);
+        ExceptionResponse actual =
+                passengerClientTest.editPassengerWhenPassengerNotFoundRequest(port, passengerRequest, invalidPassengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -165,15 +129,8 @@ public class PassengerControllerTest {
         Long existingPassengerId = TestPassengerUtil.getFirstPassengerId();
         PassengerResponse expected = TestPassengerUtil.getPassengerResponse();
 
-        PassengerResponse actual = given()
-                .port(port)
-                .pathParam("id", existingPassengerId)
-                .when()
-                .get(PASSENGER_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.OK.value())
-                .extract()
-                .as(PassengerResponse.class);
+        PassengerResponse actual =
+                passengerClientTest.getPassengerByIdWhenPassengerExistsRequest(port, existingPassengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -183,15 +140,8 @@ public class PassengerControllerTest {
         Long invalidPassengerId = TestPassengerUtil.getInvalidId();
         ExceptionResponse expected = TestPassengerUtil.getPassengerNotFoundExceptionResponse();
 
-        ExceptionResponse actual = given()
-                .port(port)
-                .pathParam("id", invalidPassengerId)
-                .when()
-                .get(PASSENGER_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .extract()
-                .as(ExceptionResponse.class);
+        ExceptionResponse actual =
+                passengerClientTest.getPassengerByIdWhenPassengerNotExistsRequest(port, invalidPassengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -200,20 +150,23 @@ public class PassengerControllerTest {
     void getAllPassengers_ShouldReturnPassengerPageResponse() {
         int page = TestPassengerUtil.getPageNumber();
         int size = TestPassengerUtil.getPageSize();
-        String sortBy = TestPassengerUtil.getSortField();
+        String sortBy = TestPassengerUtil.getCorrectSortField();
         PassengerPageResponse expected = TestPassengerUtil.getPassengerPageResponse();
 
-        PassengerPageResponse actual = given()
-                .port(port)
-                .param("page", page)
-                .param("size", size)
-                .param("sortBy", sortBy)
-                .when()
-                .get(PASSENGER_SERVICE_URL)
-                .then()
-                .statusCode(HttpStatus.OK.value())
-                .extract()
-                .as(PassengerPageResponse.class);
+        PassengerPageResponse actual = passengerClientTest.getAllPassengersRequest(port, page, size, sortBy);
+
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
+    void getAllPassengers_WhenIncorrectField_ShouldReturnExceptionResponse() {
+        int page = TestPassengerUtil.getPageNumber();
+        int size = TestPassengerUtil.getPageSize();
+        String sortBy = TestPassengerUtil.getIncorrectSortField();
+        ExceptionResponse expected = TestPassengerUtil.getIncorrectFieldExceptionResponse();
+
+        ExceptionResponse actual =
+                passengerClientTest.getAllPassengersWhenIncorrectFieldRequest(port, page, size, sortBy);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -222,26 +175,14 @@ public class PassengerControllerTest {
     void deletePassenger_WhenPassengerExists_ShouldReturnNotFoundAfterDeletion() {
         Long existingPassengerId = TestPassengerUtil.getFirstPassengerId();
 
-        given()
-                .port(port)
-                .pathParam("id", existingPassengerId)
-                .when()
-                .delete(PASSENGER_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.OK.value());
+        passengerClientTest.deletePassengerWhenPassengerExistsRequest(port, existingPassengerId);
     }
 
     @Test
     void deletePassenger_WhenPassengerNotExists_ShouldReturnNotFound() {
         Long invalidPassengerId = TestPassengerUtil.getInvalidId();
 
-        given()
-                .port(port)
-                .pathParam("id", invalidPassengerId)
-                .when()
-                .delete(PASSENGER_SERVICE_URL + "/{id}")
-                .then()
-                .statusCode(HttpStatus.NOT_FOUND.value());
+        passengerClientTest.deletePassengerWhenPassengerNotExistsRequest(port, invalidPassengerId);
     }
 
     void deletePassengerAfterTest(Long id) {

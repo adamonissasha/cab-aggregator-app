@@ -5,7 +5,6 @@ import com.example.driverservice.dto.response.ValidationErrorResponse;
 import com.example.driverservice.exception.CarNotFoundException;
 import com.example.driverservice.exception.CarNumberUniqueException;
 import com.example.driverservice.exception.DriverNotFoundException;
-import com.example.driverservice.exception.DriverRatingNotFoundException;
 import com.example.driverservice.exception.DriverStatusException;
 import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
@@ -55,15 +54,6 @@ public class GlobalExceptionHandler {
     public ExceptionResponse handleIncorrectFieldNameException(IncorrectFieldNameException ex) {
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
-                .message(ex.getMessage())
-                .build();
-    }
-
-    @ExceptionHandler(value = DriverRatingNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionResponse handleDriverRatingNotFoundException(DriverRatingNotFoundException ex) {
-        return ExceptionResponse.builder()
-                .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
                 .build();
     }
