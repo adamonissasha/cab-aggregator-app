@@ -1,4 +1,4 @@
-package com.example.bankservice.service;
+package com.example.bankservice.junit;
 
 import com.example.bankservice.dto.request.BankCardRequest;
 import com.example.bankservice.dto.request.RefillRequest;
@@ -293,10 +293,11 @@ public class BankCardServiceTest {
     void testGetBankCardsByBankUser_ShouldReturnBankCardPageResponse() {
         int page = TestBankCardUtil.getPageNumber();
         int size = TestBankCardUtil.getPageSize();
-        String sortBy = TestBankCardUtil.getSortField();
+        String sortBy = TestBankCardUtil.getCorrectSortField();
         List<BankCard> bankCards = TestBankCardUtil.getBankCards();
         BankCard firstBankCard = bankCards.get(0);
         List<BankCardResponse> bankCardResponses = TestBankCardUtil.getBankCardResponses();
+        BankUserResponse bankUserResponse = TestBankCardUtil.getBankUserResponse();
 
         Pageable pageable = PageRequest.of(page, size);
         Page<BankCard> bankCardPage = new PageImpl<>(bankCards, pageable, bankCards.size());
@@ -316,10 +317,10 @@ public class BankCardServiceTest {
                 eq(firstBankCard.getBankUser()), any(Pageable.class)))
                 .thenReturn(bankCardPage);
         when(passengerWebClient.getPassenger(firstBankCard.getBankUserId()))
-                .thenReturn(TestBankCardUtil.getBankUserResponse());
-        when(bankCardMapper.mapBankCardToBankCardResponse(firstBankCard, TestBankCardUtil.getBankUserResponse()))
+                .thenReturn(bankUserResponse);
+        when(bankCardMapper.mapBankCardToBankCardResponse(firstBankCard, bankUserResponse))
                 .thenReturn(bankCardResponses.get(0));
-        when(bankCardMapper.mapBankCardToBankCardResponse(bankCards.get(1), TestBankCardUtil.getBankUserResponse()))
+        when(bankCardMapper.mapBankCardToBankCardResponse(bankCards.get(1), bankUserResponse))
                 .thenReturn(bankCardResponses.get(1));
 
         BankCardPageResponse actual = bankCardService.getBankCardsByBankUser(firstBankCard.getBankUserId(),
@@ -392,7 +393,7 @@ public class BankCardServiceTest {
     @Test
     void testRefillBankCard_WithIdProvided_ShouldRefillBankCard() {
         Long bankCardId = TestBankCardUtil.getBankCardId();
-        long bankUserId = 1L;
+        long bankUserId = 3L;
         RefillRequest refillRequest = TestBankCardUtil.getRefillRequest();
         BankCard bankCard = TestBankCardUtil.getFirstBankCard();
         BankUserResponse bankUserResponse = TestBankCardUtil.getBankUserResponse();
@@ -419,7 +420,7 @@ public class BankCardServiceTest {
 
     @Test
     void testRefillBankCard_WithoutIdProvided_ShouldRefillDefaultBankCard() {
-        long bankUserId = 1L;
+        long bankUserId = 3L;
         RefillRequest refillRequest = TestBankCardUtil.getRefillRequest();
         BankCard defaultBankCard = TestBankCardUtil.getFirstBankCard();
         BankUserResponse bankUserResponse = TestBankCardUtil.getBankUserResponse();

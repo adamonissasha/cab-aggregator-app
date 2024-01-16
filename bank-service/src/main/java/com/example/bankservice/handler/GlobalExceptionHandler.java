@@ -1,6 +1,7 @@
 package com.example.bankservice.handler;
 
 import com.example.bankservice.dto.response.ExceptionResponse;
+import com.example.bankservice.dto.response.ValidationErrorResponse;
 import com.example.bankservice.exception.AccountNumberUniqueException;
 import com.example.bankservice.exception.BankAccountNotFoundException;
 import com.example.bankservice.exception.BankCardBalanceException;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestControllerAdvice
@@ -70,10 +72,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(value = IncorrectFieldNameException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleIncorrectFieldNameException(IncorrectFieldNameException ex) {
         return ExceptionResponse.builder()
-                .statusCode(HttpStatus.CONFLICT.value())
+                .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
                 .build();
     }
@@ -117,21 +119,38 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleConstraintViolationException(ConstraintViolationException ex) {
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
+        List<String> errors = new ArrayList<>();
         for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
-            errorResponse.addValidationError(violation.getMessage());
+            errors.add(violation.getMessage());
         }
-        return errorResponse;
+        return ValidationErrorResponse.builder()
+                .errors(errors)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
-        for (FieldError fieldError : fieldErrors) {
-            errorResponse.addValidationError(fieldError.getDefaultMessage());
-        }
-        return errorResponse;
+
+        List<String> errors = fieldErrors.stream()
+                .map(FieldError::getDefaultMessage)
+                .sorted()
+                .toList();
+
+        return ValidationErrorResponse.builder()
+                .errors(errors)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
+    }
+
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionResponse handleIllegalArgumentException(IllegalArgumentException ex) {
+        return ExceptionResponse.builder()
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .message(ex.getMessage())
+                .build();
     }
 }

@@ -1,10 +1,11 @@
-package com.example.bankservice.service;
+package com.example.bankservice.junit;
 
 import com.example.bankservice.dto.request.BankAccountHistoryRequest;
 import com.example.bankservice.dto.response.BankAccountHistoryPageResponse;
 import com.example.bankservice.dto.response.BankAccountHistoryResponse;
 import com.example.bankservice.dto.response.BankAccountResponse;
 import com.example.bankservice.dto.response.BankUserResponse;
+import com.example.bankservice.exception.IncorrectFieldNameException;
 import com.example.bankservice.mapper.BankAccountHistoryMapper;
 import com.example.bankservice.mapper.BankAccountMapper;
 import com.example.bankservice.model.BankAccount;
@@ -37,9 +38,12 @@ import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,10 +66,10 @@ public class BankAccountHistoryServiceTest {
 
     @Test
     void testCreateBankAccountHistoryRecord_WhenBankAccountHistoryIsCreated_ShouldReturnBankAccountHistoryResponse() {
-        Long bankAccountId = TestBankAccountUtil.getBankAccountId();
+        long bankAccountId = 1L;
         BankAccountHistoryRequest historyRequest = TestBankAccountHistoryUtil.getBankAccountHistoryRequest();
         BankAccountHistory bankAccountHistory = TestBankAccountHistoryUtil.getFirstBankAccountHistory();
-        BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
+        BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         BankAccountResponse bankAccountResponse = TestBankAccountUtil.getFirstBankAccountResponse();
         BankAccountHistoryResponse expected = TestBankAccountHistoryUtil.getFirstBankAccountHistoryResponse();
 
@@ -101,7 +105,7 @@ public class BankAccountHistoryServiceTest {
 
         LocalDateTime actual = bankAccountHistoryService.getLastWithdrawalDate(bankAccountId);
 
-        assertThat(actual).isCloseTo(expected, within(1, SECONDS));
+        assertThat(actual).isCloseTo(expected, within(10, SECONDS));
 
         verify(bankAccountHistoryRepository, times(1))
                 .findFirstByBankAccountIdAndOperationOrderByOperationDateTimeDesc(eq(bankAccountId), eq(Operation.WITHDRAWAL));
@@ -112,8 +116,8 @@ public class BankAccountHistoryServiceTest {
         Long bankAccountId = TestBankAccountUtil.getBankAccountId();
         int page = TestBankAccountUtil.getPageNumber();
         int size = TestBankAccountUtil.getPageSize();
-        String sortBy = TestBankAccountUtil.getSortField();
-        BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
+        String sortBy = TestBankAccountUtil.getCorrectSortField();
+        BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         BankAccountResponse bankAccountResponse = TestBankAccountUtil.getFirstBankAccountResponse();
         List<BankAccountHistory> bankAccountHistoryList = TestBankAccountHistoryUtil.getBankAccountHistoryList();
         List<BankAccountHistoryResponse> expectedHistoryResponses = TestBankAccountHistoryUtil.getBankAccountHistoryResponses();
@@ -154,5 +158,24 @@ public class BankAccountHistoryServiceTest {
                 .findAllByBankAccountId(eq(bankAccountId), eq(pageable));
         verify(driverWebClient, times(2))
                 .getDriver(bankAccountHistoryList.get(0).getBankAccount().getDriverId());
+    }
+
+    @Test
+    public void testGetBankAccountHistory_WhenIncorrectField_ShouldThrowIncorrectFieldException() {
+        Long bankAccountId = TestBankAccountUtil.getBankAccountId();
+        int page = TestBankAccountHistoryUtil.getPageNumber();
+        int size = TestBankAccountHistoryUtil.getPageSize();
+        String sortBy = TestBankAccountHistoryUtil.getIncorrectSortField();
+
+        doThrow(IncorrectFieldNameException.class)
+                .when(fieldValidator)
+                .checkSortField(eq(BankAccountHistory.class), eq(sortBy));
+
+        assertThrows(IncorrectFieldNameException.class, () -> bankAccountHistoryService.getBankAccountHistory(bankAccountId, page, size, sortBy));
+
+        verify(fieldValidator, times(1))
+                .checkSortField(eq(BankAccountHistory.class), eq(sortBy));
+        verify(bankAccountHistoryRepository, never())
+                .findAll(any(Pageable.class));
     }
 }

@@ -27,7 +27,8 @@ ext {
             'postgresql'        : '42.6.0',
             'liquibase'         : '4.24.0',
             'hibernateValidator': '8.0.1.Final',
-            'lombok'            : '1.18.26'
+            'lombok'            : '1.18.26',
+            'restAssured'       : '5.4.0'
     ]
 }
 
@@ -44,6 +45,10 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "io.rest-assured:rest-assured:${versions.restAssured}"
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation "org.testcontainers:junit-jupiter"
+    testImplementation 'org.testcontainers:postgresql'
 }
 
 tasks.named('test') {

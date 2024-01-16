@@ -8,6 +8,7 @@ import com.example.bankservice.dto.response.BankAccountPageResponse;
 import com.example.bankservice.dto.response.BankAccountResponse;
 import com.example.bankservice.service.BankAccountService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,15 +45,15 @@ public class BankAccountController {
     }
 
     @GetMapping("/active")
-    public BankAccountPageResponse getAllActiveBankAccounts(@RequestParam(defaultValue = "0") int page,
-                                                            @RequestParam(defaultValue = "10") int size,
+    public BankAccountPageResponse getAllActiveBankAccounts(@RequestParam(defaultValue = "0") @Min(0) int page,
+                                                            @RequestParam(defaultValue = "10") @Min(1) int size,
                                                             @RequestParam(defaultValue = "id") String sortBy) {
         return bankAccountService.getAllActiveBankAccounts(page, size, sortBy);
     }
 
     @GetMapping
-    public BankAccountPageResponse getAllBankAccounts(@RequestParam(defaultValue = "0") int page,
-                                                      @RequestParam(defaultValue = "10") int size,
+    public BankAccountPageResponse getAllBankAccounts(@RequestParam(defaultValue = "0") @Min(0) int page,
+                                                      @RequestParam(defaultValue = "10") @Min(1) int size,
                                                       @RequestParam(defaultValue = "id") String sortBy) {
         return bankAccountService.getAllBankAccounts(page, size, sortBy);
     }

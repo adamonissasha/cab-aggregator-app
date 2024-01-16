@@ -1,4 +1,4 @@
-package com.example.bankservice.service;
+package com.example.bankservice.junit;
 
 import com.example.bankservice.dto.request.BankAccountRequest;
 import com.example.bankservice.dto.request.RefillRequest;
@@ -10,9 +10,12 @@ import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.exception.BankAccountNotFoundException;
 import com.example.bankservice.exception.CardNumberUniqueException;
 import com.example.bankservice.exception.DriverBankAccountException;
+import com.example.bankservice.exception.IncorrectFieldNameException;
 import com.example.bankservice.mapper.BankAccountMapper;
 import com.example.bankservice.model.BankAccount;
 import com.example.bankservice.repository.BankAccountRepository;
+import com.example.bankservice.service.BankAccountHistoryService;
+import com.example.bankservice.service.BankCardService;
 import com.example.bankservice.service.impl.BankAccountServiceImpl;
 import com.example.bankservice.util.FieldValidator;
 import com.example.bankservice.util.TestBankAccountUtil;
@@ -40,6 +43,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -67,7 +72,7 @@ public class BankAccountServiceTest {
         BankAccountRequest bankAccountRequest = TestBankAccountUtil.getBankAccountRequest();
         Long driverId = bankAccountRequest.getDriverId();
         BankAccount newBankAccount = TestBankAccountUtil.getFirstBankAccount();
-        BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
+        BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         BankAccountResponse expected = TestBankAccountUtil.getFirstBankAccountResponse();
 
         when(bankAccountRepository.findByDriverId(driverId))
@@ -117,17 +122,12 @@ public class BankAccountServiceTest {
         BankAccountRequest bankAccountRequest = TestBankAccountUtil.getBankAccountRequest();
         String accountNumber = bankAccountRequest.getNumber();
         BankAccount existingBankAccount = TestBankAccountUtil.getFirstBankAccount();
-        Long driverId = bankAccountRequest.getDriverId();
 
-        when(bankAccountRepository.findByDriverId(driverId))
-                .thenReturn(Optional.empty());
         when(bankAccountRepository.findByNumber(accountNumber))
                 .thenReturn(Optional.of(existingBankAccount));
 
         assertThrows(CardNumberUniqueException.class, () -> bankAccountService.createBankAccount(bankAccountRequest));
 
-        verify(bankAccountRepository, times(1))
-                .findByDriverId(driverId);
         verify(bankAccountRepository, times(1))
                 .findByNumber(bankAccountRequest.getNumber());
     }
@@ -164,7 +164,7 @@ public class BankAccountServiceTest {
     void testGetBankAccountById_WhenBankAccountExists_ShouldReturnBankAccountResponse() {
         Long bankAccountId = TestBankAccountUtil.getBankAccountId();
         BankAccount existingBankAccount = TestBankAccountUtil.getFirstBankAccount();
-        BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
+        BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         BankAccountResponse expected = TestBankAccountUtil.getFirstBankAccountResponse();
 
         when(bankAccountRepository.findById(bankAccountId))
@@ -192,8 +192,8 @@ public class BankAccountServiceTest {
     void testGetAllActiveBankAccounts_ShouldReturnBankAccountPageResponse() {
         int page = TestBankAccountUtil.getPageNumber();
         int size = TestBankAccountUtil.getPageSize();
-        String sortBy = TestBankAccountUtil.getSortField();
-        BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
+        String sortBy = TestBankAccountUtil.getCorrectSortField();
+        BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         List<BankAccount> activeBankAccounts = TestBankAccountUtil.getBankAccounts();
         List<BankAccountResponse> expectedResponses = TestBankAccountUtil.getBankAccountResponses();
 
@@ -215,6 +215,8 @@ public class BankAccountServiceTest {
                 .thenReturn(bankAccountPage);
         when(driverWebClient.getDriver(activeBankAccounts.get(0).getDriverId()))
                 .thenReturn(bankUserResponse);
+        when(driverWebClient.getDriver(activeBankAccounts.get(1).getDriverId()))
+                .thenReturn(bankUserResponse);
         when(bankAccountMapper.mapBankAccountToBankAccountResponse(activeBankAccounts.get(0), bankUserResponse))
                 .thenReturn(expectedResponses.get(0));
         when(bankAccountMapper.mapBankAccountToBankAccountResponse(activeBankAccounts.get(1), bankUserResponse))
@@ -226,16 +228,36 @@ public class BankAccountServiceTest {
 
         verify(bankAccountRepository, times(1))
                 .findAll(pageable);
-        verify(driverWebClient, times(2))
+        verify(driverWebClient, times(1))
                 .getDriver(activeBankAccounts.get(0).getDriverId());
+        verify(driverWebClient, times(1))
+                .getDriver(activeBankAccounts.get(1).getDriverId());
+    }
+
+    @Test
+    public void testGetAllActiveBankAccounts_WhenIncorrectField_ShouldThrowIncorrectFieldException() {
+        int page = TestBankAccountUtil.getPageNumber();
+        int size = TestBankAccountUtil.getPageSize();
+        String sortBy = TestBankAccountUtil.getIncorrectSortField();
+
+        doThrow(IncorrectFieldNameException.class)
+                .when(fieldValidator)
+                .checkSortField(eq(BankAccount.class), eq(sortBy));
+
+        assertThrows(IncorrectFieldNameException.class, () -> bankAccountService.getAllActiveBankAccounts(page, size, sortBy));
+
+        verify(fieldValidator, times(1))
+                .checkSortField(eq(BankAccount.class), eq(sortBy));
+        verify(bankAccountRepository, never())
+                .findAll(any(Pageable.class));
     }
 
     @Test
     void testGetAllBankAccounts_ShouldReturnBankAccountPageResponse() {
         int page = TestBankAccountUtil.getPageNumber();
         int size = TestBankAccountUtil.getPageSize();
-        String sortBy = TestBankAccountUtil.getSortField();
-        BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
+        String sortBy = TestBankAccountUtil.getCorrectSortField();
+        BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         List<BankAccount> bankAccounts = TestBankAccountUtil.getBankAccounts();
         List<BankAccountResponse> expectedResponses = TestBankAccountUtil.getBankAccountResponses();
 
@@ -257,6 +279,8 @@ public class BankAccountServiceTest {
                 .thenReturn(bankAccountPage);
         when(driverWebClient.getDriver(bankAccounts.get(0).getDriverId()))
                 .thenReturn(bankUserResponse);
+        when(driverWebClient.getDriver(bankAccounts.get(1).getDriverId()))
+                .thenReturn(bankUserResponse);
         when(bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccounts.get(0), bankUserResponse))
                 .thenReturn(expectedResponses.get(0));
         when(bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccounts.get(1), bankUserResponse))
@@ -268,15 +292,35 @@ public class BankAccountServiceTest {
 
         verify(bankAccountRepository, times(1))
                 .findAll(pageable);
-        verify(driverWebClient, times(2))
+        verify(driverWebClient, times(1))
                 .getDriver(bankAccounts.get(0).getDriverId());
+        verify(driverWebClient, times(1))
+                .getDriver(bankAccounts.get(1).getDriverId());
+    }
+
+    @Test
+    public void testGetAllBankAccounts_WhenIncorrectField_ShouldThrowIncorrectFieldException() {
+        int page = TestBankAccountUtil.getPageNumber();
+        int size = TestBankAccountUtil.getPageSize();
+        String sortBy = TestBankAccountUtil.getIncorrectSortField();
+
+        doThrow(IncorrectFieldNameException.class)
+                .when(fieldValidator)
+                .checkSortField(eq(BankAccount.class), eq(sortBy));
+
+        assertThrows(IncorrectFieldNameException.class, () -> bankAccountService.getAllBankAccounts(page, size, sortBy));
+
+        verify(fieldValidator, times(1))
+                .checkSortField(eq(BankAccount.class), eq(sortBy));
+        verify(bankAccountRepository, never())
+                .findAll(any(Pageable.class));
     }
 
     @Test
     void testRefillBankAccount_WhenBankAccountExists_ShouldRefillBankAccount() {
         RefillRequest refillRequest = TestBankAccountUtil.getRefillRequest();
         BankAccount bankAccount = TestBankAccountUtil.getFirstBankAccount();
-        BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
+        BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         BankAccountResponse expected = TestBankAccountUtil.getFirstBankAccountResponse();
 
         when(bankAccountRepository.findByDriverId(refillRequest.getBankUserId()))
@@ -319,7 +363,7 @@ public class BankAccountServiceTest {
     void testGetBankAccountBalance_WhenBankAccountExists_ShouldReturnBalanceResponse() {
         Long bankAccountId = TestBankAccountUtil.getBankAccountId();
         BalanceResponse expected = TestBankAccountUtil.getBalanceResponse();
-        BankAccount bankAccount = TestBankAccountUtil.getFirstBankAccount();
+        BankAccount bankAccount = TestBankAccountUtil.getSecondBankAccount();
 
         when(bankAccountRepository.findById(bankAccountId))
                 .thenReturn(Optional.of(bankAccount));
@@ -350,7 +394,7 @@ public class BankAccountServiceTest {
         Long bankAccountId = TestBankAccountUtil.getBankAccountId();
         WithdrawalRequest withdrawalRequest = TestBankAccountUtil.getWithdrawalRequest();
         BankAccount bankAccount = TestBankAccountUtil.getFirstBankAccount();
-        BankUserResponse bankUserResponse = TestBankAccountUtil.getBankUserResponse();
+        BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         BankAccountResponse expected = TestBankAccountUtil.getFirstBankAccountResponse();
 
         when(bankAccountRepository.findById(bankAccountId))
