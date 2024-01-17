@@ -1,1 +1,3 @@
+DELETE FROM stop WHERE id IN (98, 99, 100, 101);
+DELETE FROM ride WHERE id IN (98, 99, 100, 101);
 DELETE FROM promo_code WHERE id IN (98, 99);

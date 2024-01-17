@@ -140,11 +140,10 @@ public class RideServiceTest {
         Long rideId = TestRideUtil.getFirstRideId();
         EditRideRequest editRideRequest = TestRideUtil.getEditRideRequest();
         Ride existingRide = TestRideUtil.getFirstRide();
-        List<StopResponse> stopResponses = TestRideUtil.getRideStopResponses();
+        List<StopResponse> stopResponses = List.of();
         StopsResponse stopsResponse = StopsResponse.builder()
                 .stops(stopResponses)
                 .build();
-        List<StopRequest> stopRequests = TestRideUtil.getRideStopRequests();
         PassengerRideResponse passengerRideResponse = TestRideUtil.getPassengerRideResponse();
         DriverResponse driverResponse = TestRideUtil.getDriverResponse();
         PassengerRideResponse expected = TestRideUtil.getPassengerRideResponse();
@@ -155,7 +154,7 @@ public class RideServiceTest {
                 .thenReturn(existingRide);
         when(driverWebClient.getDriver(anyLong()))
                 .thenReturn(driverResponse);
-        when(stopService.editStops(stopRequests, existingRide))
+        when(stopService.getRideStops(existingRide))
                 .thenReturn(stopsResponse);
         when(rideMapper.mapRideToPassengerRideResponse(existingRide, stopResponses, driverResponse, driverResponse.getCar()))
                 .thenReturn(passengerRideResponse);
@@ -166,8 +165,8 @@ public class RideServiceTest {
 
         verify(rideRepository, times(1))
                 .save(existingRide);
-        verify(stopService, times(1))
-                .editStops(editRideRequest.getStops(), existingRide);
+        verify(stopService, times(2))
+                .getRideStops(existingRide);
         verify(rideRepository, times(1))
                 .findById(rideId);
         verify(driverWebClient, times(1))

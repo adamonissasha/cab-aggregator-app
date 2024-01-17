@@ -14,6 +14,7 @@ import static io.restassured.RestAssured.given;
 @Component
 public class PromoCodeClientTest {
     private static final String PROMO_CODE_SERVICE_URL = "ride/promo-code";
+    private static final String ID_PARAMETER_NAME = "id";
 
     public PromoCodeResponse createPromoCodeWhenPhoneNumberUniqueAndDataValidRequest(int port,
                                                                                      PromoCodeRequest promoCodeRequest) {
@@ -63,7 +64,7 @@ public class PromoCodeClientTest {
                 .port(port)
                 .contentType(ContentType.JSON)
                 .body(promoCodeRequest)
-                .pathParam("id", promoCodeId)
+                .pathParam(ID_PARAMETER_NAME, promoCodeId)
                 .when()
                 .put(PROMO_CODE_SERVICE_URL + "/{id}")
                 .then()
@@ -79,7 +80,7 @@ public class PromoCodeClientTest {
                 .port(port)
                 .contentType(ContentType.JSON)
                 .body(promoCodeRequest)
-                .pathParam("id", promoCodeId)
+                .pathParam(ID_PARAMETER_NAME, promoCodeId)
                 .when()
                 .put(PROMO_CODE_SERVICE_URL + "/{id}")
                 .then()
@@ -95,7 +96,7 @@ public class PromoCodeClientTest {
                 .port(port)
                 .contentType(ContentType.JSON)
                 .body(promoCodeRequest)
-                .pathParam("id", invalidPromoCodeId)
+                .pathParam(ID_PARAMETER_NAME, invalidPromoCodeId)
                 .when()
                 .put(PROMO_CODE_SERVICE_URL + "/{id}")
                 .then()
@@ -107,7 +108,7 @@ public class PromoCodeClientTest {
     public PromoCodeResponse getPromoCodeByIdWhenPromoCodeExistsRequest(int port, Long existingPromoCodeId) {
         return given()
                 .port(port)
-                .pathParam("id", existingPromoCodeId)
+                .pathParam(ID_PARAMETER_NAME, existingPromoCodeId)
                 .when()
                 .get(PROMO_CODE_SERVICE_URL + "/{id}")
                 .then()
@@ -119,7 +120,7 @@ public class PromoCodeClientTest {
     public ExceptionResponse getPromoCodeByIdWhenPromoCodeNotExistsRequest(int port, Long invalidPromoCodeId) {
         return given()
                 .port(port)
-                .pathParam("id", invalidPromoCodeId)
+                .pathParam(ID_PARAMETER_NAME, invalidPromoCodeId)
                 .when()
                 .get(PROMO_CODE_SERVICE_URL + "/{id}")
                 .then()

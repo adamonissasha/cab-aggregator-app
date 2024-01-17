@@ -8,12 +8,13 @@ import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TestStopUtil {
-    static Long FIRST_RIDE_STOP_ID = 1L;
-    static String FIRST_RIDE_ADDRESS = "Минск";
+    static Long FIRST_RIDE_STOP_ID = 98L;
+    static String FIRST_RIDE_ADDRESS = "Kupaly 88";
     static Integer FIRST_STOP_NUMBER = 1;
-    static Long SECOND_RIDE_STOP_ID = 1L;
-    static String SECOND_RIDE_ADDRESS = "Гродно";
+    static Long SECOND_RIDE_STOP_ID = 99L;
+    static String SECOND_RIDE_ADDRESS = "Brovki 1";
     static Integer SECOND_STOP_NUMBER = 1;
+    static Long THIRD_RIDE_STOP_ID = 100L;
 
     public static Stop getFirstStop() {
         return Stop.builder()
@@ -60,6 +61,14 @@ public class TestStopUtil {
                 .id(SECOND_RIDE_STOP_ID)
                 .number(SECOND_STOP_NUMBER)
                 .address(SECOND_RIDE_ADDRESS)
+                .build();
+    }
+
+    public static StopResponse getThirdStopResponse() {
+        return StopResponse.builder()
+                .id(THIRD_RIDE_STOP_ID)
+                .number(FIRST_STOP_NUMBER)
+                .address(FIRST_RIDE_ADDRESS)
                 .build();
     }
 }
