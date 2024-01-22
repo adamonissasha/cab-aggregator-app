@@ -77,7 +77,7 @@ public class DriverServiceTest {
         CarResponse carResponse = TestCarUtil.getFirstCarResponse();
         Driver newDriver = TestDriverUtil.getFirstDriver();
         DriverResponse expected = TestDriverUtil.getDriverResponse();
-        AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
+        AverageDriverRatingResponse driverRating = TestDriverUtil.getFirstDriverRating();
 
         when(carService.getCarById(driverRequest.getCarId()))
                 .thenReturn(carResponse);
@@ -146,7 +146,7 @@ public class DriverServiceTest {
         Driver updatedDriver = TestDriverUtil.getFirstDriver();
         Driver existingDriver = TestDriverUtil.getSecondDriver();
         DriverResponse expected = TestDriverUtil.getDriverResponse();
-        AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
+        AverageDriverRatingResponse driverRating = TestDriverUtil.getFirstDriverRating();
 
         when(driverRepository.findById(driverId))
                 .thenReturn(Optional.of(existingDriver));
@@ -214,7 +214,7 @@ public class DriverServiceTest {
         Long driverId = TestDriverUtil.getFirstDriverId();
         Driver existingDriver = TestDriverUtil.getFirstDriver();
         DriverResponse expected = TestDriverUtil.getDriverResponse();
-        AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
+        AverageDriverRatingResponse driverRating = TestDriverUtil.getFirstDriverRating();
 
         when(driverRepository.findById(driverId))
                 .thenReturn(Optional.of(existingDriver));
@@ -251,7 +251,7 @@ public class DriverServiceTest {
         int page = TestDriverUtil.getPageNumber();
         int size = TestDriverUtil.getPageSize();
         String sortBy = TestDriverUtil.getCorrectSortField();
-        AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
+        AverageDriverRatingResponse driverRating = TestDriverUtil.getFirstDriverRating();
         List<Driver> drivers = TestDriverUtil.getDrivers();
         List<DriverResponse> driverResponses = TestDriverUtil.getDriverResponses();
 
@@ -343,7 +343,7 @@ public class DriverServiceTest {
         Long driverId = TestDriverUtil.getFirstDriverId();
         Driver existingDriver = TestDriverUtil.getFirstDriver();
         existingDriver.setStatus(Status.BUSY);
-        AverageDriverRatingResponse driverRating = TestDriverUtil.getDriverRating();
+        AverageDriverRatingResponse driverRating = TestDriverUtil.getFirstDriverRating();
         DriverResponse driverResponse = TestDriverUtil.getDriverResponse();
 
         when(driverRepository.findById(driverId))

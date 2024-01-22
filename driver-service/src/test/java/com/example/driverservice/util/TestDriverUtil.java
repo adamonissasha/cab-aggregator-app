@@ -184,7 +184,13 @@ public class TestDriverUtil {
                 .build();
     }
 
-    public static AverageDriverRatingResponse getDriverRating() {
+    public static AverageDriverRatingResponse getFirstDriverRating() {
+        return AverageDriverRatingResponse.builder()
+                .averageRating(FIRST_DRIVER_RATING)
+                .build();
+    }
+
+    public static AverageDriverRatingResponse getSecondDriverRating() {
         return AverageDriverRatingResponse.builder()
                 .averageRating(SECOND_DRIVER_RATING)
                 .build();
