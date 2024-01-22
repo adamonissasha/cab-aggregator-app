@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: api-gateway
+    name: gateway-service
 
   cloud:
     gateway:
@@ -11,3 +11,32 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+      routes:
+        - id: passenger
+          uri: lb://passenger-service
+          predicates:
+            - Path=/passenger/**
+
+        - id: driver
+          uri: lb://driver-service
+          predicates:
+            - Path=/driver/**
+
+        - id: ride
+          uri: lb://ride-service
+          predicates:
+            - Path=/ride/**
+
+        - id: bank
+          uri: lb://bank-service
+          predicates:
+            - Path=/bank/**
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
