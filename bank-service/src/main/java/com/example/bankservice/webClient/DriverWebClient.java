@@ -4,23 +4,27 @@ import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.dto.response.ExceptionResponse;
 import com.example.bankservice.exception.DriverNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
+@Setter
 public class DriverWebClient {
     @Value("${driver-service.url}")
-    private String rideServiceUrl;
+    private String driverServiceUrl;
     private final WebClient webClient;
 
     public BankUserResponse getDriver(long id) {
         return webClient.get()
-                .uri(rideServiceUrl + "/{id}", id)
+                .uri(driverServiceUrl + "/{id}", id)
+                .accept(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError,
                         response -> {

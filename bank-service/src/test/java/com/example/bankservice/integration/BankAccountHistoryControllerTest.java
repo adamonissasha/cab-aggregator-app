@@ -4,9 +4,9 @@ import com.example.bankservice.dto.request.BankAccountHistoryRequest;
 import com.example.bankservice.dto.response.BankAccountHistoryPageResponse;
 import com.example.bankservice.dto.response.BankAccountHistoryResponse;
 import com.example.bankservice.dto.response.ExceptionResponse;
-import com.example.bankservice.integration.client.BankAccountHistoryClientTest;
 import com.example.bankservice.repository.BankAccountHistoryRepository;
 import com.example.bankservice.util.TestBankAccountHistoryUtil;
+import com.example.bankservice.util.client.BankAccountHistoryClientUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,8 +32,6 @@ public class BankAccountHistoryControllerTest {
 
     private final BankAccountHistoryRepository bankAccountHistoryRepository;
 
-    private final BankAccountHistoryClientTest bankAccountHistoryClientTest;
-
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
 
@@ -45,10 +43,8 @@ public class BankAccountHistoryControllerTest {
     }
 
     @Autowired
-    public BankAccountHistoryControllerTest(BankAccountHistoryRepository bankAccountHistoryRepository,
-                                            BankAccountHistoryClientTest bankAccountHistoryClientTest) {
+    public BankAccountHistoryControllerTest(BankAccountHistoryRepository bankAccountHistoryRepository) {
         this.bankAccountHistoryRepository = bankAccountHistoryRepository;
-        this.bankAccountHistoryClientTest = bankAccountHistoryClientTest;
     }
 
     @Test
@@ -58,7 +54,7 @@ public class BankAccountHistoryControllerTest {
         BankAccountHistoryResponse expected = TestBankAccountHistoryUtil.getFirstBankAccountHistoryResponse();
 
         BankAccountHistoryResponse actual =
-                bankAccountHistoryClientTest.createBankAccountHistoryRequest(port, bankAccountHistoryRequest, bankAccountId);
+                BankAccountHistoryClientUtil.createBankAccountHistoryRequest(port, bankAccountHistoryRequest, bankAccountId);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -77,7 +73,7 @@ public class BankAccountHistoryControllerTest {
         BankAccountHistoryPageResponse expected = TestBankAccountHistoryUtil.getBankAccountHistoryPageResponse();
 
         BankAccountHistoryPageResponse actual =
-                bankAccountHistoryClientTest.getAllBankAccountHistoryRecordsRequest(port, page, size, sortBy, bankAccountId);
+                BankAccountHistoryClientUtil.getAllBankAccountHistoryRecordsRequest(port, page, size, sortBy, bankAccountId);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -103,7 +99,7 @@ public class BankAccountHistoryControllerTest {
         ExceptionResponse expected = TestBankAccountHistoryUtil.getIncorrectFieldExceptionResponse();
 
         ExceptionResponse actual =
-                bankAccountHistoryClientTest.getAllBankAccountHistoryRecordsWhenIncorrectFieldRequest(port, page, size,
+                BankAccountHistoryClientUtil.getAllBankAccountHistoryRecordsWhenIncorrectFieldRequest(port, page, size,
                         sortBy, bankAccountId);
 
         assertThat(actual).isEqualTo(expected);

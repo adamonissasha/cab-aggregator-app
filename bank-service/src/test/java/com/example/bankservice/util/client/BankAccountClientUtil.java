@@ -1,4 +1,4 @@
-package com.example.bankservice.integration.client;
+package com.example.bankservice.util.client;
 
 import com.example.bankservice.dto.request.BankAccountRequest;
 import com.example.bankservice.dto.request.RefillRequest;
@@ -9,22 +9,23 @@ import com.example.bankservice.dto.response.BankAccountResponse;
 import com.example.bankservice.dto.response.ExceptionResponse;
 import com.example.bankservice.dto.response.ValidationErrorResponse;
 import io.restassured.http.ContentType;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 
 import static io.restassured.RestAssured.given;
 
-@Component
-public class BankAccountClientTest {
-    private static final String BANK_ACCOUNT_SERVICE_URL = "bank/account";
-    private static final String ID_PARAMETER_NAME = "id";
-    private static final String PAGE_PARAMETER_NAME = "page";
-    private static final String SIZE_PARAMETER_NAME = "size";
-    private static final String SORT_PARAMETER_NAME = "sortBy";
-    private static final String BANK_USER_PARAMETER_NAME = "bankUser";
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class BankAccountClientUtil {
+    static String BANK_ACCOUNT_SERVICE_URL = "bank/account";
+    static String ID_PARAMETER_NAME = "id";
+    static String PAGE_PARAMETER_NAME = "page";
+    static String SIZE_PARAMETER_NAME = "size";
+    static String SORT_PARAMETER_NAME = "sortBy";
+    static String BANK_USER_PARAMETER_NAME = "bankUser";
 
-    public BankAccountResponse createBankAccountWhenNumberUniqueAndDataValidRequest(int port,
-                                                                                    BankAccountRequest bankAccountRequest) {
+    public static BankAccountResponse createBankAccountWhenNumberUniqueAndDataValidRequest(int port,
+                                                                                           BankAccountRequest bankAccountRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -37,8 +38,8 @@ public class BankAccountClientTest {
                 .as(BankAccountResponse.class);
     }
 
-    public ExceptionResponse createBankAccountWhenAccountNumberAlreadyExistsRequest(int port,
-                                                                                    BankAccountRequest bankAccountRequest) {
+    public static ExceptionResponse createBankAccountWhenAccountNumberAlreadyExistsRequest(int port,
+                                                                                           BankAccountRequest bankAccountRequest) {
 
         return given()
                 .port(port)
@@ -52,8 +53,8 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ExceptionResponse createBankAccountWhenDriverAlreadyHasAccountRequest(int port,
-                                                                                 BankAccountRequest bankAccountRequest) {
+    public static ExceptionResponse createBankAccountWhenDriverAlreadyHasAccountRequest(int port,
+                                                                                        BankAccountRequest bankAccountRequest) {
 
         return given()
                 .port(port)
@@ -67,7 +68,8 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ValidationErrorResponse createBankAccountWhenDataNotValidRequest(int port, BankAccountRequest bankAccountRequest) {
+    public static ValidationErrorResponse createBankAccountWhenDataNotValidRequest(int port,
+                                                                                   BankAccountRequest bankAccountRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -81,7 +83,8 @@ public class BankAccountClientTest {
     }
 
 
-    public BankAccountResponse getBankAccountByIdWhenBankAccountExistsRequest(int port, Long existingBankAccountId) {
+    public static BankAccountResponse getBankAccountByIdWhenBankAccountExistsRequest(int port,
+                                                                                     Long existingBankAccountId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingBankAccountId)
@@ -93,7 +96,8 @@ public class BankAccountClientTest {
                 .as(BankAccountResponse.class);
     }
 
-    public ExceptionResponse getBankAccountByIdWhenBankAccountNotExistsRequest(int port, Long invalidBankAccountId) {
+    public static ExceptionResponse getBankAccountByIdWhenBankAccountNotExistsRequest(int port,
+                                                                                      Long invalidBankAccountId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankAccountId)
@@ -105,7 +109,7 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public BankAccountPageResponse getAllBankAccountsRequest(int port, int page, int size, String sortBy) {
+    public static BankAccountPageResponse getAllBankAccountsRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -120,7 +124,10 @@ public class BankAccountClientTest {
                 .as(BankAccountPageResponse.class);
     }
 
-    public ExceptionResponse getAllBankAccountsWhenIncorrectFieldRequest(int port, int page, int size, String sortBy) {
+    public static ExceptionResponse getAllBankAccountsWhenIncorrectFieldRequest(int port,
+                                                                                int page,
+                                                                                int size,
+                                                                                String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -134,7 +141,7 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public BankAccountPageResponse getAllActiveBankAccountsRequest(int port, int page, int size, String sortBy) {
+    public static BankAccountPageResponse getAllActiveBankAccountsRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -149,7 +156,10 @@ public class BankAccountClientTest {
                 .as(BankAccountPageResponse.class);
     }
 
-    public ExceptionResponse getAllActiveBankAccountWhenIncorrectFieldRequest(int port, int page, int size, String sortBy) {
+    public static ExceptionResponse getAllActiveBankAccountWhenIncorrectFieldRequest(int port,
+                                                                                     int page,
+                                                                                     int size,
+                                                                                     String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -163,7 +173,7 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public void deleteBankAccountWhenBankAccountExistsRequest(int port, Long driverId) {
+    public static void deleteBankAccountWhenBankAccountExistsRequest(int port, Long driverId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, driverId)
@@ -173,7 +183,7 @@ public class BankAccountClientTest {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    public void deleteBankAccountWhenBankAccountNotExistsRequest(int port, Long invalidBankAccountId) {
+    public static void deleteBankAccountWhenBankAccountNotExistsRequest(int port, Long invalidBankAccountId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankAccountId)
@@ -183,7 +193,8 @@ public class BankAccountClientTest {
                 .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
-    public BalanceResponse getBankAccountBalanceWhenBankAccountExistsRequest(int port, Long existingBankAccountId) {
+    public static BalanceResponse getBankAccountBalanceWhenBankAccountExistsRequest(int port,
+                                                                                    Long existingBankAccountId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingBankAccountId)
@@ -195,7 +206,8 @@ public class BankAccountClientTest {
                 .as(BalanceResponse.class);
     }
 
-    public ExceptionResponse getBankAccountBalanceWhenBankAccountNotExistsRequest(int port, Long invalidBankAccountId) {
+    public static ExceptionResponse getBankAccountBalanceWhenBankAccountNotExistsRequest(int port,
+                                                                                         Long invalidBankAccountId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankAccountId)
@@ -207,7 +219,8 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public BankAccountResponse refillBankAccountWhenBankAccountExistsRequest(int port, RefillRequest refillRequest) {
+    public static BankAccountResponse refillBankAccountWhenBankAccountExistsRequest(int port,
+                                                                                    RefillRequest refillRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -220,7 +233,8 @@ public class BankAccountClientTest {
                 .as(BankAccountResponse.class);
     }
 
-    public ExceptionResponse refillBankAccountWhenBankAccountNotExistsRequest(int port, RefillRequest refillRequest) {
+    public static ExceptionResponse refillBankAccountWhenBankAccountNotExistsRequest(int port,
+                                                                                     RefillRequest refillRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -233,9 +247,9 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public BankAccountResponse withdrawalPaymentFromBankAccountWhenBankAccountExistsRequest(int port,
-                                                                                            Long bankAccountId,
-                                                                                            WithdrawalRequest withdrawalRequest) {
+    public static BankAccountResponse withdrawalPaymentFromBankAccountWhenBankAccountExistsRequest(int port,
+                                                                                                   Long bankAccountId,
+                                                                                                   WithdrawalRequest withdrawalRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankAccountId)
@@ -249,9 +263,9 @@ public class BankAccountClientTest {
                 .as(BankAccountResponse.class);
     }
 
-    public ExceptionResponse withdrawalPaymentFromBankAccountWhenSumMoreThanBalanceRequest(int port,
-                                                                                           Long bankAccountId,
-                                                                                           WithdrawalRequest withdrawalRequest) {
+    public static ExceptionResponse withdrawalPaymentFromBankAccountWhenSumMoreThanBalanceRequest(int port,
+                                                                                                  Long bankAccountId,
+                                                                                                  WithdrawalRequest withdrawalRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankAccountId)
@@ -265,9 +279,9 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ExceptionResponse withdrawalPaymentFromBankAccountWhenSumIsOutsideBorderRequest(int port,
-                                                                                           Long bankAccountId,
-                                                                                           WithdrawalRequest withdrawalRequest) {
+    public static ExceptionResponse withdrawalPaymentFromBankAccountWhenSumIsOutsideBorderRequest(int port,
+                                                                                                  Long bankAccountId,
+                                                                                                  WithdrawalRequest withdrawalRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankAccountId)
@@ -281,9 +295,9 @@ public class BankAccountClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ExceptionResponse withdrawalPaymentFromBankAccountWhenBankAccountNotExistsRequest(int port,
-                                                                                             Long invalidBankAccountId,
-                                                                                             WithdrawalRequest withdrawalRequest) {
+    public static ExceptionResponse withdrawalPaymentFromBankAccountWhenBankAccountNotExistsRequest(int port,
+                                                                                                    Long invalidBankAccountId,
+                                                                                                    WithdrawalRequest withdrawalRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankAccountId)
