@@ -3,7 +3,12 @@ package com.example.ridesservice.integration;
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
 import com.example.ridesservice.dto.request.RatingRequest;
+import com.example.ridesservice.dto.request.RefillRequest;
+import com.example.ridesservice.dto.request.WithdrawalRequest;
+import com.example.ridesservice.dto.response.CarResponse;
+import com.example.ridesservice.dto.response.DriverResponse;
 import com.example.ridesservice.dto.response.ExceptionResponse;
+import com.example.ridesservice.dto.response.PassengerResponse;
 import com.example.ridesservice.dto.response.PassengerRideResponse;
 import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
 import com.example.ridesservice.dto.response.RideResponse;
@@ -13,10 +18,21 @@ import com.example.ridesservice.repository.RideRepository;
 import com.example.ridesservice.repository.StopRepository;
 import com.example.ridesservice.util.TestRideUtil;
 import com.example.ridesservice.util.client.RideClientUtil;
+import com.example.ridesservice.webClient.BankWebClient;
+import com.example.ridesservice.webClient.DriverWebClient;
+import com.example.ridesservice.webClient.PassengerWebClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.cloud.contract.wiremock.WireMockSpring;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -25,7 +41,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+import redis.clients.jedis.Jedis;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.within;
@@ -36,13 +57,20 @@ import static org.assertj.core.api.Assertions.within;
 @Sql(scripts = "classpath:sql/delete-test-data.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @Testcontainers
+@AutoConfigureWireMock
 public class RideControllerTest {
     @LocalServerPort
     private int port;
 
-    private final RideRepository rideRepository;
+    private static final String REDIS_FREE_DRIVER_LIST_NAME = "freeDrivers";
 
+    private final RideRepository rideRepository;
     private final StopRepository stopRepository;
+    private final DriverWebClient driverWebClient;
+    private final PassengerWebClient passengerWebClient;
+    private final BankWebClient bankWebClient;
+    private final ObjectMapper objectMapper;
+    private final Jedis jedis;
 
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
@@ -61,15 +89,46 @@ public class RideControllerTest {
     }
 
     @Autowired
-    public RideControllerTest(RideRepository rideRepository, StopRepository stopRepository) {
+    public RideControllerTest(RideRepository rideRepository,
+                              StopRepository stopRepository,
+                              DriverWebClient driverWebClient,
+                              PassengerWebClient passengerWebClient,
+                              BankWebClient bankWebClient,
+                              ObjectMapper objectMapper,
+                              Jedis jedis) {
         this.rideRepository = rideRepository;
         this.stopRepository = stopRepository;
+        this.driverWebClient = driverWebClient;
+        this.passengerWebClient = passengerWebClient;
+        this.bankWebClient = bankWebClient;
+        this.objectMapper = objectMapper;
+        this.jedis = jedis;
+    }
+
+    public static WireMockServer wiremock = new WireMockServer(WireMockSpring.options().dynamicPort());
+
+    @BeforeEach
+    public void setup() {
+        wiremock.start();
+        driverWebClient.setDriverServiceUrl("http://localhost:" + wiremock.port() + "/driver");
+        passengerWebClient.setPassengerServiceUrl("http://localhost:" + wiremock.port() + "/passenger");
+        bankWebClient.setBankServiceUrl("http://localhost:" + wiremock.port() + "/bank");
     }
 
     @Test
-    void createRide_WhenDataValid_ShouldReturnRideResponse() {
+    void createRide_WhenDataValid_ShouldReturnRideResponse() throws JsonProcessingException {
+        DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+        jedis.rpush(REDIS_FREE_DRIVER_LIST_NAME, objectMapper.writeValueAsString(driverResponse));
         CreateRideRequest createRideRequest = TestRideUtil.getCreateRideRequest();
         PassengerRideResponse expected = TestRideUtil.getPassengerRideResponse();
+        PassengerResponse passengerResponse = TestRideUtil.getPassengerResponse();
+        passengerResponse.setId(expected.getPassengerId());
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + expected.getPassengerId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(passengerResponse))));
 
         PassengerRideResponse actual = RideClientUtil.createRideWhenDataValidRequest(port, createRideRequest);
 
@@ -86,9 +145,16 @@ public class RideControllerTest {
     }
 
     @Test
-    void createRide_WhenPassengerRideAlreadyExists_ShouldReturnConflictResponse() {
+    void createRide_WhenPassengerRideAlreadyExists_ShouldReturnConflictResponse() throws JsonProcessingException {
         CreateRideRequest createRideRequest = TestRideUtil.getCreateExistingRideRequest();
         ExceptionResponse expected = TestRideUtil.getPassengerExceptionResponse();
+        PassengerResponse passengerResponse = TestRideUtil.getPassengerResponse();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + passengerResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(passengerResponse))));
 
         ExceptionResponse actual =
                 RideClientUtil.createRideWhenPassengerRideAlreadyExistsRequest(port, createRideRequest);
@@ -118,10 +184,17 @@ public class RideControllerTest {
     }
 
     @Test
-    void editRide_WhenValidData_ShouldReturnRideResponse() {
+    void editRide_WhenValidData_ShouldReturnRideResponse() throws JsonProcessingException {
         Long rideId = TestRideUtil.getFirstRideId();
         EditRideRequest editRideRequest = TestRideUtil.getEditRideRequest();
         PassengerRideResponse expected = TestRideUtil.getEditedPassengerRideResponse();
+        DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + driverResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(driverResponse))));
 
         PassengerRideResponse actual = RideClientUtil.editRideWhenValidDataRequest(port, rideId, editRideRequest);
 
@@ -169,9 +242,30 @@ public class RideControllerTest {
     }
 
     @Test
-    void startRide_ShouldReturnRideResponse() {
+    void startRide_ShouldReturnRideResponse() throws JsonProcessingException {
         Long rideId = TestRideUtil.getFirstRideId();
         RideResponse expected = TestRideUtil.getStartedRideResponse();
+        DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+        PassengerResponse passengerResponse = TestRideUtil.getPassengerResponse();
+        CarResponse carResponse = driverResponse.getCar();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + driverResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(driverResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + passengerResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(passengerResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/car/" + carResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(carResponse))));
 
         RideResponse actual = RideClientUtil.startRideRequest(port, rideId);
 
@@ -208,9 +302,30 @@ public class RideControllerTest {
     }
 
     @Test
-    void cancelRide_ShouldReturnRideResponse() {
+    void cancelRide_ShouldReturnRideResponse() throws JsonProcessingException {
         Long rideId = TestRideUtil.getFirstRideId();
         RideResponse expected = TestRideUtil.getCanceledRideResponse();
+        DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+        PassengerResponse passengerResponse = TestRideUtil.getPassengerResponse();
+        CarResponse carResponse = driverResponse.getCar();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + driverResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(driverResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + passengerResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(passengerResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/car/" + carResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(carResponse))));
 
         RideResponse actual = RideClientUtil.cancelRideRequest(port, rideId);
 
@@ -244,9 +359,51 @@ public class RideControllerTest {
     }
 
     @Test
-    void completeRide_ShouldReturnRideResponse() {
+    void completeRide_ShouldReturnRideResponse() throws JsonProcessingException {
         Long rideId = TestRideUtil.getThirdRideId();
         RideResponse expected = TestRideUtil.getCompletedRideResponse();
+        DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+        PassengerResponse passengerResponse = TestRideUtil.getPassengerResponse();
+        CarResponse carResponse = driverResponse.getCar();
+        WithdrawalRequest withdrawalRequest = WithdrawalRequest.builder()
+                .sum(expected.getPrice())
+                .build();
+        RefillRequest refillRequest = RefillRequest.builder()
+                .bankUserId(driverResponse.getId())
+                .sum(expected.getPrice())
+                .build();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + driverResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(driverResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + passengerResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(passengerResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/car/" + carResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(carResponse))));
+
+        wiremock.stubFor(put(urlPathEqualTo("/driver/" + driverResponse.getId() + "/free"))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())));
+
+        wiremock.stubFor(put(urlPathEqualTo("/bank/card/" + carResponse.getId() + "/withdrawal"))
+                .willReturn(aResponse()
+                        .withBody(objectMapper.writeValueAsString(withdrawalRequest))
+                        .withStatus(HttpStatus.OK.value())));
+
+        wiremock.stubFor(put(urlPathEqualTo("/bank/account/refill"))
+                .willReturn(aResponse()
+                        .withBody(objectMapper.writeValueAsString(refillRequest))
+                        .withStatus(HttpStatus.OK.value())));
 
         RideResponse actual = RideClientUtil.completeRideRequest(port, rideId);
 
@@ -287,9 +444,30 @@ public class RideControllerTest {
     }
 
     @Test
-    void getRideByRideId_WhenRideExists_ShouldReturnRideResponse() {
+    void getRideByRideId_WhenRideExists_ShouldReturnRideResponse() throws JsonProcessingException {
         Long existingRideId = TestRideUtil.getFirstRideId();
         RideResponse expected = TestRideUtil.getFirstRideResponse();
+        DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+        PassengerResponse passengerResponse = TestRideUtil.getPassengerResponse();
+        CarResponse carResponse = driverResponse.getCar();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + driverResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(driverResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + passengerResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(passengerResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/car/" + carResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(carResponse))));
 
         RideResponse actual = RideClientUtil.getRideByRideIdWhenRideExistsRequest(port, existingRideId);
 
@@ -313,12 +491,26 @@ public class RideControllerTest {
     }
 
     @Test
-    void getAllPassengerRides_ShouldReturnPassengerRidesPageResponse() {
+    void getAllPassengerRides_ShouldReturnPassengerRidesPageResponse() throws JsonProcessingException {
         int page = TestRideUtil.getPageNumber();
         int size = TestRideUtil.getPageSize();
         String sortBy = TestRideUtil.getCorrectSortField();
         Long passengerId = TestRideUtil.getFirstPassengerId();
         PassengerRidesPageResponse expected = TestRideUtil.getPassengerRidesPageResponse();
+        DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+        CarResponse carResponse = driverResponse.getCar();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + driverResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(driverResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/car/" + carResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(carResponse))));
 
         PassengerRidesPageResponse actual =
                 RideClientUtil.getAllPassengerRidesRequest(port, page, size, sortBy, passengerId);
@@ -348,12 +540,33 @@ public class RideControllerTest {
     }
 
     @Test
-    void getAllDriverRides_ShouldReturnRidesPageResponse() {
+    void getAllDriverRides_ShouldReturnRidesPageResponse() throws JsonProcessingException {
         int page = TestRideUtil.getPageNumber();
         int size = TestRideUtil.getPageSize();
         String sortBy = TestRideUtil.getCorrectSortField();
         Long driverId = TestRideUtil.getFirstDriverId();
         RidesPageResponse expected = TestRideUtil.getDriverRidesPageResponse();
+        DriverResponse driverResponse = TestRideUtil.getDriverResponse();
+        PassengerResponse passengerResponse = TestRideUtil.getPassengerResponse();
+        CarResponse carResponse = driverResponse.getCar();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + driverResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(driverResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + passengerResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(passengerResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/car/" + carResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(carResponse))));
 
         RidesPageResponse actual =
                 RideClientUtil.getAllDriverRidesRequest(port, page, size, sortBy, driverId);

@@ -23,7 +23,8 @@ ext {
             'hibernateValidator': '8.0.1.Final',
             'lombok'            : '1.18.26',
             'jedis'             : '5.1.0',
-            'restAssured'       : '5.4.0'
+            'restAssured'       : '5.4.0',
+            'wiremock'          : '4.1.0'
     ]
 }
 
@@ -38,6 +39,7 @@ dependencies {
     implementation "org.liquibase:liquibase-core:${versions.liquibase}"
     implementation "org.springframework.boot:spring-boot-starter-webflux"
     implementation "redis.clients:jedis:${versions.jedis}"
+    implementation "org.springframework.cloud:spring-cloud-contract-wiremock:${versions.wiremock}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.projectlombok:lombok:${versions.lombok}"

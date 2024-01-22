@@ -6,6 +6,7 @@ import com.example.ridesservice.dto.response.ExceptionResponse;
 import com.example.ridesservice.exception.bank.BankAccountNotFoundException;
 import com.example.ridesservice.exception.bank.BankCardBalanceException;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
+@Setter
 public class BankWebClient {
     @Value("${bank-service.url}")
     private String bankServiceUrl;

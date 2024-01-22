@@ -4,6 +4,7 @@ import com.example.ridesservice.dto.response.ExceptionResponse;
 import com.example.ridesservice.dto.response.PassengerResponse;
 import com.example.ridesservice.exception.passenger.PassengerNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
+@Setter
 public class PassengerWebClient {
     @Value("${passenger-service.url}")
     private String passengerServiceUrl;

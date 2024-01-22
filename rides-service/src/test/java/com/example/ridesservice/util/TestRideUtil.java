@@ -59,6 +59,7 @@ public class TestRideUtil {
     static String DRIVER_PHONE_NUMBER = "+375099490457";
     static String DRIVER_NAME = "Sasha";
     static Double DRIVER_RATING = 4.5;
+    static long CAR_ID = 1L;
     static String CAR_MAKE = "Audi";
     static String CAR_COLOR = "red";
     static String CAR_NUMBER = "1961-DF-7";
@@ -298,6 +299,7 @@ public class TestRideUtil {
                 .phoneNumber(DRIVER_PHONE_NUMBER)
                 .rating(DRIVER_RATING)
                 .car(CarResponse.builder()
+                        .id(CAR_ID)
                         .carMake(CAR_MAKE)
                         .color(CAR_COLOR)
                         .number(CAR_NUMBER)
