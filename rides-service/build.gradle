@@ -24,7 +24,8 @@ ext {
             'lombok'            : '1.18.26',
             'jedis'             : '5.1.0',
             'restAssured'       : '5.4.0',
-            'wiremock'          : '4.1.0'
+            'wiremock'          : '4.1.0',
+            'cucumber'          : '7.14.0'
     ]
 }
 
@@ -49,6 +50,10 @@ dependencies {
     testImplementation "org.testcontainers:junit-jupiter"
     testImplementation "org.testcontainers:postgresql"
     testImplementation "org.testcontainers:kafka"
+    testImplementation "io.cucumber:cucumber-junit:${versions.cucumber}"
+    testImplementation "io.cucumber:cucumber-java:${versions.cucumber}"
+    testImplementation "io.cucumber:cucumber-spring:${versions.cucumber}"
+    testImplementation "org.junit.vintage:junit-vintage-engine"
 }
 
 tasks.named('bootBuildImage') {
