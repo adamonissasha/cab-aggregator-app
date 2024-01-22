@@ -1,6 +1,6 @@
 INSERT INTO bank_card (id, number, expiry_date, cvv, balance, is_default, bank_user_id, bank_user)
 VALUES (98, '1234 1234 1234 1234', '04/06', '364', 349.2, true, 3, 'PASSENGER'),
-       (99, '4321 4321 4321 4321', '01/10', '921', 136.7, true, 1, 'DRIVER');
+       (99, '4321 4321 4321 4321', '01/10', '921', 136.7, true, 2, 'DRIVER');
 
 INSERT INTO bank_account (id, number, balance, driver_id, is_active)
 VALUES (98, 'ojvcih2vf345vw', 250.6, 1, true),

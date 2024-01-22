@@ -37,7 +37,7 @@ public class BankCardServiceImpl implements BankCardService {
     private static final String CARD_NOT_FOUND = "Card with id '%s' not found";
     private static final String DEFAULT_CARD_NOT_FOUND = "%s's with id %s default card not found";
     private static final String INSUFFICIENT_CARD_BALANCE_TO_PAY = "There is not enough balance money to pay %s BYN " +
-            "for the ride. Refill card or change payment method.";
+            "for the ride. Refill card or change payment method";
     private final BankCardRepository bankCardRepository;
     private final BankCardMapper bankCardMapper;
     private final PassengerWebClient passengerWebClient;
@@ -158,11 +158,11 @@ public class BankCardServiceImpl implements BankCardService {
     @Override
     @Transactional
     public BankCardResponse getDefaultBankCard(Long bankUserId, BankUser bankUser) {
-        BankUserResponse bankUserResponse = getBankUser(bankUserId, bankUser);
         BankCard defaultBankCard = bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(
                         bankUserId, bankUser)
                 .orElseThrow(() -> new BankCardNotFoundException(String.format(DEFAULT_CARD_NOT_FOUND,
                         bankUser, bankUserId)));
+        BankUserResponse bankUserResponse = getBankUser(bankUserId, bankUser);
         return bankCardMapper.mapBankCardToBankCardResponse(defaultBankCard, bankUserResponse);
     }
 

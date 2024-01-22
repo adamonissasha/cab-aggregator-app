@@ -55,7 +55,7 @@ public class TestBankCardUtil {
     static String CARD_NOT_FOUND = "Card with id '%s' not found";
     static String DEFAULT_CARD_NOT_FOUND = "%s's with id %s default card not found";
     static String INSUFFICIENT_CARD_BALANCE_TO_PAY = "There is not enough balance money to pay %s BYN " +
-            "for the ride. Refill card or change payment method.";
+            "for the ride. Refill card or change payment method";
     static String BANK_CARD_NUMBER_FORMAT = "Bank card number must match the format: XXXX XXXX XXXX XXXX";
     static String BANK_CARD_EXPIRY_DATE_FORMAT = "Bank card expiry date must match the format: MM/YY";
     static String BANK_CARD_CVV_FORMAT = "Bank card cvv code must consist of 3 digits";

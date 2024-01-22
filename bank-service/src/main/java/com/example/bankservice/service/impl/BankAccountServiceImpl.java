@@ -7,13 +7,15 @@ import com.example.bankservice.dto.request.WithdrawalRequest;
 import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankAccountPageResponse;
 import com.example.bankservice.dto.response.BankAccountResponse;
+import com.example.bankservice.dto.response.BankCardResponse;
 import com.example.bankservice.dto.response.BankUserResponse;
+import com.example.bankservice.exception.AccountNumberUniqueException;
 import com.example.bankservice.exception.BankAccountNotFoundException;
-import com.example.bankservice.exception.CardNumberUniqueException;
 import com.example.bankservice.exception.DriverBankAccountException;
 import com.example.bankservice.exception.WithdrawalException;
 import com.example.bankservice.mapper.BankAccountMapper;
 import com.example.bankservice.model.BankAccount;
+import com.example.bankservice.model.enums.BankUser;
 import com.example.bankservice.model.enums.Operation;
 import com.example.bankservice.repository.BankAccountRepository;
 import com.example.bankservice.service.BankAccountHistoryService;
@@ -61,7 +63,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         String accountNumber = bankAccountRequest.getNumber();
         bankAccountRepository.findByNumber(accountNumber)
                 .ifPresent(bankAccount -> {
-                    throw new CardNumberUniqueException(
+                    throw new AccountNumberUniqueException(
                             String.format(BANK_ACCOUNT_NUMBER_EXIST, accountNumber));
                 });
         Long driverId = bankAccountRequest.getDriverId();
@@ -182,7 +184,9 @@ public class BankAccountServiceImpl implements BankAccountService {
         bankAccount.setBalance(bankAccountBalance.subtract(withdrawalSum));
         bankAccount = bankAccountRepository.save(bankAccount);
 
-        bankCardService.refillBankCard(id,
+        BankCardResponse defaultBankCard = bankCardService.getDefaultBankCard(bankUserId, BankUser.DRIVER);
+
+        bankCardService.refillBankCard(defaultBankCard.getId(),
                 RefillRequest.builder()
                         .sum(withdrawalSum)
                         .bankUserId(bankUserId)

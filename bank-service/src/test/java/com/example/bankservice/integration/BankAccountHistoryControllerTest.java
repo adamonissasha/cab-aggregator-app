@@ -3,14 +3,24 @@ package com.example.bankservice.integration;
 import com.example.bankservice.dto.request.BankAccountHistoryRequest;
 import com.example.bankservice.dto.response.BankAccountHistoryPageResponse;
 import com.example.bankservice.dto.response.BankAccountHistoryResponse;
+import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.dto.response.ExceptionResponse;
 import com.example.bankservice.repository.BankAccountHistoryRepository;
 import com.example.bankservice.util.TestBankAccountHistoryUtil;
 import com.example.bankservice.util.client.BankAccountHistoryClientUtil;
+import com.example.bankservice.webClient.DriverWebClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.cloud.contract.wiremock.WireMockSpring;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -18,6 +28,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -26,11 +39,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Sql(scripts = "classpath:sql/delete-test-data.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @Testcontainers
+@AutoConfigureWireMock
 public class BankAccountHistoryControllerTest {
     @LocalServerPort
     private int port;
 
     private final BankAccountHistoryRepository bankAccountHistoryRepository;
+    private final ObjectMapper objectMapper;
+    private final DriverWebClient driverWebClient;
 
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
@@ -43,15 +59,34 @@ public class BankAccountHistoryControllerTest {
     }
 
     @Autowired
-    public BankAccountHistoryControllerTest(BankAccountHistoryRepository bankAccountHistoryRepository) {
+    public BankAccountHistoryControllerTest(BankAccountHistoryRepository bankAccountHistoryRepository,
+                                            ObjectMapper objectMapper,
+                                            DriverWebClient driverWebClient) {
         this.bankAccountHistoryRepository = bankAccountHistoryRepository;
+        this.objectMapper = objectMapper;
+        this.driverWebClient = driverWebClient;
+    }
+
+    public static WireMockServer wiremock = new WireMockServer(WireMockSpring.options().dynamicPort());
+
+    @BeforeEach
+    public void setup() {
+        wiremock.start();
+        driverWebClient.setDriverServiceUrl("http://localhost:" + wiremock.port() + "/driver");
     }
 
     @Test
-    void createBankAccountHistory_WhenNumberUniqueAndDataValid_ShouldReturnBankAccountHistoryResponse() {
+    void createBankAccountHistory_WhenNumberUniqueAndDataValid_ShouldReturnBankAccountHistoryResponse() throws JsonProcessingException {
         Long bankAccountId = TestBankAccountHistoryUtil.getBankAccountId();
         BankAccountHistoryRequest bankAccountHistoryRequest = TestBankAccountHistoryUtil.getBankAccountHistoryRequest();
         BankAccountHistoryResponse expected = TestBankAccountHistoryUtil.getFirstBankAccountHistoryResponse();
+        BankUserResponse bankUserResponse = expected.getBankAccount().getDriver();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankAccountHistoryResponse actual =
                 BankAccountHistoryClientUtil.createBankAccountHistoryRequest(port, bankAccountHistoryRequest, bankAccountId);
@@ -65,12 +100,26 @@ public class BankAccountHistoryControllerTest {
     }
 
     @Test
-    void getAllBankAccountHistoryRecords_ShouldReturnBankAccountHistoryPageResponse() {
+    void getAllBankAccountHistoryRecords_ShouldReturnBankAccountHistoryPageResponse() throws JsonProcessingException {
         Long bankAccountId = TestBankAccountHistoryUtil.getBankAccountId();
         int page = TestBankAccountHistoryUtil.getPageNumber();
         int size = TestBankAccountHistoryUtil.getPageSize();
         String sortBy = TestBankAccountHistoryUtil.getCorrectSortField();
         BankAccountHistoryPageResponse expected = TestBankAccountHistoryUtil.getBankAccountHistoryPageResponse();
+        BankUserResponse firstBankUserResponse = expected.getBankAccountHistoryRecords().get(0).getBankAccount().getDriver();
+        BankUserResponse secondBankUserResponse = expected.getBankAccountHistoryRecords().get(1).getBankAccount().getDriver();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + firstBankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(firstBankUserResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + secondBankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(secondBankUserResponse))));
 
         BankAccountHistoryPageResponse actual =
                 BankAccountHistoryClientUtil.getAllBankAccountHistoryRecordsRequest(port, page, size, sortBy, bankAccountId);

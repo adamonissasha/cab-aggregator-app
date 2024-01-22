@@ -7,15 +7,25 @@ import com.example.bankservice.dto.request.WithdrawalRequest;
 import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
+import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.dto.response.ExceptionResponse;
 import com.example.bankservice.dto.response.ValidationErrorResponse;
 import com.example.bankservice.repository.BankCardRepository;
 import com.example.bankservice.util.TestBankCardUtil;
 import com.example.bankservice.util.client.BankCardClientUtil;
+import com.example.bankservice.webClient.PassengerWebClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
+import org.springframework.cloud.contract.wiremock.WireMockSpring;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -23,8 +33,10 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
-
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Sql(scripts = "classpath:sql/add-test-data.sql",
@@ -32,11 +44,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Sql(scripts = "classpath:sql/delete-test-data.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @Testcontainers
+@AutoConfigureWireMock
 public class BankCardControllerTest {
     @LocalServerPort
     private int port;
 
     private final BankCardRepository bankCardRepository;
+    private final PassengerWebClient passengerWebClient;
+    private final ObjectMapper objectMapper;
 
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
@@ -49,14 +64,33 @@ public class BankCardControllerTest {
     }
 
     @Autowired
-    public BankCardControllerTest(BankCardRepository bankCardRepository) {
+    public BankCardControllerTest(BankCardRepository bankCardRepository,
+                                  PassengerWebClient passengerWebClient,
+                                  ObjectMapper objectMapper) {
         this.bankCardRepository = bankCardRepository;
+        this.passengerWebClient = passengerWebClient;
+        this.objectMapper = objectMapper;
+    }
+
+    public static WireMockServer wiremock = new WireMockServer(WireMockSpring.options().dynamicPort());
+
+    @BeforeEach
+    public void setup() {
+        wiremock.start();
+        passengerWebClient.setPassengerServiceUrl("http://localhost:" + wiremock.port() + "/passenger");
     }
 
     @Test
-    void createBankCard_WhenNumberUniqueAndDataValid_ShouldReturnBankCardResponse() {
+    void createBankCard_WhenNumberUniqueAndDataValid_ShouldReturnBankCardResponse() throws JsonProcessingException {
         BankCardRequest bankCardRequest = TestBankCardUtil.getUniqueBankCardRequest();
         BankCardResponse expected = TestBankCardUtil.getNewBankCardResponse();
+        BankUserResponse bankUserResponse = expected.getBankUser();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankCardResponse actual =
                 BankCardClientUtil.createBankCardWhenNumberUniqueAndDataValidRequest(port, bankCardRequest);
@@ -92,10 +126,17 @@ public class BankCardControllerTest {
     }
 
     @Test
-    void editBankCard_WhenValidData_ShouldReturnBankCardResponse() {
+    void editBankCard_WhenValidData_ShouldReturnBankCardResponse() throws JsonProcessingException {
         Long bankCardId = TestBankCardUtil.getBankCardId();
         UpdateBankCardRequest bankCardRequest = TestBankCardUtil.getUpdateBankCardRequest();
         BankCardResponse expected = TestBankCardUtil.getFirstBankCardResponse();
+        BankUserResponse bankUserResponse = expected.getBankUser();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankCardResponse actual =
                 BankCardClientUtil.editBankCardWhenValidDataRequest(port, bankCardRequest, bankCardId);
@@ -127,9 +168,16 @@ public class BankCardControllerTest {
     }
 
     @Test
-    void getBankCardById_WhenBankCardExists_ShouldReturnBankCardResponse() {
+    void getBankCardById_WhenBankCardExists_ShouldReturnBankCardResponse() throws JsonProcessingException {
         Long existingBankCardId = TestBankCardUtil.getBankCardId();
         BankCardResponse expected = TestBankCardUtil.getFirstBankCardResponse();
+        BankUserResponse bankUserResponse = expected.getBankUser();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankCardResponse actual =
                 BankCardClientUtil.getBankCardByIdWhenBankCardExistsRequest(port, existingBankCardId);
@@ -149,12 +197,19 @@ public class BankCardControllerTest {
     }
 
     @Test
-    void getAllBankCards_ShouldReturnBankCardPageResponse() {
+    void getAllBankCards_ShouldReturnBankCardPageResponse() throws JsonProcessingException {
         Long bankUserId = 3L;
         int page = TestBankCardUtil.getPageNumber();
         int size = TestBankCardUtil.getPageSize();
         String sortBy = TestBankCardUtil.getCorrectSortField();
         BankCardPageResponse expected = TestBankCardUtil.getBankCardPageResponse();
+        BankUserResponse bankUserResponse = expected.getBankCards().get(0).getBankUser();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankCardPageResponse actual = BankCardClientUtil.getAllBankCardsRequest(port, page, size, sortBy, bankUserId);
 
@@ -197,9 +252,16 @@ public class BankCardControllerTest {
     }
 
     @Test
-    void makeBankCardDefault_WhenBankCardExists_ShouldReturnBankCardResponse() {
+    void makeBankCardDefault_WhenBankCardExists_ShouldReturnBankCardResponse() throws JsonProcessingException {
         Long bankCardId = TestBankCardUtil.getBankCardId();
         BankCardResponse expected = TestBankCardUtil.getFirstBankCardResponse();
+        BankUserResponse bankUserResponse = expected.getBankUser();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankCardResponse actual = BankCardClientUtil.makeBankCardDefaultWhenBankCardExistsRequest(port, bankCardId);
 
@@ -218,9 +280,16 @@ public class BankCardControllerTest {
     }
 
     @Test
-    void getDefaultBankCard_WhenDefaultBankCardExists_ShouldReturnBankCardResponse() {
+    void getDefaultBankCard_WhenDefaultBankCardExists_ShouldReturnBankCardResponse() throws JsonProcessingException {
         Long bankUserId = 3L;
         BankCardResponse expected = TestBankCardUtil.getFirstBankCardResponse();
+        BankUserResponse bankUserResponse = expected.getBankUser();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankCardResponse actual =
                 BankCardClientUtil.getDefaultBankCardWhenDefaultBankCardExistsRequest(port, bankUserId);
@@ -262,10 +331,17 @@ public class BankCardControllerTest {
     }
 
     @Test
-    void refillBankCard_WhenBankCardExists_ShouldReturnBankCardResponse() {
+    void refillBankCard_WhenBankCardExists_ShouldReturnBankCardResponse() throws JsonProcessingException {
         Long bankCardId = TestBankCardUtil.getBankCardId();
         RefillRequest refillRequest = TestBankCardUtil.getRefillRequest();
         BankCardResponse expected = TestBankCardUtil.getRefillBankCardResponse();
+        BankUserResponse bankUserResponse = expected.getBankUser();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankCardResponse actual =
                 BankCardClientUtil.refillBankCardWhenBankCardExistsRequest(port, bankCardId, refillRequest);
@@ -286,10 +362,17 @@ public class BankCardControllerTest {
     }
 
     @Test
-    void withdrawalPaymentFromBankCard_WhenBankCardExists_ShouldReturnBankCardResponse() {
+    void withdrawalPaymentFromBankCard_WhenBankCardExists_ShouldReturnBankCardResponse() throws JsonProcessingException {
         Long bankCardId = TestBankCardUtil.getBankCardId();
         WithdrawalRequest withdrawalRequest = TestBankCardUtil.getWithdrawalRequest();
         BankCardResponse expected = TestBankCardUtil.getWithdrawalBankCardResponse();
+        BankUserResponse bankUserResponse = expected.getBankUser();
+
+        wiremock.stubFor(get(urlPathEqualTo("/passenger/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankCardResponse actual =
                 BankCardClientUtil.withdrawalPaymentFromBankCardWhenBankCardExistsRequest(port, bankCardId, withdrawalRequest);

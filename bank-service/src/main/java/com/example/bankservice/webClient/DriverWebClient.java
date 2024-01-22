@@ -24,7 +24,7 @@ public class DriverWebClient {
     public BankUserResponse getDriver(long id) {
         return webClient.get()
                 .uri(driverServiceUrl + "/{id}", id)
-                .accept(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN)
+                .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError,
                         response -> {

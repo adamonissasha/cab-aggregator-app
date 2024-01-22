@@ -52,6 +52,8 @@ public class BankAccountControllerTest {
     private final BankAccountRepository bankAccountRepository;
     private final ObjectMapper objectMapper;
     private final BankAccountHistoryRepository bankAccountHistoryRepository;
+    private final DriverWebClient driverWebClient;
+
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
 
@@ -65,14 +67,13 @@ public class BankAccountControllerTest {
     @Autowired
     public BankAccountControllerTest(BankAccountRepository bankAccountRepository,
                                      ObjectMapper objectMapper,
-                                     BankAccountHistoryRepository bankAccountHistoryRepository) {
+                                     BankAccountHistoryRepository bankAccountHistoryRepository,
+                                     DriverWebClient driverWebClient) {
         this.bankAccountRepository = bankAccountRepository;
         this.objectMapper = objectMapper;
         this.bankAccountHistoryRepository = bankAccountHistoryRepository;
+        this.driverWebClient = driverWebClient;
     }
-
-    @Autowired
-    private DriverWebClient driverWebClient;
 
     public static WireMockServer wiremock = new WireMockServer(WireMockSpring.options().dynamicPort());
 
@@ -90,7 +91,7 @@ public class BankAccountControllerTest {
         BankAccountResponse expected = TestBankAccountUtil.getNewBankAccountResponse();
         BankUserResponse bankUserResponse = expected.getDriver();
 
-        wiremock.stubFor(get(urlPathEqualTo("/" + bankAccountRequest.getDriverId()))
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + bankAccountRequest.getDriverId()))
                 .willReturn(aResponse()
                         .withStatus(HttpStatus.OK.value())
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -142,9 +143,16 @@ public class BankAccountControllerTest {
 
 
     @Test
-    void getBankAccountById_WhenBankAccountExists_ShouldReturnBankAccountResponse() {
+    void getBankAccountById_WhenBankAccountExists_ShouldReturnBankAccountResponse() throws JsonProcessingException {
         Long existingBankAccountId = TestBankAccountUtil.getSecondBankAccount().getId();
         BankAccountResponse expected = TestBankAccountUtil.getSecondBankAccountResponse();
+        BankUserResponse bankUserResponse = expected.getDriver();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankAccountResponse actual =
                 BankAccountClientUtil.getBankAccountByIdWhenBankAccountExistsRequest(port, existingBankAccountId);
@@ -164,11 +172,25 @@ public class BankAccountControllerTest {
     }
 
     @Test
-    void getAllBankAccounts_ShouldReturnBankAccountPageResponse() {
+    void getAllBankAccounts_ShouldReturnBankAccountPageResponse() throws JsonProcessingException {
         int page = TestBankAccountUtil.getPageNumber();
         int size = TestBankAccountUtil.getPageSize();
         String sortBy = TestBankAccountUtil.getCorrectSortField();
         BankAccountPageResponse expected = TestBankAccountUtil.getBankAccountPageResponse();
+        BankUserResponse firstBankUserResponse = expected.getBankAccounts().get(0).getDriver();
+        BankUserResponse secondBankUserResponse = expected.getBankAccounts().get(1).getDriver();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + firstBankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(firstBankUserResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + secondBankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(secondBankUserResponse))));
 
         BankAccountPageResponse actual = BankAccountClientUtil.getAllBankAccountsRequest(port, page, size, sortBy);
 
@@ -189,11 +211,25 @@ public class BankAccountControllerTest {
     }
 
     @Test
-    void getAllActiveBankAccounts_ShouldReturnBankAccountPageResponse() {
+    void getAllActiveBankAccounts_ShouldReturnBankAccountPageResponse() throws JsonProcessingException {
         int page = TestBankAccountUtil.getPageNumber();
         int size = TestBankAccountUtil.getPageSize();
         String sortBy = TestBankAccountUtil.getCorrectSortField();
         BankAccountPageResponse expected = TestBankAccountUtil.getBankAccountPageResponse();
+        BankUserResponse firstBankUserResponse = expected.getBankAccounts().get(0).getDriver();
+        BankUserResponse secondBankUserResponse = expected.getBankAccounts().get(1).getDriver();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + firstBankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(firstBankUserResponse))));
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + secondBankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(secondBankUserResponse))));
 
         BankAccountPageResponse actual = BankAccountClientUtil.getAllActiveBankAccountsRequest(port, page, size, sortBy);
 
@@ -250,9 +286,16 @@ public class BankAccountControllerTest {
     }
 
     @Test
-    void refillBankAccount_WhenBankAccountExists_ShouldReturnBankAccountResponse() {
+    void refillBankAccount_WhenBankAccountExists_ShouldReturnBankAccountResponse() throws JsonProcessingException {
         RefillRequest refillRequest = TestBankAccountUtil.getRefillRequest();
         BankAccountResponse expected = TestBankAccountUtil.getRefillBankAccountResponse();
+        BankUserResponse bankUserResponse = expected.getDriver();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankAccountResponse actual =
                 BankAccountClientUtil.refillBankAccountWhenBankAccountExistsRequest(port, refillRequest);
@@ -272,10 +315,17 @@ public class BankAccountControllerTest {
     }
 
     @Test
-    void withdrawalPaymentFromBankAccount_WhenBankAccountExists_ShouldReturnBankAccountResponse() {
+    void withdrawalPaymentFromBankAccount_WhenBankAccountExists_ShouldReturnBankAccountResponse() throws JsonProcessingException {
         Long bankAccountId = TestBankAccountUtil.getBankAccountId();
         WithdrawalRequest withdrawalRequest = TestBankAccountUtil.getWithdrawalRequest();
         BankAccountResponse expected = TestBankAccountUtil.getWithdrawalBankAccountResponse();
+        BankUserResponse bankUserResponse = expected.getDriver();
+
+        wiremock.stubFor(get(urlPathEqualTo("/driver/" + bankUserResponse.getId()))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                        .withBody(objectMapper.writeValueAsString(bankUserResponse))));
 
         BankAccountResponse actual =
                 BankAccountClientUtil.withdrawalPaymentFromBankAccountWhenBankAccountExistsRequest(port, bankAccountId, withdrawalRequest);

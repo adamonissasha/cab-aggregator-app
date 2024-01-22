@@ -6,13 +6,15 @@ import com.example.bankservice.dto.request.WithdrawalRequest;
 import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankAccountPageResponse;
 import com.example.bankservice.dto.response.BankAccountResponse;
+import com.example.bankservice.dto.response.BankCardResponse;
 import com.example.bankservice.dto.response.BankUserResponse;
+import com.example.bankservice.exception.AccountNumberUniqueException;
 import com.example.bankservice.exception.BankAccountNotFoundException;
-import com.example.bankservice.exception.CardNumberUniqueException;
 import com.example.bankservice.exception.DriverBankAccountException;
 import com.example.bankservice.exception.IncorrectFieldNameException;
 import com.example.bankservice.mapper.BankAccountMapper;
 import com.example.bankservice.model.BankAccount;
+import com.example.bankservice.model.enums.BankUser;
 import com.example.bankservice.repository.BankAccountRepository;
 import com.example.bankservice.service.BankAccountHistoryService;
 import com.example.bankservice.service.BankCardService;
@@ -126,7 +128,7 @@ public class BankAccountServiceTest {
         when(bankAccountRepository.findByNumber(accountNumber))
                 .thenReturn(Optional.of(existingBankAccount));
 
-        assertThrows(CardNumberUniqueException.class, () -> bankAccountService.createBankAccount(bankAccountRequest));
+        assertThrows(AccountNumberUniqueException.class, () -> bankAccountService.createBankAccount(bankAccountRequest));
 
         verify(bankAccountRepository, times(1))
                 .findByNumber(bankAccountRequest.getNumber());
@@ -396,17 +398,24 @@ public class BankAccountServiceTest {
         BankAccount bankAccount = TestBankAccountUtil.getFirstBankAccount();
         BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         BankAccountResponse expected = TestBankAccountUtil.getFirstBankAccountResponse();
+        BankCardResponse defaultBankCard = TestBankCardUtil.getFirstBankCardResponse();
+        RefillRequest refillRequest = RefillRequest.builder()
+                .bankUserId(bankAccount.getDriverId())
+                .sum(withdrawalRequest.getSum())
+                .build();
 
         when(bankAccountRepository.findById(bankAccountId))
                 .thenReturn(Optional.of(bankAccount));
         when(driverWebClient.getDriver(bankAccount.getDriverId()))
                 .thenReturn(bankUserResponse);
-        when(bankCardService.refillBankCard(eq(bankAccountId), any()))
+        when(bankCardService.refillBankCard(defaultBankCard.getId(), refillRequest))
                 .thenReturn(TestBankCardUtil.getFirstBankCardResponse());
         when(bankAccountRepository.save(bankAccount))
                 .thenReturn(bankAccount);
         when(bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse))
                 .thenReturn(expected);
+        when(bankCardService.getDefaultBankCard(bankAccount.getDriverId(), BankUser.DRIVER))
+                .thenReturn(defaultBankCard);
 
         BankAccountResponse actual = bankAccountService.withdrawalFromBankAccount(bankAccountId, withdrawalRequest);
 
@@ -415,7 +424,7 @@ public class BankAccountServiceTest {
         verify(bankAccountRepository, times(1))
                 .save(bankAccount);
         verify(bankCardService, times(1))
-                .refillBankCard(eq(bankAccountId), any());
+                .refillBankCard(defaultBankCard.getId(), refillRequest);
         verify(bankAccountHistoryService, times(1))
                 .createBankAccountHistoryRecord(eq(bankAccountId), any());
     }
