@@ -53,6 +53,9 @@ public class TestPassengerUtil {
         return FIRST_PASSENGER_ID;
     }
 
+    public static Long getSecondPassengerId() {
+        return SECOND_PASSENGER_ID;
+    }
 
     public static Long getInvalidId() {
         return INVALID_PASSENGER_ID;
@@ -157,9 +160,15 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static AveragePassengerRatingResponse getPassengerRating() {
+    public static AveragePassengerRatingResponse getFirstPassengerRating() {
         return AveragePassengerRatingResponse.builder()
                 .averageRating(FIRST_PASSENGER_RATING)
+                .build();
+    }
+
+    public static AveragePassengerRatingResponse getSecondPassengerRating() {
+        return AveragePassengerRatingResponse.builder()
+                .averageRating(SECOND_PASSENGER_RATING)
                 .build();
     }
 

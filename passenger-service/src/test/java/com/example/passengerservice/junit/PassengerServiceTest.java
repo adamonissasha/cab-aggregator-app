@@ -66,7 +66,7 @@ public class PassengerServiceTest {
         PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequest();
         Passenger newPassenger = TestPassengerUtil.getFirstPassenger();
         PassengerResponse expected = TestPassengerUtil.getPassengerResponse();
-        AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getPassengerRating();
+        AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getFirstPassengerRating();
 
         when(passengerRepository.findPassengerByPhoneNumber(passengerRequest.getPhoneNumber()))
                 .thenReturn(Optional.empty());
@@ -113,7 +113,7 @@ public class PassengerServiceTest {
         Passenger updatedPassenger = TestPassengerUtil.getFirstPassenger();
         Passenger existingPassenger = TestPassengerUtil.getSecondPassenger();
         PassengerResponse expected = TestPassengerUtil.getPassengerResponse();
-        AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getPassengerRating();
+        AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getFirstPassengerRating();
 
         when(passengerRepository.findById(passengerId))
                 .thenReturn(Optional.of(existingPassenger));
@@ -181,7 +181,7 @@ public class PassengerServiceTest {
         Long passengerId = TestPassengerUtil.getFirstPassengerId();
         Passenger existingPassenger = TestPassengerUtil.getFirstPassenger();
         PassengerResponse expected = TestPassengerUtil.getPassengerResponse();
-        AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getPassengerRating();
+        AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getFirstPassengerRating();
 
         when(passengerRepository.findById(passengerId))
                 .thenReturn(Optional.of(existingPassenger));
@@ -218,7 +218,7 @@ public class PassengerServiceTest {
         int page = TestPassengerUtil.getPageNumber();
         int size = TestPassengerUtil.getPageSize();
         String sortBy = TestPassengerUtil.getCorrectSortField();
-        AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getPassengerRating();
+        AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getFirstPassengerRating();
         List<Passenger> passengers = TestPassengerUtil.getPassengers();
         List<PassengerResponse> passengerResponses = TestPassengerUtil.getPassengerResponses();
 
