@@ -5,9 +5,9 @@ import com.example.passengerservice.dto.response.ExceptionResponse;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
 import com.example.passengerservice.dto.response.ValidationErrorResponse;
-import com.example.passengerservice.integration.client.PassengerClientTest;
 import com.example.passengerservice.repository.PassengerRepository;
 import com.example.passengerservice.util.TestPassengerUtil;
+import com.example.passengerservice.util.client.PassengerClientUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,8 +33,6 @@ public class PassengerControllerTest {
 
     private final PassengerRepository passengerRepository;
 
-    private final PassengerClientTest passengerClientTest;
-
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
 
@@ -46,9 +44,8 @@ public class PassengerControllerTest {
     }
 
     @Autowired
-    public PassengerControllerTest(PassengerRepository passengerRepository, PassengerClientTest passengerClientTest) {
+    public PassengerControllerTest(PassengerRepository passengerRepository) {
         this.passengerRepository = passengerRepository;
-        this.passengerClientTest = passengerClientTest;
     }
 
     @Test
@@ -56,7 +53,7 @@ public class PassengerControllerTest {
         PassengerRequest passengerRequest = TestPassengerUtil.getUniquePassengerRequest();
         PassengerResponse expected = TestPassengerUtil.getNewPassengerResponse();
 
-        PassengerResponse actual = passengerClientTest.createPassengerWhenDataValidRequest(port, passengerRequest);
+        PassengerResponse actual = PassengerClientUtil.createPassengerWhenDataValidRequest(port, passengerRequest);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -72,7 +69,7 @@ public class PassengerControllerTest {
         ExceptionResponse expected = TestPassengerUtil.getPhoneNumberExistsExceptionResponse();
 
         ExceptionResponse actual =
-                passengerClientTest.createPassengerWhenPhoneNumberAlreadyExistsRequest(port, passengerRequest);
+                PassengerClientUtil.createPassengerWhenPhoneNumberAlreadyExistsRequest(port, passengerRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -83,7 +80,7 @@ public class PassengerControllerTest {
         ValidationErrorResponse expected = TestPassengerUtil.getValidationErrorResponse();
 
         ValidationErrorResponse actual =
-                passengerClientTest.createPassengerWhenDataNotValidRequest(port, passengerRequest);
+                PassengerClientUtil.createPassengerWhenDataNotValidRequest(port, passengerRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -95,7 +92,7 @@ public class PassengerControllerTest {
         PassengerResponse expected = TestPassengerUtil.getPassengerResponse();
 
         PassengerResponse actual =
-                passengerClientTest.editPassengerWhenValidDataRequest(port, passengerRequest, passengerId);
+                PassengerClientUtil.editPassengerWhenValidDataRequest(port, passengerRequest, passengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -107,7 +104,7 @@ public class PassengerControllerTest {
         ValidationErrorResponse expected = TestPassengerUtil.getValidationErrorResponse();
 
         ValidationErrorResponse actual =
-                passengerClientTest.editPassengerWhenInvalidDataRequest(port, passengerRequest, passengerId);
+                PassengerClientUtil.editPassengerWhenInvalidDataRequest(port, passengerRequest, passengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -119,7 +116,7 @@ public class PassengerControllerTest {
         ExceptionResponse expected = TestPassengerUtil.getPassengerNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                passengerClientTest.editPassengerWhenPassengerNotFoundRequest(port, passengerRequest, invalidPassengerId);
+                PassengerClientUtil.editPassengerWhenPassengerNotFoundRequest(port, passengerRequest, invalidPassengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -130,7 +127,7 @@ public class PassengerControllerTest {
         PassengerResponse expected = TestPassengerUtil.getPassengerResponse();
 
         PassengerResponse actual =
-                passengerClientTest.getPassengerByIdWhenPassengerExistsRequest(port, existingPassengerId);
+                PassengerClientUtil.getPassengerByIdWhenPassengerExistsRequest(port, existingPassengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -141,7 +138,7 @@ public class PassengerControllerTest {
         ExceptionResponse expected = TestPassengerUtil.getPassengerNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                passengerClientTest.getPassengerByIdWhenPassengerNotExistsRequest(port, invalidPassengerId);
+                PassengerClientUtil.getPassengerByIdWhenPassengerNotExistsRequest(port, invalidPassengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -153,7 +150,7 @@ public class PassengerControllerTest {
         String sortBy = TestPassengerUtil.getCorrectSortField();
         PassengerPageResponse expected = TestPassengerUtil.getPassengerPageResponse();
 
-        PassengerPageResponse actual = passengerClientTest.getAllPassengersRequest(port, page, size, sortBy);
+        PassengerPageResponse actual = PassengerClientUtil.getAllPassengersRequest(port, page, size, sortBy);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -166,7 +163,7 @@ public class PassengerControllerTest {
         ExceptionResponse expected = TestPassengerUtil.getIncorrectFieldExceptionResponse();
 
         ExceptionResponse actual =
-                passengerClientTest.getAllPassengersWhenIncorrectFieldRequest(port, page, size, sortBy);
+                PassengerClientUtil.getAllPassengersWhenIncorrectFieldRequest(port, page, size, sortBy);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -175,14 +172,14 @@ public class PassengerControllerTest {
     void deletePassenger_WhenPassengerExists_ShouldReturnNotFoundAfterDeletion() {
         Long existingPassengerId = TestPassengerUtil.getFirstPassengerId();
 
-        passengerClientTest.deletePassengerWhenPassengerExistsRequest(port, existingPassengerId);
+        PassengerClientUtil.deletePassengerWhenPassengerExistsRequest(port, existingPassengerId);
     }
 
     @Test
     void deletePassenger_WhenPassengerNotExists_ShouldReturnNotFound() {
         Long invalidPassengerId = TestPassengerUtil.getInvalidId();
 
-        passengerClientTest.deletePassengerWhenPassengerNotExistsRequest(port, invalidPassengerId);
+        PassengerClientUtil.deletePassengerWhenPassengerNotExistsRequest(port, invalidPassengerId);
     }
 
     void deletePassengerAfterTest(Long id) {

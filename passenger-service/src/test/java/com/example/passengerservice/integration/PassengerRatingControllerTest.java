@@ -3,19 +3,20 @@ package com.example.passengerservice.integration;
 import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.ExceptionResponse;
-import com.example.passengerservice.integration.client.PassengerRatingClientTest;
 import com.example.passengerservice.util.TestPassengerRatingUtil;
 import com.example.passengerservice.util.TestPassengerUtil;
+import com.example.passengerservice.util.client.PassengerRatingClientUtil;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,21 +30,20 @@ public class PassengerRatingControllerTest {
     @LocalServerPort
     private int port;
 
-    private final PassengerRatingClientTest passengerRatingClientTest;
-
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
 
+    @Container
+    static final KafkaContainer kafka = new KafkaContainer(
+            DockerImageName.parse("confluentinc/cp-kafka:latest")
+    );
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
+        dynamicPropertyRegistry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
         dynamicPropertyRegistry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
         dynamicPropertyRegistry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         dynamicPropertyRegistry.add("spring.datasource.password", postgreSQLContainer::getPassword);
-    }
-
-    @Autowired
-    public PassengerRatingControllerTest(PassengerRatingClientTest passengerRatingClientTest) {
-        this.passengerRatingClientTest = passengerRatingClientTest;
     }
 
     @Test
@@ -52,7 +52,7 @@ public class PassengerRatingControllerTest {
         AllPassengerRatingsResponse expected = TestPassengerRatingUtil.getAllPassengerRatingsResponse();
 
         AllPassengerRatingsResponse actual =
-                passengerRatingClientTest.getAllPassengerRatingsWhenPassengerExistsRequest(port, passengerId);
+                PassengerRatingClientUtil.getAllPassengerRatingsWhenPassengerExistsRequest(port, passengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -63,7 +63,7 @@ public class PassengerRatingControllerTest {
         ExceptionResponse expected = TestPassengerUtil.getPassengerNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                passengerRatingClientTest.getPassengerRatingsWhenPassengerNotExistsRequest(port, invalidId);
+                PassengerRatingClientUtil.getPassengerRatingsWhenPassengerNotExistsRequest(port, invalidId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -74,7 +74,7 @@ public class PassengerRatingControllerTest {
         AveragePassengerRatingResponse expected = TestPassengerRatingUtil.getAveragePassengerRatingResponse();
 
         AveragePassengerRatingResponse actual =
-                passengerRatingClientTest.getAveragePassengerRatingWhenPassengerExistsRequest(port, passengerId);
+                PassengerRatingClientUtil.getAveragePassengerRatingWhenPassengerExistsRequest(port, passengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -85,7 +85,7 @@ public class PassengerRatingControllerTest {
         ExceptionResponse expected = TestPassengerUtil.getPassengerNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                passengerRatingClientTest.getAveragePassengerRatingWhenPassengerNotExistsRequest(port, invalidId);
+                PassengerRatingClientUtil.getAveragePassengerRatingWhenPassengerNotExistsRequest(port, invalidId);
 
         assertThat(actual).isEqualTo(expected);
     }

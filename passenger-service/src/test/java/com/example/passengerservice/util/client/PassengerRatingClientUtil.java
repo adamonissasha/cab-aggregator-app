@@ -1,4 +1,4 @@
-package com.example.passengerservice.integration.client;
+package com.example.passengerservice.util.client;
 
 import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 import static io.restassured.RestAssured.given;
 
 @Component
-public class PassengerRatingClientTest {
+public class PassengerRatingClientUtil {
     private static final String PASSENGER_RATING_SERVICE_URL = "passenger/{id}/rating";
 
-    public AllPassengerRatingsResponse getAllPassengerRatingsWhenPassengerExistsRequest(int port, Long passengerId) {
+    public static AllPassengerRatingsResponse getAllPassengerRatingsWhenPassengerExistsRequest(int port, Long passengerId) {
         return given()
                 .port(port)
                 .pathParam("id", passengerId)
@@ -24,7 +24,7 @@ public class PassengerRatingClientTest {
                 .as(AllPassengerRatingsResponse.class);
     }
 
-    public ExceptionResponse getPassengerRatingsWhenPassengerNotExistsRequest(int port, Long invalidId) {
+    public static ExceptionResponse getPassengerRatingsWhenPassengerNotExistsRequest(int port, Long invalidId) {
         return given()
                 .port(port)
                 .pathParam("id", invalidId)
@@ -36,7 +36,7 @@ public class PassengerRatingClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public AveragePassengerRatingResponse getAveragePassengerRatingWhenPassengerExistsRequest(int port, Long passengerId) {
+    public static AveragePassengerRatingResponse getAveragePassengerRatingWhenPassengerExistsRequest(int port, Long passengerId) {
         return given()
                 .port(port)
                 .pathParam("id", passengerId)
@@ -48,7 +48,7 @@ public class PassengerRatingClientTest {
                 .as(AveragePassengerRatingResponse.class);
     }
 
-    public ExceptionResponse getAveragePassengerRatingWhenPassengerNotExistsRequest(int port, Long invalidId) {
+    public static ExceptionResponse getAveragePassengerRatingWhenPassengerNotExistsRequest(int port, Long invalidId) {
         return given()
                 .port(port)
                 .pathParam("id", invalidId)
