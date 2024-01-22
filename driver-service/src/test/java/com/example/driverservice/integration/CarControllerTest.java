@@ -5,13 +5,14 @@ import com.example.driverservice.dto.response.CarPageResponse;
 import com.example.driverservice.dto.response.CarResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
 import com.example.driverservice.dto.response.ValidationErrorResponse;
-import com.example.driverservice.integration.client.CarClientTest;
 import com.example.driverservice.repository.CarRepository;
 import com.example.driverservice.util.TestCarUtil;
+import com.example.driverservice.util.client.CarClientUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -27,16 +28,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Sql(scripts = "classpath:sql/delete-test-data.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @Testcontainers
+@ActiveProfiles("test")
 public class CarControllerTest {
     @LocalServerPort
     int port;
 
-    private final CarClientTest carClient;
-
     private final CarRepository carRepository;
 
     @Container
-    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
+    static final PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
@@ -46,8 +46,7 @@ public class CarControllerTest {
     }
 
     @Autowired
-    public CarControllerTest(CarClientTest carClient, CarRepository carRepository) {
-        this.carClient = carClient;
+    public CarControllerTest(CarRepository carRepository) {
         this.carRepository = carRepository;
     }
 
@@ -56,7 +55,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequest();
         CarResponse expected = TestCarUtil.getNewCarResponse();
 
-        CarResponse actual = carClient.createCarWithUniqueCarNumberAndValidDataRequest(port, carRequest);
+        CarResponse actual = CarClientUtil.createCarWithUniqueCarNumberAndValidDataRequest(port, carRequest);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -71,7 +70,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequestWithExistingNumber();
         ExceptionResponse expected = TestCarUtil.getCarNumberExistsExceptionResponse();
 
-        ExceptionResponse actual = carClient.createCarWithExistingCarNumberRequest(port, carRequest);
+        ExceptionResponse actual = CarClientUtil.createCarWithExistingCarNumberRequest(port, carRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -81,7 +80,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequestWithInvalidData();
         ValidationErrorResponse expected = TestCarUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = carClient.createCarWithInvalidDataRequest(port, carRequest);
+        ValidationErrorResponse actual = CarClientUtil.createCarWithInvalidDataRequest(port, carRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -93,7 +92,7 @@ public class CarControllerTest {
         CarResponse expected = TestCarUtil.getNewCarResponse();
         expected.setId(carId);
 
-        CarResponse actual = carClient.editCarWithValidDataRequest(port, carRequest, carId);
+        CarResponse actual = CarClientUtil.editCarWithValidDataRequest(port, carRequest, carId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -104,7 +103,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequestWithInvalidData();
         ValidationErrorResponse expected = TestCarUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = carClient.editCarWithInvalidDataRequest(port, carRequest, carId);
+        ValidationErrorResponse actual = CarClientUtil.editCarWithInvalidDataRequest(port, carRequest, carId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -115,7 +114,7 @@ public class CarControllerTest {
         CarRequest carRequest = TestCarUtil.getCarRequest();
         ExceptionResponse expected = TestCarUtil.getCarNotFoundExceptionResponse();
 
-        ExceptionResponse actual = carClient.editCarWhenCarNotFoundRequest(port, carRequest, invalidCarId);
+        ExceptionResponse actual = CarClientUtil.editCarWhenCarNotFoundRequest(port, carRequest, invalidCarId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -125,7 +124,7 @@ public class CarControllerTest {
         Long existingCarId = TestCarUtil.getSecondCarId();
         CarResponse expected = TestCarUtil.getSecondCarResponse();
 
-        CarResponse actual = carClient.getCarByIdRequest(port, existingCarId);
+        CarResponse actual = CarClientUtil.getCarByIdRequest(port, existingCarId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -135,7 +134,7 @@ public class CarControllerTest {
         Long invalidCarId = TestCarUtil.getInvalidId();
         ExceptionResponse expected = TestCarUtil.getCarNotFoundExceptionResponse();
 
-        ExceptionResponse actual = carClient.getCarByIdWhenCarNotExistsRequest(port, invalidCarId);
+        ExceptionResponse actual = CarClientUtil.getCarByIdWhenCarNotExistsRequest(port, invalidCarId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -147,7 +146,7 @@ public class CarControllerTest {
         String sortBy = TestCarUtil.getCorrectSortField();
         CarPageResponse expected = TestCarUtil.getCarPageResponse();
 
-        CarPageResponse actual = carClient.getAllCarsRequest(port, page, size, sortBy);
+        CarPageResponse actual = CarClientUtil.getAllCarsRequest(port, page, size, sortBy);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -159,7 +158,7 @@ public class CarControllerTest {
         String sortBy = TestCarUtil.getIncorrectSortField();
         ExceptionResponse expected = TestCarUtil.getIncorrectFieldExceptionResponse();
 
-        ExceptionResponse actual = carClient.getAllCarsWhenIncorrectFieldRequest(port, page, size, sortBy);
+        ExceptionResponse actual = CarClientUtil.getAllCarsWhenIncorrectFieldRequest(port, page, size, sortBy);
 
         assertThat(actual).isEqualTo(expected);
     }

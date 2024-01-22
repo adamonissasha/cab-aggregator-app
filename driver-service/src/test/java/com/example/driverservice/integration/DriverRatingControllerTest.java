@@ -3,19 +3,20 @@ package com.example.driverservice.integration;
 import com.example.driverservice.dto.response.AllDriverRatingsResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
-import com.example.driverservice.integration.client.DriverRatingClientTest;
 import com.example.driverservice.util.TestDriverRatingUtil;
 import com.example.driverservice.util.TestDriverUtil;
+import com.example.driverservice.util.client.DriverRatingClientUtil;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,21 +30,20 @@ public class DriverRatingControllerTest {
     @LocalServerPort
     private int port;
 
-    private final DriverRatingClientTest driverRatingClientTest;
-
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
 
-    @Autowired
-    public DriverRatingControllerTest(DriverRatingClientTest driverRatingClientTest) {
-        this.driverRatingClientTest = driverRatingClientTest;
-    }
+    @Container
+    static final KafkaContainer kafka = new KafkaContainer(
+            DockerImageName.parse("confluentinc/cp-kafka:latest")
+    );
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
         dynamicPropertyRegistry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
         dynamicPropertyRegistry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         dynamicPropertyRegistry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+        dynamicPropertyRegistry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class DriverRatingControllerTest {
         AllDriverRatingsResponse expected = TestDriverRatingUtil.getAllDriverRatingsResponse();
 
         AllDriverRatingsResponse actual
-                = driverRatingClientTest.getAllDriverRatingsWhenDriverExistsRequest(port, driverId);
+                = DriverRatingClientUtil.getAllDriverRatingsWhenDriverExistsRequest(port, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -63,7 +63,7 @@ public class DriverRatingControllerTest {
         ExceptionResponse expected = TestDriverUtil.getDriverNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                driverRatingClientTest.getDriverRatingsWhenDriverNotExistsRequest(port, invalidId);
+                DriverRatingClientUtil.getDriverRatingsWhenDriverNotExistsRequest(port, invalidId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -74,7 +74,7 @@ public class DriverRatingControllerTest {
         AverageDriverRatingResponse expected = TestDriverRatingUtil.getAverageDriverRatingResponse();
 
         AverageDriverRatingResponse actual =
-                driverRatingClientTest.getAverageDriverRatingWhenDriverExistsRequest(port, driverId);
+                DriverRatingClientUtil.getAverageDriverRatingWhenDriverExistsRequest(port, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -85,7 +85,7 @@ public class DriverRatingControllerTest {
         ExceptionResponse expected = TestDriverUtil.getDriverNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                driverRatingClientTest.getAverageDriverRatingWhenDriverNotExistsRequest(port, invalidId);
+                DriverRatingClientUtil.getAverageDriverRatingWhenDriverNotExistsRequest(port, invalidId);
 
         assertThat(actual).isEqualTo(expected);
     }

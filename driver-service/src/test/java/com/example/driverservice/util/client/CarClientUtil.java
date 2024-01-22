@@ -1,4 +1,4 @@
-package com.example.driverservice.integration.client;
+package com.example.driverservice.util.client;
 
 import com.example.driverservice.dto.request.CarRequest;
 import com.example.driverservice.dto.response.CarPageResponse;
@@ -6,20 +6,21 @@ import com.example.driverservice.dto.response.CarResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
 import com.example.driverservice.dto.response.ValidationErrorResponse;
 import io.restassured.http.ContentType;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 
 import static io.restassured.RestAssured.given;
 
-@Component
-public class CarClientTest {
-    private static final String CAR_SERVICE_URL = "driver/car";
-    private static final String ID_PARAMETER_NAME = "id";
-    private static final String PAGE_PARAMETER_NAME = "page";
-    private static final String SIZE_PARAMETER_NAME = "size";
-    private static final String SORT_PARAMETER_NAME = "sortBy";
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class CarClientUtil {
+    static String CAR_SERVICE_URL = "driver/car";
+    static String ID_PARAMETER_NAME = "id";
+    static String PAGE_PARAMETER_NAME = "page";
+    static String SIZE_PARAMETER_NAME = "size";
+    static String SORT_PARAMETER_NAME = "sortBy";
 
-    public CarResponse createCarWithUniqueCarNumberAndValidDataRequest(int port, CarRequest carRequest) {
+    public static CarResponse createCarWithUniqueCarNumberAndValidDataRequest(int port, CarRequest carRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -32,7 +33,7 @@ public class CarClientTest {
                 .as(CarResponse.class);
     }
 
-    public ExceptionResponse createCarWithExistingCarNumberRequest(int port, CarRequest carRequest) {
+    public static ExceptionResponse createCarWithExistingCarNumberRequest(int port, CarRequest carRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -45,7 +46,7 @@ public class CarClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ValidationErrorResponse createCarWithInvalidDataRequest(int port, CarRequest carRequest) {
+    public static ValidationErrorResponse createCarWithInvalidDataRequest(int port, CarRequest carRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -58,7 +59,7 @@ public class CarClientTest {
                 .as(ValidationErrorResponse.class);
     }
 
-    public CarResponse editCarWithValidDataRequest(int port, CarRequest carRequest, Long carId) {
+    public static CarResponse editCarWithValidDataRequest(int port, CarRequest carRequest, Long carId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -72,7 +73,7 @@ public class CarClientTest {
                 .as(CarResponse.class);
     }
 
-    public ValidationErrorResponse editCarWithInvalidDataRequest(int port, CarRequest carRequest, Long carId) {
+    public static ValidationErrorResponse editCarWithInvalidDataRequest(int port, CarRequest carRequest, Long carId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -86,7 +87,7 @@ public class CarClientTest {
                 .as(ValidationErrorResponse.class);
     }
 
-    public ExceptionResponse editCarWhenCarNotFoundRequest(int port, CarRequest carRequest, Long invalidCarId) {
+    public static ExceptionResponse editCarWhenCarNotFoundRequest(int port, CarRequest carRequest, Long invalidCarId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -100,7 +101,7 @@ public class CarClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public CarResponse getCarByIdRequest(int port, Long existingCarId) {
+    public static CarResponse getCarByIdRequest(int port, Long existingCarId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingCarId)
@@ -112,7 +113,7 @@ public class CarClientTest {
                 .as(CarResponse.class);
     }
 
-    public ExceptionResponse getCarByIdWhenCarNotExistsRequest(int port, Long invalidCarId) {
+    public static ExceptionResponse getCarByIdWhenCarNotExistsRequest(int port, Long invalidCarId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidCarId)
@@ -124,7 +125,7 @@ public class CarClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public CarPageResponse getAllCarsRequest(int port, int page, int size, String sortBy) {
+    public static CarPageResponse getAllCarsRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -138,7 +139,7 @@ public class CarClientTest {
                 .as(CarPageResponse.class);
     }
 
-    public ExceptionResponse getAllCarsWhenIncorrectFieldRequest(int port, int page, int size, String sortBy) {
+    public static ExceptionResponse getAllCarsWhenIncorrectFieldRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)

@@ -5,10 +5,10 @@ import com.example.driverservice.dto.response.DriverPageResponse;
 import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
 import com.example.driverservice.dto.response.ValidationErrorResponse;
-import com.example.driverservice.integration.client.DriverClientTest;
 import com.example.driverservice.model.enums.Status;
 import com.example.driverservice.repository.DriverRepository;
 import com.example.driverservice.util.TestDriverUtil;
+import com.example.driverservice.util.client.DriverClientUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,9 +16,11 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,22 +36,25 @@ public class DriverControllerTest {
 
     private final DriverRepository driverRepository;
 
-    private final DriverClientTest driverClientTest;
-
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
+
+    @Container
+    static final KafkaContainer kafka = new KafkaContainer(
+            DockerImageName.parse("confluentinc/cp-kafka:latest")
+    );
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
         dynamicPropertyRegistry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
         dynamicPropertyRegistry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         dynamicPropertyRegistry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+        dynamicPropertyRegistry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
 
     @Autowired
-    public DriverControllerTest(DriverRepository driverRepository, DriverClientTest driverClientTest) {
+    public DriverControllerTest(DriverRepository driverRepository) {
         this.driverRepository = driverRepository;
-        this.driverClientTest = driverClientTest;
     }
 
     @Test
@@ -58,7 +63,7 @@ public class DriverControllerTest {
         DriverResponse expected = TestDriverUtil.getDriverResponse();
 
         DriverResponse actual =
-                driverClientTest.createDriverWhenPhoneNumberUniqueAndDataValidRequest(port, driverRequest);
+                DriverClientUtil.createDriverWhenPhoneNumberUniqueAndDataValidRequest(port, driverRequest);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -73,7 +78,7 @@ public class DriverControllerTest {
         DriverRequest driverRequest = TestDriverUtil.getDriverRequestWithExistingNumber();
         ExceptionResponse expected = TestDriverUtil.getPhoneNumberExistsExceptionResponse();
 
-        ExceptionResponse actual = driverClientTest.createDriverWhenPhoneNumberAlreadyExistsRequest(port, driverRequest);
+        ExceptionResponse actual = DriverClientUtil.createDriverWhenPhoneNumberAlreadyExistsRequest(port, driverRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -83,7 +88,7 @@ public class DriverControllerTest {
         DriverRequest driverRequest = TestDriverUtil.getDriverRequestWithInvalidData();
         ValidationErrorResponse expected = TestDriverUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = driverClientTest.createDriverWhenDataNotValidRequest(port, driverRequest);
+        ValidationErrorResponse actual = DriverClientUtil.createDriverWhenDataNotValidRequest(port, driverRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -94,9 +99,9 @@ public class DriverControllerTest {
         DriverRequest driverRequest = TestDriverUtil.getDriverRequest();
         DriverResponse expected = TestDriverUtil.getDriverResponse();
         expected.setId(driverId);
-        expected.setRating(TestDriverUtil.getDriverRating().getAverageRating());
+        expected.setRating(TestDriverUtil.getSecondDriverRating().getAverageRating());
 
-        DriverResponse actual = driverClientTest.editDriverWhenDataValidRequest(port, driverRequest, driverId);
+        DriverResponse actual = DriverClientUtil.editDriverWhenDataValidRequest(port, driverRequest, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -107,7 +112,7 @@ public class DriverControllerTest {
         DriverRequest driverRequest = TestDriverUtil.getDriverRequestWithInvalidData();
         ValidationErrorResponse expected = TestDriverUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = driverClientTest.editDriverWhenInvalidDataRequest(port, driverRequest, driverId);
+        ValidationErrorResponse actual = DriverClientUtil.editDriverWhenInvalidDataRequest(port, driverRequest, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -119,7 +124,7 @@ public class DriverControllerTest {
         ExceptionResponse expected = TestDriverUtil.getDriverNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                driverClientTest.editDriverWhenDriverNotFoundRequest(port, driverRequest, invalidDriverId);
+                DriverClientUtil.editDriverWhenDriverNotFoundRequest(port, driverRequest, invalidDriverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -129,7 +134,7 @@ public class DriverControllerTest {
         Long existingDriverId = TestDriverUtil.getSecondDriverId();
         DriverResponse expected = TestDriverUtil.getSecondDriverResponse();
 
-        DriverResponse actual = driverClientTest.getDriverByIdWhenDriverExistsRequest(port, existingDriverId);
+        DriverResponse actual = DriverClientUtil.getDriverByIdWhenDriverExistsRequest(port, existingDriverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -139,7 +144,7 @@ public class DriverControllerTest {
         Long invalidDriverId = TestDriverUtil.getInvalidId();
         ExceptionResponse expected = TestDriverUtil.getDriverNotFoundExceptionResponse();
 
-        ExceptionResponse actual = driverClientTest.getDriverByIdWhenDriverNotExistsRequest(port, invalidDriverId);
+        ExceptionResponse actual = DriverClientUtil.getDriverByIdWhenDriverNotExistsRequest(port, invalidDriverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -151,7 +156,7 @@ public class DriverControllerTest {
         String sortBy = TestDriverUtil.getCorrectSortField();
         DriverPageResponse expected = TestDriverUtil.getDriverPageResponse();
 
-        DriverPageResponse actual = driverClientTest.getAllDriversRequest(port, page, size, sortBy);
+        DriverPageResponse actual = DriverClientUtil.getAllDriversRequest(port, page, size, sortBy);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -163,7 +168,7 @@ public class DriverControllerTest {
         String sortBy = TestDriverUtil.getIncorrectSortField();
         ExceptionResponse expected = TestDriverUtil.getIncorrectFieldExceptionResponse();
 
-        ExceptionResponse actual = driverClientTest.getAllDriversWhenIncorrectFieldRequest(port, page, size, sortBy);
+        ExceptionResponse actual = DriverClientUtil.getAllDriversWhenIncorrectFieldRequest(port, page, size, sortBy);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -172,14 +177,14 @@ public class DriverControllerTest {
     void deleteDriver_WhenDriverExists_ShouldReturnNotFoundAfterDeletion() {
         Long existingDriverId = TestDriverUtil.getSecondDriverId();
 
-        driverClientTest.deleteDriverWhenDriverExistsRequest(port, existingDriverId);
+        DriverClientUtil.deleteDriverWhenDriverExistsRequest(port, existingDriverId);
     }
 
     @Test
     void deleteDriver_WhenDriverNotExists_ShouldReturnNotFound() {
         Long invalidDriverId = TestDriverUtil.getInvalidId();
 
-        driverClientTest.deleteDriverWhenDriverNotExistsRequest(port, invalidDriverId);
+        DriverClientUtil.deleteDriverWhenDriverNotExistsRequest(port, invalidDriverId);
     }
 
 
@@ -189,7 +194,7 @@ public class DriverControllerTest {
         DriverResponse expected = TestDriverUtil.getThirdDriverResponse();
         expected.setStatus(Status.FREE.name());
 
-        DriverResponse actual = driverClientTest.changeStatusToFreeWhenChangeStatusBusyRequest(port, driverId);
+        DriverResponse actual = DriverClientUtil.changeStatusToFreeWhenChangeStatusBusyRequest(port, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -199,7 +204,7 @@ public class DriverControllerTest {
         Long invalidDriverId = TestDriverUtil.getInvalidId();
         ExceptionResponse expected = TestDriverUtil.getDriverNotFoundExceptionResponse();
 
-        ExceptionResponse actual = driverClientTest.changeStatusToFreeWhenDriverNotFoundRequest(port, invalidDriverId);
+        ExceptionResponse actual = DriverClientUtil.changeStatusToFreeWhenDriverNotFoundRequest(port, invalidDriverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -209,7 +214,7 @@ public class DriverControllerTest {
         Long driverId = TestDriverUtil.getSecondDriverId();
         ExceptionResponse expected = TestDriverUtil.getStatusExceptionResponse();
 
-        ExceptionResponse actual = driverClientTest.changeStatusToFreeWhenStatusAlreadyFreeRequest(port, driverId);
+        ExceptionResponse actual = DriverClientUtil.changeStatusToFreeWhenStatusAlreadyFreeRequest(port, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
