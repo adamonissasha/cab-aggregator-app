@@ -1,4 +1,4 @@
-package com.example.ridesservice.integration.client;
+package com.example.ridesservice.util.client;
 
 import com.example.ridesservice.dto.request.CreateRideRequest;
 import com.example.ridesservice.dto.request.EditRideRequest;
@@ -10,22 +10,23 @@ import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.dto.response.RidesPageResponse;
 import com.example.ridesservice.dto.response.ValidationErrorResponse;
 import io.restassured.http.ContentType;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 
 import static io.restassured.RestAssured.given;
 
-@Component
-public class RideClientTest {
-    private static final String RIDE_SERVICE_URL = "ride";
-    private static final String ID_PARAMETER_NAME = "id";
-    private static final String PAGE_PARAMETER_NAME = "page";
-    private static final String SIZE_PARAMETER_NAME = "size";
-    private static final String SORT_PARAMETER_NAME = "sortBy";
-    private static final String PASSENGER_ID_PARAMETER_NAME = "passengerId";
-    private static final String DRIVER_ID_PARAMETER_NAME = "driverId";
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class RideClientUtil {
+    static String RIDE_SERVICE_URL = "ride";
+    static String ID_PARAMETER_NAME = "id";
+    static String PAGE_PARAMETER_NAME = "page";
+    static String SIZE_PARAMETER_NAME = "size";
+    static String SORT_PARAMETER_NAME = "sortBy";
+    static String PASSENGER_ID_PARAMETER_NAME = "passengerId";
+    static String DRIVER_ID_PARAMETER_NAME = "driverId";
 
-    public PassengerRideResponse createRideWhenDataValidRequest(int port, CreateRideRequest createRideRequest) {
+    public static PassengerRideResponse createRideWhenDataValidRequest(int port, CreateRideRequest createRideRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -38,8 +39,8 @@ public class RideClientTest {
                 .as(PassengerRideResponse.class);
     }
 
-    public ExceptionResponse createRideWhenPassengerRideAlreadyExistsRequest(int port,
-                                                                             CreateRideRequest createRideRequest) {
+    public static ExceptionResponse createRideWhenPassengerRideAlreadyExistsRequest(int port,
+                                                                                    CreateRideRequest createRideRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -52,8 +53,8 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ExceptionResponse createRideWhenIncorrectPaymentMethodRequest(int port,
-                                                                         CreateRideRequest createRideRequest) {
+    public static ExceptionResponse createRideWhenIncorrectPaymentMethodRequest(int port,
+                                                                                CreateRideRequest createRideRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -66,7 +67,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ValidationErrorResponse createRideWhenDataInvalidRequest(int port, CreateRideRequest createRideRequest) {
+    public static ValidationErrorResponse createRideWhenDataInvalidRequest(int port, CreateRideRequest createRideRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -79,7 +80,7 @@ public class RideClientTest {
                 .as(ValidationErrorResponse.class);
     }
 
-    public RideResponse getRideByRideIdWhenRideExistsRequest(int port, Long existingRideId) {
+    public static RideResponse getRideByRideIdWhenRideExistsRequest(int port, Long existingRideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingRideId)
@@ -91,7 +92,7 @@ public class RideClientTest {
                 .as(RideResponse.class);
     }
 
-    public ExceptionResponse getRideByRideIdWhenRideNotExistsRequest(int port, Long invalidRideId) {
+    public static ExceptionResponse getRideByRideIdWhenRideNotExistsRequest(int port, Long invalidRideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidRideId)
@@ -103,7 +104,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public PassengerRideResponse editRideWhenValidDataRequest(int port, Long rideId, EditRideRequest editRideRequest) {
+    public static PassengerRideResponse editRideWhenValidDataRequest(int port, Long rideId, EditRideRequest editRideRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -117,9 +118,9 @@ public class RideClientTest {
                 .as(PassengerRideResponse.class);
     }
 
-    public ValidationErrorResponse editRideWhenInvalidDataRequest(int port,
-                                                                  EditRideRequest editRideRequest,
-                                                                  Long rideId) {
+    public static ValidationErrorResponse editRideWhenInvalidDataRequest(int port,
+                                                                         EditRideRequest editRideRequest,
+                                                                         Long rideId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -133,7 +134,7 @@ public class RideClientTest {
                 .as(ValidationErrorResponse.class);
     }
 
-    public ExceptionResponse editRideWhenRideNotFoundRequest(int port, EditRideRequest editRideRequest, Long invalidRideId) {
+    public static ExceptionResponse editRideWhenRideNotFoundRequest(int port, EditRideRequest editRideRequest, Long invalidRideId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -147,9 +148,9 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ExceptionResponse editRideWhenStatusCanceledRequest(int port,
-                                                               Long rideId,
-                                                               EditRideRequest editRideRequest) {
+    public static ExceptionResponse editRideWhenStatusCanceledRequest(int port,
+                                                                      Long rideId,
+                                                                      EditRideRequest editRideRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -163,7 +164,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public RideResponse startRideRequest(int port, Long rideId) {
+    public static RideResponse startRideRequest(int port, Long rideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, rideId)
@@ -175,7 +176,7 @@ public class RideClientTest {
                 .as(RideResponse.class);
     }
 
-    public ExceptionResponse startRideWhenRideNotFoundRequest(int port, Long invalidRideId) {
+    public static ExceptionResponse startRideWhenRideNotFoundRequest(int port, Long invalidRideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidRideId)
@@ -187,7 +188,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ExceptionResponse startRideWhenStatusCanceledRequest(int port, Long rideId) {
+    public static ExceptionResponse startRideWhenStatusCanceledRequest(int port, Long rideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, rideId)
@@ -199,7 +200,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public RideResponse cancelRideRequest(int port, Long rideId) {
+    public static RideResponse cancelRideRequest(int port, Long rideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, rideId)
@@ -211,7 +212,7 @@ public class RideClientTest {
                 .as(RideResponse.class);
     }
 
-    public ExceptionResponse cancelRideWhenRideNotFoundRequest(int port, Long invalidRideId) {
+    public static ExceptionResponse cancelRideWhenRideNotFoundRequest(int port, Long invalidRideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidRideId)
@@ -223,7 +224,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ExceptionResponse cancelRideWhenStatusCanceledRequest(int port, Long rideId) {
+    public static ExceptionResponse cancelRideWhenStatusCanceledRequest(int port, Long rideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, rideId)
@@ -235,7 +236,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public RideResponse completeRideRequest(int port, Long rideId) {
+    public static RideResponse completeRideRequest(int port, Long rideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, rideId)
@@ -247,7 +248,7 @@ public class RideClientTest {
                 .as(RideResponse.class);
     }
 
-    public ExceptionResponse completeRideWhenRideNotFoundRequest(int port, Long invalidRideId) {
+    public static ExceptionResponse completeRideWhenRideNotFoundRequest(int port, Long invalidRideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidRideId)
@@ -259,7 +260,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public ExceptionResponse completeRideWhenStatusCanceledRequest(int port, Long rideId) {
+    public static ExceptionResponse completeRideWhenStatusCanceledRequest(int port, Long rideId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, rideId)
@@ -271,8 +272,8 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public PassengerRidesPageResponse getAllPassengerRidesRequest(int port, int page, int size,
-                                                                  String sortBy, Long passengerId) {
+    public static PassengerRidesPageResponse getAllPassengerRidesRequest(int port, int page, int size,
+                                                                         String sortBy, Long passengerId) {
         return given()
                 .port(port)
                 .pathParam(PASSENGER_ID_PARAMETER_NAME, passengerId)
@@ -287,8 +288,8 @@ public class RideClientTest {
                 .as(PassengerRidesPageResponse.class);
     }
 
-    public ExceptionResponse getAllPassengerRidesWhenIncorrectFieldRequest(int port, int page, int size,
-                                                                           String sortBy, Long passengerId) {
+    public static ExceptionResponse getAllPassengerRidesWhenIncorrectFieldRequest(int port, int page, int size,
+                                                                                  String sortBy, Long passengerId) {
         return given()
                 .port(port)
                 .pathParam(PASSENGER_ID_PARAMETER_NAME, passengerId)
@@ -303,8 +304,8 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public RidesPageResponse getAllDriverRidesRequest(int port, int page, int size,
-                                                      String sortBy, Long driverId) {
+    public static RidesPageResponse getAllDriverRidesRequest(int port, int page, int size,
+                                                             String sortBy, Long driverId) {
         return given()
                 .port(port)
                 .pathParam(DRIVER_ID_PARAMETER_NAME, driverId)
@@ -319,8 +320,8 @@ public class RideClientTest {
                 .as(RidesPageResponse.class);
     }
 
-    public ExceptionResponse getAllDriverRidesWhenIncorrectFieldRequest(int port, int page, int size,
-                                                                        String sortBy, Long driverId) {
+    public static ExceptionResponse getAllDriverRidesWhenIncorrectFieldRequest(int port, int page, int size,
+                                                                               String sortBy, Long driverId) {
         return given()
                 .port(port)
                 .pathParam(DRIVER_ID_PARAMETER_NAME, driverId)
@@ -335,7 +336,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public void ratePassengerWhenRideExistsRequest(int port, Long rideId, RatingRequest ratingRequest) {
+    public static void ratePassengerWhenRideExistsRequest(int port, Long rideId, RatingRequest ratingRequest) {
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -347,9 +348,9 @@ public class RideClientTest {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    public ExceptionResponse ratePassengerWhenRideNotFoundRequest(int port,
-                                                                  Long invalidRideId,
-                                                                  RatingRequest ratingRequest) {
+    public static ExceptionResponse ratePassengerWhenRideNotFoundRequest(int port,
+                                                                         Long invalidRideId,
+                                                                         RatingRequest ratingRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -363,7 +364,7 @@ public class RideClientTest {
                 .as(ExceptionResponse.class);
     }
 
-    public void rateDriverWhenRideExistsRequest(int port, Long rideId, RatingRequest ratingRequest) {
+    public static void rateDriverWhenRideExistsRequest(int port, Long rideId, RatingRequest ratingRequest) {
         given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -375,9 +376,9 @@ public class RideClientTest {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    public ExceptionResponse rateDriverWhenRideNotFoundRequest(int port,
-                                                               Long invalidRideId,
-                                                               RatingRequest ratingRequest) {
+    public static ExceptionResponse rateDriverWhenRideNotFoundRequest(int port,
+                                                                      Long invalidRideId,
+                                                                      RatingRequest ratingRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)

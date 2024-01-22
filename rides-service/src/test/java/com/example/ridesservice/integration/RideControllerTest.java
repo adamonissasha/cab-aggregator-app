@@ -9,10 +9,10 @@ import com.example.ridesservice.dto.response.PassengerRidesPageResponse;
 import com.example.ridesservice.dto.response.RideResponse;
 import com.example.ridesservice.dto.response.RidesPageResponse;
 import com.example.ridesservice.dto.response.ValidationErrorResponse;
-import com.example.ridesservice.integration.client.RideClientTest;
 import com.example.ridesservice.repository.RideRepository;
 import com.example.ridesservice.repository.StopRepository;
 import com.example.ridesservice.util.TestRideUtil;
+import com.example.ridesservice.util.client.RideClientUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,9 +20,11 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
+import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,23 +44,25 @@ public class RideControllerTest {
 
     private final StopRepository stopRepository;
 
-    private final RideClientTest rideClientTest;
-
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
+
+    @Container
+    static final KafkaContainer kafkaContainer = new KafkaContainer(
+            DockerImageName.parse("confluentinc/cp-kafka:latest")
+    );
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
         dynamicPropertyRegistry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
         dynamicPropertyRegistry.add("spring.datasource.username", postgreSQLContainer::getUsername);
         dynamicPropertyRegistry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+        dynamicPropertyRegistry.add("spring.kafka.bootstrap-servers", kafkaContainer::getBootstrapServers);
     }
 
     @Autowired
-    public RideControllerTest(RideRepository rideRepository, RideClientTest rideClientTest,
-                              StopRepository stopRepository) {
+    public RideControllerTest(RideRepository rideRepository, StopRepository stopRepository) {
         this.rideRepository = rideRepository;
-        this.rideClientTest = rideClientTest;
         this.stopRepository = stopRepository;
     }
 
@@ -67,7 +71,7 @@ public class RideControllerTest {
         CreateRideRequest createRideRequest = TestRideUtil.getCreateRideRequest();
         PassengerRideResponse expected = TestRideUtil.getPassengerRideResponse();
 
-        PassengerRideResponse actual = rideClientTest.createRideWhenDataValidRequest(port, createRideRequest);
+        PassengerRideResponse actual = RideClientUtil.createRideWhenDataValidRequest(port, createRideRequest);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -87,7 +91,7 @@ public class RideControllerTest {
         ExceptionResponse expected = TestRideUtil.getPassengerExceptionResponse();
 
         ExceptionResponse actual =
-                rideClientTest.createRideWhenPassengerRideAlreadyExistsRequest(port, createRideRequest);
+                RideClientUtil.createRideWhenPassengerRideAlreadyExistsRequest(port, createRideRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -98,7 +102,7 @@ public class RideControllerTest {
         ExceptionResponse expected = TestRideUtil.getPaymentMethodExceptionResponse();
 
         ExceptionResponse actual =
-                rideClientTest.createRideWhenIncorrectPaymentMethodRequest(port, createRideRequest);
+                RideClientUtil.createRideWhenIncorrectPaymentMethodRequest(port, createRideRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -108,7 +112,7 @@ public class RideControllerTest {
         CreateRideRequest createRideRequest = TestRideUtil.getCreateRideRequestWithInvalidData();
         ValidationErrorResponse expected = TestRideUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = rideClientTest.createRideWhenDataInvalidRequest(port, createRideRequest);
+        ValidationErrorResponse actual = RideClientUtil.createRideWhenDataInvalidRequest(port, createRideRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -119,7 +123,7 @@ public class RideControllerTest {
         EditRideRequest editRideRequest = TestRideUtil.getEditRideRequest();
         PassengerRideResponse expected = TestRideUtil.getEditedPassengerRideResponse();
 
-        PassengerRideResponse actual = rideClientTest.editRideWhenValidDataRequest(port, rideId, editRideRequest);
+        PassengerRideResponse actual = RideClientUtil.editRideWhenValidDataRequest(port, rideId, editRideRequest);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -136,7 +140,7 @@ public class RideControllerTest {
         EditRideRequest editRideRequest = TestRideUtil.getEditRideRequestWithInvalidData();
         ValidationErrorResponse expected = TestRideUtil.getValidationErrorResponse();
 
-        ValidationErrorResponse actual = rideClientTest.editRideWhenInvalidDataRequest(port, editRideRequest, rideId);
+        ValidationErrorResponse actual = RideClientUtil.editRideWhenInvalidDataRequest(port, editRideRequest, rideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -148,7 +152,7 @@ public class RideControllerTest {
         ExceptionResponse expected = TestRideUtil.getRideNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                rideClientTest.editRideWhenRideNotFoundRequest(port, editRideRequest, invalidRideId);
+                RideClientUtil.editRideWhenRideNotFoundRequest(port, editRideRequest, invalidRideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -159,7 +163,7 @@ public class RideControllerTest {
         EditRideRequest editRideRequest = TestRideUtil.getEditRideRequest();
         ExceptionResponse expected = TestRideUtil.getStatusExceptionResponse();
 
-        ExceptionResponse actual = rideClientTest.editRideWhenStatusCanceledRequest(port, rideId, editRideRequest);
+        ExceptionResponse actual = RideClientUtil.editRideWhenStatusCanceledRequest(port, rideId, editRideRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -169,7 +173,7 @@ public class RideControllerTest {
         Long rideId = TestRideUtil.getFirstRideId();
         RideResponse expected = TestRideUtil.getStartedRideResponse();
 
-        RideResponse actual = rideClientTest.startRideRequest(port, rideId);
+        RideResponse actual = RideClientUtil.startRideRequest(port, rideId);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -188,7 +192,7 @@ public class RideControllerTest {
         Long rideId = TestRideUtil.getSecondRideId();
         ExceptionResponse expected = TestRideUtil.getStatusExceptionResponse();
 
-        ExceptionResponse actual = rideClientTest.startRideWhenStatusCanceledRequest(port, rideId);
+        ExceptionResponse actual = RideClientUtil.startRideWhenStatusCanceledRequest(port, rideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -198,7 +202,7 @@ public class RideControllerTest {
         Long invalidRideId = TestRideUtil.getInvalidRideId();
         ExceptionResponse expected = TestRideUtil.getRideNotFoundExceptionResponse();
 
-        ExceptionResponse actual = rideClientTest.startRideWhenRideNotFoundRequest(port, invalidRideId);
+        ExceptionResponse actual = RideClientUtil.startRideWhenRideNotFoundRequest(port, invalidRideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -208,7 +212,7 @@ public class RideControllerTest {
         Long rideId = TestRideUtil.getFirstRideId();
         RideResponse expected = TestRideUtil.getCanceledRideResponse();
 
-        RideResponse actual = rideClientTest.cancelRideRequest(port, rideId);
+        RideResponse actual = RideClientUtil.cancelRideRequest(port, rideId);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -224,7 +228,7 @@ public class RideControllerTest {
         Long rideId = TestRideUtil.getSecondRideId();
         ExceptionResponse expected = TestRideUtil.getStatusExceptionResponse();
 
-        ExceptionResponse actual = rideClientTest.cancelRideWhenStatusCanceledRequest(port, rideId);
+        ExceptionResponse actual = RideClientUtil.cancelRideWhenStatusCanceledRequest(port, rideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -234,7 +238,7 @@ public class RideControllerTest {
         Long invalidRideId = TestRideUtil.getInvalidRideId();
         ExceptionResponse expected = TestRideUtil.getRideNotFoundExceptionResponse();
 
-        ExceptionResponse actual = rideClientTest.cancelRideWhenRideNotFoundRequest(port, invalidRideId);
+        ExceptionResponse actual = RideClientUtil.cancelRideWhenRideNotFoundRequest(port, invalidRideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -244,7 +248,7 @@ public class RideControllerTest {
         Long rideId = TestRideUtil.getThirdRideId();
         RideResponse expected = TestRideUtil.getCompletedRideResponse();
 
-        RideResponse actual = rideClientTest.completeRideRequest(port, rideId);
+        RideResponse actual = RideClientUtil.completeRideRequest(port, rideId);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -266,7 +270,7 @@ public class RideControllerTest {
         Long rideId = TestRideUtil.getSecondRideId();
         ExceptionResponse expected = TestRideUtil.getStatusExceptionResponse();
 
-        ExceptionResponse actual = rideClientTest.completeRideWhenStatusCanceledRequest(port, rideId);
+        ExceptionResponse actual = RideClientUtil.completeRideWhenStatusCanceledRequest(port, rideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -277,7 +281,7 @@ public class RideControllerTest {
         ExceptionResponse expected = TestRideUtil.getRideNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                rideClientTest.completeRideWhenRideNotFoundRequest(port, invalidRideId);
+                RideClientUtil.completeRideWhenRideNotFoundRequest(port, invalidRideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -287,7 +291,7 @@ public class RideControllerTest {
         Long existingRideId = TestRideUtil.getFirstRideId();
         RideResponse expected = TestRideUtil.getFirstRideResponse();
 
-        RideResponse actual = rideClientTest.getRideByRideIdWhenRideExistsRequest(port, existingRideId);
+        RideResponse actual = RideClientUtil.getRideByRideIdWhenRideExistsRequest(port, existingRideId);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -303,7 +307,7 @@ public class RideControllerTest {
         Long invalidRideId = TestRideUtil.getInvalidRideId();
         ExceptionResponse expected = TestRideUtil.getRideNotFoundExceptionResponse();
 
-        ExceptionResponse actual = rideClientTest.getRideByRideIdWhenRideNotExistsRequest(port, invalidRideId);
+        ExceptionResponse actual = RideClientUtil.getRideByRideIdWhenRideNotExistsRequest(port, invalidRideId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -317,7 +321,7 @@ public class RideControllerTest {
         PassengerRidesPageResponse expected = TestRideUtil.getPassengerRidesPageResponse();
 
         PassengerRidesPageResponse actual =
-                rideClientTest.getAllPassengerRidesRequest(port, page, size, sortBy, passengerId);
+                RideClientUtil.getAllPassengerRidesRequest(port, page, size, sortBy, passengerId);
 
         assertThat(actual.getRides())
                 .usingElementComparator(
@@ -338,7 +342,7 @@ public class RideControllerTest {
         ExceptionResponse expected = TestRideUtil.getIncorrectFieldExceptionResponse();
 
         ExceptionResponse actual =
-                rideClientTest.getAllPassengerRidesWhenIncorrectFieldRequest(port, page, size, sortBy, passengerId);
+                RideClientUtil.getAllPassengerRidesWhenIncorrectFieldRequest(port, page, size, sortBy, passengerId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -352,7 +356,7 @@ public class RideControllerTest {
         RidesPageResponse expected = TestRideUtil.getDriverRidesPageResponse();
 
         RidesPageResponse actual =
-                rideClientTest.getAllDriverRidesRequest(port, page, size, sortBy, driverId);
+                RideClientUtil.getAllDriverRidesRequest(port, page, size, sortBy, driverId);
 
         assertThat(actual.getRides())
                 .usingElementComparator(
@@ -373,7 +377,7 @@ public class RideControllerTest {
         ExceptionResponse expected = TestRideUtil.getIncorrectFieldExceptionResponse();
 
         ExceptionResponse actual =
-                rideClientTest.getAllDriverRidesWhenIncorrectFieldRequest(port, page, size, sortBy, driverId);
+                RideClientUtil.getAllDriverRidesWhenIncorrectFieldRequest(port, page, size, sortBy, driverId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -383,7 +387,7 @@ public class RideControllerTest {
         Long rideId = TestRideUtil.getFourthRideId();
         RatingRequest ratingRequest = TestRideUtil.getRatingRequest();
 
-        rideClientTest.ratePassengerWhenRideExistsRequest(port, rideId, ratingRequest);
+        RideClientUtil.ratePassengerWhenRideExistsRequest(port, rideId, ratingRequest);
     }
 
     @Test
@@ -393,7 +397,7 @@ public class RideControllerTest {
         ExceptionResponse expected = TestRideUtil.getRideNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                rideClientTest.ratePassengerWhenRideNotFoundRequest(port, invalidRideId, ratingRequest);
+                RideClientUtil.ratePassengerWhenRideNotFoundRequest(port, invalidRideId, ratingRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -403,7 +407,7 @@ public class RideControllerTest {
         Long rideId = TestRideUtil.getFourthRideId();
         RatingRequest ratingRequest = TestRideUtil.getRatingRequest();
 
-        rideClientTest.rateDriverWhenRideExistsRequest(port, rideId, ratingRequest);
+        RideClientUtil.rateDriverWhenRideExistsRequest(port, rideId, ratingRequest);
     }
 
     @Test
@@ -412,7 +416,7 @@ public class RideControllerTest {
         RatingRequest ratingRequest = TestRideUtil.getRatingRequest();
         ExceptionResponse expected = TestRideUtil.getRideNotFoundExceptionResponse();
 
-        ExceptionResponse actual = rideClientTest.rateDriverWhenRideNotFoundRequest(port, invalidRideId, ratingRequest);
+        ExceptionResponse actual = RideClientUtil.rateDriverWhenRideNotFoundRequest(port, invalidRideId, ratingRequest);
 
         assertThat(actual).isEqualTo(expected);
     }

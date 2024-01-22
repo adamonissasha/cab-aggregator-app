@@ -5,9 +5,9 @@ import com.example.ridesservice.dto.response.AllPromoCodesResponse;
 import com.example.ridesservice.dto.response.ExceptionResponse;
 import com.example.ridesservice.dto.response.PromoCodeResponse;
 import com.example.ridesservice.dto.response.ValidationErrorResponse;
-import com.example.ridesservice.integration.client.PromoCodeClientTest;
 import com.example.ridesservice.repository.PromoCodeRepository;
 import com.example.ridesservice.util.TestPromoCodeUtil;
+import com.example.ridesservice.util.client.PromoCodeClientUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,8 +33,6 @@ public class PromoCodeControllerTest {
 
     private final PromoCodeRepository promoCodeRepository;
 
-    private final PromoCodeClientTest promoCodeClientTest;
-
     @Container
     static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
 
@@ -46,9 +44,8 @@ public class PromoCodeControllerTest {
     }
 
     @Autowired
-    public PromoCodeControllerTest(PromoCodeRepository promoCodeRepository, PromoCodeClientTest promoCodeClientTest) {
+    public PromoCodeControllerTest(PromoCodeRepository promoCodeRepository) {
         this.promoCodeRepository = promoCodeRepository;
-        this.promoCodeClientTest = promoCodeClientTest;
     }
 
     @Test
@@ -57,7 +54,7 @@ public class PromoCodeControllerTest {
         PromoCodeResponse expected = TestPromoCodeUtil.getNewPromoCodeResponse();
 
         PromoCodeResponse actual =
-                promoCodeClientTest.createPromoCodeWhenPhoneNumberUniqueAndDataValidRequest(port, promoCodeRequest);
+                PromoCodeClientUtil.createPromoCodeWhenPhoneNumberUniqueAndDataValidRequest(port, promoCodeRequest);
 
         assertThat(actual)
                 .usingRecursiveComparison()
@@ -73,7 +70,7 @@ public class PromoCodeControllerTest {
         ExceptionResponse expected = TestPromoCodeUtil.getPromoCodeExistsExceptionResponse();
 
         ExceptionResponse actual =
-                promoCodeClientTest.createPromoCodeWhenPromoCodeAlreadyExistsRequest(port, promoCodeRequest);
+                PromoCodeClientUtil.createPromoCodeWhenPromoCodeAlreadyExistsRequest(port, promoCodeRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -84,7 +81,7 @@ public class PromoCodeControllerTest {
         ValidationErrorResponse expected = TestPromoCodeUtil.getValidationErrorResponse();
 
         ValidationErrorResponse actual =
-                promoCodeClientTest.createPromoCodeWhenDataNotValidRequest(port, promoCodeRequest);
+                PromoCodeClientUtil.createPromoCodeWhenDataNotValidRequest(port, promoCodeRequest);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -97,7 +94,7 @@ public class PromoCodeControllerTest {
         expected.setId(promoCodeId);
 
         PromoCodeResponse actual =
-                promoCodeClientTest.editPromoCodeWhenValidDataRequest(port, promoCodeRequest, promoCodeId);
+                PromoCodeClientUtil.editPromoCodeWhenValidDataRequest(port, promoCodeRequest, promoCodeId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -109,7 +106,7 @@ public class PromoCodeControllerTest {
         ValidationErrorResponse expected = TestPromoCodeUtil.getValidationErrorResponse();
 
         ValidationErrorResponse actual =
-                promoCodeClientTest.editPromoCodeWhenInvalidDataRequest(port, promoCodeRequest, promoCodeId);
+                PromoCodeClientUtil.editPromoCodeWhenInvalidDataRequest(port, promoCodeRequest, promoCodeId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -121,7 +118,7 @@ public class PromoCodeControllerTest {
         ExceptionResponse expected = TestPromoCodeUtil.getPromoCodeNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                promoCodeClientTest.editPromoCodeWhenPromoCodeNotFoundRequest(port, promoCodeRequest, invalidPromoCodeId);
+                PromoCodeClientUtil.editPromoCodeWhenPromoCodeNotFoundRequest(port, promoCodeRequest, invalidPromoCodeId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -132,7 +129,7 @@ public class PromoCodeControllerTest {
         PromoCodeResponse expected = TestPromoCodeUtil.getFirstPromoCodeResponse();
 
         PromoCodeResponse actual =
-                promoCodeClientTest.getPromoCodeByIdWhenPromoCodeExistsRequest(port, existingPromoCodeId);
+                PromoCodeClientUtil.getPromoCodeByIdWhenPromoCodeExistsRequest(port, existingPromoCodeId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -143,7 +140,7 @@ public class PromoCodeControllerTest {
         ExceptionResponse expected = TestPromoCodeUtil.getPromoCodeNotFoundExceptionResponse();
 
         ExceptionResponse actual =
-                promoCodeClientTest.getPromoCodeByIdWhenPromoCodeNotExistsRequest(port, invalidPromoCodeId);
+                PromoCodeClientUtil.getPromoCodeByIdWhenPromoCodeNotExistsRequest(port, invalidPromoCodeId);
 
         assertThat(actual).isEqualTo(expected);
     }
@@ -152,7 +149,7 @@ public class PromoCodeControllerTest {
     void getAllPromoCodes_ShouldReturnAllPromoCodesResponse() {
         AllPromoCodesResponse expected = TestPromoCodeUtil.getAllPromoCodesResponse();
 
-        AllPromoCodesResponse actual = promoCodeClientTest.getAllPromoCodesRequest(port);
+        AllPromoCodesResponse actual = PromoCodeClientUtil.getAllPromoCodesRequest(port);
 
         assertThat(actual).isEqualTo(expected);
     }
