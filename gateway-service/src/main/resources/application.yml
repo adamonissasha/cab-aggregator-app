@@ -1,5 +1,112 @@
 server:
   port: 8765
+  netty:
+    connection-timeout: 2s
+    idle-timeout: 15s
+  shutdown: graceful
+
+resilience4j:
+  retry:
+    instances:
+      ride-service:
+        max-attempts: 5
+        wait-duration:
+          seconds: 1
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - io.netty.handler.timeout.TimeoutException
+      driver-service:
+        max-attempts: 5
+        wait-duration:
+          seconds: 1
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - io.netty.handler.timeout.TimeoutException
+      passenger-service:
+        max-attempts: 5
+        wait-duration:
+          seconds: 1
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - io.netty.handler.timeout.TimeoutException
+      bank-service:
+        max-attempts: 5
+        wait-duration:
+          seconds: 1
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - io.netty.handler.timeout.TimeoutException
+
+  ratelimiter:
+    instances:
+      ride-service:
+        limit-for-period: 5
+        limit-refresh-period: 10000
+        timeout-duration: 5000
+      passenger-service:
+        limit-for-period: 5
+        limit-refresh-period: 10000
+        timeout-duration: 5000
+        register-health-indicator: true
+      driver-service:
+        limit-for-period: 5
+        limit-refresh-period: 10000
+        timeout-duration: 5000
+        register-health-indicator: true
+      bank-service:
+        limit-for-period: 5
+        limit-refresh-period: 10000
+        timeout-duration: 5000
+        register-health-indicator: true
+
+  timelimiter:
+    instances:
+      ride-service:
+        timeout-duration:
+          seconds: 3
+        event-consumer-buffer-size: 100
+        cancel-running-future: true
+      driver-service:
+        timeout-duration:
+          seconds: 3
+        event-consumer-buffer-size: 100
+        cancel-running-future: true
+      passenger-service:
+        timeout-duration:
+          seconds: 3
+        event-consumer-buffer-size: 100
+        cancel-running-future: true
+
+  circuitbreaker:
+    instances:
+      passenger-service:
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 10
+        wait-duration-in-open-state: 6000
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 50
+      driver-service:
+        failure-rate-threshold: 10
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 6000
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 50
+      ride-service:
+        failure-rate-threshold: 10
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 6000
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 50
+      bank-service:
+        failure-rate-threshold: 10
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 6000
+        permitted-number-of-calls-in-half-open-state: 3
+        sliding-window-size: 50
 
 spring:
   application:
@@ -7,30 +114,46 @@ spring:
 
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
       routes:
-        - id: passenger
+        - id: passenger-service
           uri: lb://passenger-service
           predicates:
             - Path=/passenger/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: passengerServiceCircuitBreaker
+                fallbackUri: forward:/fallback/passenger
 
-        - id: driver
+        - id: driver-service
           uri: lb://driver-service
           predicates:
             - Path=/driver/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: driverServiceCircuitBreaker
+                fallbackUri: forward:/fallback/driver
 
-        - id: ride
+        - id: ride-service
           uri: lb://ride-service
           predicates:
             - Path=/ride/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: rideServiceCircuitBreaker
+                fallbackUri: forward:/fallback/ride
 
-        - id: bank
+        - id: bank-service
           uri: lb://bank-service
           predicates:
             - Path=/bank/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: bankCircuitBreaker
+                fallbackUri: forward:/fallback/bank
 
 eureka:
   instance:
