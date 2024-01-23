@@ -30,7 +30,7 @@ spring:
       kafka:
         binder:
           brokers:
-            - localhost:9092
+            - ${KAFKA_URI:localhost:9092}
           key:
             serializer: org.apache.kafka.common.serialization.StringSerializer
           value:
@@ -43,7 +43,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${REGISTRY_SERVICE_URI:http://localhost:8761/eureka/}
 
 bank-service:
   url: ${BANK_SERVICE_URI:http://localhost:8083/bank}

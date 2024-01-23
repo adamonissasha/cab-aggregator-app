@@ -1,8 +1,7 @@
 version: '3.7'
 
 networks:
-  kafka-net:
-    name: kafka-net
+  cab-aggregator:
     driver: bridge
 
 services:
@@ -11,7 +10,7 @@ services:
     container_name: ca-zookeeper
     restart: "no"
     networks:
-      - kafka-net
+      - cab-aggregator
     ports:
       - "2181:2181"
 
@@ -20,13 +19,13 @@ services:
     container_name: ca-kafka
     restart: "no"
     networks:
-      - kafka-net
+      - cab-aggregator
     ports:
       - "9092:9092"
     environment:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER_INTERNAL:PLAINTEXT,DOCKER_EXTERNAL:PLAINTEXT
-      KAFKA_LISTENERS: DOCKER_INTERNAL://:29092,DOCKER_EXTERNAL://:9092
-      KAFKA_ADVERTISED_LISTENERS: DOCKER_INTERNAL://localhost:29092,DOCKER_EXTERNAL://localhost:9092
+      KAFKA_LISTENERS: DOCKER_INTERNAL://kafka:29092,DOCKER_EXTERNAL://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: DOCKER_INTERNAL://kafka:29092,DOCKER_EXTERNAL://localhost:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_BROKER_ID: 1
@@ -34,3 +33,156 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
       - zookeeper
+
+  registry-service:
+    image: registry-service
+    container_name: ca-registry-service
+    build:
+      context: ./registry-service
+    ports:
+      - "8761:8761"
+    networks:
+      - cab-aggregator
+
+  gateway-service:
+    image: gateway-service
+    container_name: ca-gateway-service
+    build:
+      context: ./gateway-service
+    ports:
+      - "8765:8765"
+    networks:
+      - cab-aggregator
+    environment:
+      REGISTRY_SERVICE_URI: http://ca-registry-service:8761/eureka/
+      PASSENGER_SERVICE_URI: http://ca-passenger-service:8082
+#      BOOK_SERVICE_URI: http://book-service:8080
+
+  passenger-service-pg:
+    image: postgres:latest
+    container_name: ca-passenger-service-pg
+    environment:
+      POSTGRES_DB: passenger-db
+      POSTGRES_USER: passenger
+      POSTGRES_PASSWORD: passenger
+    ports:
+      - "5432:5432"
+    networks:
+      - cab-aggregator
+
+  passenger-service:
+    image: passenger-service
+    container_name: ca-passenger-service
+    build:
+      context: ./passenger-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - passenger-service-pg
+      - registry-service
+      - kafka
+    environment:
+      KAFKA_URI: kafka:9092
+      REGISTRY_SERVICE_URI: http://registry-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://passenger-service-pg:5432/passenger-db
+      SPRING_DATASOURCE_USERNAME: passenger
+      SPRING_DATASOURCE_PASSWORD: passenger
+    networks:
+      - cab-aggregator
+
+  driver-service-pg:
+    image: postgres:latest
+    container_name: ca-driver-service-pg
+    environment:
+      POSTGRES_DB: driver-db
+      POSTGRES_USER: driver
+      POSTGRES_PASSWORD: driver
+    ports:
+      - "5433:5432"
+    networks:
+      - cab-aggregator
+
+  driver-service:
+    image: driver-service
+    container_name: ca-driver-service
+    build:
+      context: ./driver-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - driver-service-pg
+      - registry-service
+      - kafka
+    environment:
+      KAFKA_URI: kafka:9092
+      REGISTRY_SERVICE_URI: http://registry-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://driver-service-pg:5432/driver-db
+      SPRING_DATASOURCE_USERNAME: driver
+      SPRING_DATASOURCE_PASSWORD: driver
+    networks:
+      - cab-aggregator
+
+  ride-service-pg:
+    image: postgres:latest
+    container_name: ca-ride-service-pg
+    environment:
+      POSTGRES_DB: ride-db
+      POSTGRES_USER: ride
+      POSTGRES_PASSWORD: ride
+    ports:
+      - "5434:5432"
+    networks:
+      - cab-aggregator
+
+  ride-service:
+    image: ride-service
+    container_name: ca-ride-service
+    build:
+      context: ./ride-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - ride-service-pg
+      - registry-service
+    environment:
+      #        PASSENGER_SERVICE_URI: http://passenger-service:8080/passenger
+      #        DRIVER_SERVICE_URI: http://driver-service:8081/driver
+      REGISTRY_SERVICE_URI: http://registry-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ride-service-pg:5432/ride-db
+      SPRING_DATASOURCE_USERNAME: ride
+      SPRING_DATASOURCE_PASSWORD: ride
+    networks:
+      - cab-aggregator
+  bank-service-pg:
+    image: postgres:latest
+    container_name: ca-bank-service-pg
+    environment:
+      POSTGRES_DB: bank-db
+      POSTGRES_USER: bank
+      POSTGRES_PASSWORD: bank
+    ports:
+      - "5435:5432"
+    networks:
+      - cab-aggregator
+
+  bank-service:
+    image: bank-service
+    container_name: ca-bank-service
+    build:
+      context: ./bank-service
+    ports:
+      - "8083:8083"
+    depends_on:
+      - bank-service-pg
+      - registry-service
+    environment:
+      PASSENGER_SERVICE_URI: http://passenger-service:8080/passenger
+      DRIVER_SERVICE_URI: http://driver-service:8081/driver
+      REGISTRY_SERVICE_URI: http://registry-service:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bank-service-pg:5432/bank-db
+      SPRING_DATASOURCE_USERNAME: bank
+      SPRING_DATASOURCE_PASSWORD: bank
+    networks:
+      - cab-aggregator
+
+

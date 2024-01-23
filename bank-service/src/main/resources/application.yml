@@ -25,7 +25,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${REGISTRY_SERVICE_URI:http://localhost:8761/eureka/}
 
 driver-service:
   url: ${DRIVER_SERVICE_URI:http://localhost:8081/driver}
