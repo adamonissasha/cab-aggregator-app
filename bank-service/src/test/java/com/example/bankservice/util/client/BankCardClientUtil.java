@@ -11,23 +11,22 @@ import com.example.bankservice.dto.response.ExceptionResponse;
 import com.example.bankservice.dto.response.ValidationErrorResponse;
 import com.example.bankservice.model.enums.BankUser;
 import io.restassured.http.ContentType;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import static io.restassured.RestAssured.given;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class BankCardClientUtil {
-    static String BANK_CARD_SERVICE_URL = "bank/card";
-    static String ID_PARAMETER_NAME = "id";
-    static String PAGE_PARAMETER_NAME = "page";
-    static String SIZE_PARAMETER_NAME = "size";
-    static String SORT_PARAMETER_NAME = "sortBy";
-    static String BANK_USER_PARAMETER_NAME = "bankUser";
+    private final String BANK_CARD_SERVICE_URL = "bank/card";
+    private final String ID_PARAMETER_NAME = "id";
+    private final String PAGE_PARAMETER_NAME = "page";
+    private final String SIZE_PARAMETER_NAME = "size";
+    private final String SORT_PARAMETER_NAME = "sortBy";
+    private final String BANK_USER_PARAMETER_NAME = "bankUser";
 
-    public static BankCardResponse createBankCardWhenNumberUniqueAndDataValidRequest(int port,
-                                                                                     BankCardRequest bankCardRequest) {
+    public BankCardResponse createBankCardWhenNumberUniqueAndDataValidRequest(int port,
+                                                                              BankCardRequest bankCardRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -40,8 +39,8 @@ public class BankCardClientUtil {
                 .as(BankCardResponse.class);
     }
 
-    public static ExceptionResponse createBankCardWhenCardNumberAlreadyExistsRequest(int port,
-                                                                                     BankCardRequest bankCardRequest) {
+    public ExceptionResponse createBankCardWhenCardNumberAlreadyExistsRequest(int port,
+                                                                              BankCardRequest bankCardRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -54,8 +53,8 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static ValidationErrorResponse createBankCardWhenDataNotValidRequest(int port,
-                                                                                BankCardRequest bankCardRequest) {
+    public ValidationErrorResponse createBankCardWhenDataNotValidRequest(int port,
+                                                                         BankCardRequest bankCardRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -68,9 +67,9 @@ public class BankCardClientUtil {
                 .as(ValidationErrorResponse.class);
     }
 
-    public static BankCardResponse editBankCardWhenValidDataRequest(int port,
-                                                                    UpdateBankCardRequest bankCardRequest,
-                                                                    Long bankCardId) {
+    public BankCardResponse editBankCardWhenValidDataRequest(int port,
+                                                             UpdateBankCardRequest bankCardRequest,
+                                                             Long bankCardId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -84,9 +83,9 @@ public class BankCardClientUtil {
                 .as(BankCardResponse.class);
     }
 
-    public static ValidationErrorResponse editBankCardWhenInvalidDataRequest(int port,
-                                                                             BankCardRequest bankCardRequest,
-                                                                             Long bankCardId) {
+    public ValidationErrorResponse editBankCardWhenInvalidDataRequest(int port,
+                                                                      BankCardRequest bankCardRequest,
+                                                                      Long bankCardId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -100,9 +99,9 @@ public class BankCardClientUtil {
                 .as(ValidationErrorResponse.class);
     }
 
-    public static ExceptionResponse editBankCardWhenBankCardNotFoundRequest(int port,
-                                                                            BankCardRequest bankCardRequest,
-                                                                            Long invalidBankCardId) {
+    public ExceptionResponse editBankCardWhenBankCardNotFoundRequest(int port,
+                                                                     BankCardRequest bankCardRequest,
+                                                                     Long invalidBankCardId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -116,7 +115,7 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static BankCardResponse getBankCardByIdWhenBankCardExistsRequest(int port, Long existingBankCardId) {
+    public BankCardResponse getBankCardByIdWhenBankCardExistsRequest(int port, Long existingBankCardId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingBankCardId)
@@ -128,7 +127,7 @@ public class BankCardClientUtil {
                 .as(BankCardResponse.class);
     }
 
-    public static ExceptionResponse getBankCardByIdWhenBankCardNotExistsRequest(int port, Long invalidBankCardId) {
+    public ExceptionResponse getBankCardByIdWhenBankCardNotExistsRequest(int port, Long invalidBankCardId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankCardId)
@@ -140,11 +139,11 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static BankCardPageResponse getAllBankCardsRequest(int port,
-                                                              int page,
-                                                              int size,
-                                                              String sortBy,
-                                                              Long bankUserId) {
+    public BankCardPageResponse getAllBankCardsRequest(int port,
+                                                       int page,
+                                                       int size,
+                                                       String sortBy,
+                                                       Long bankUserId) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -160,11 +159,11 @@ public class BankCardClientUtil {
                 .as(BankCardPageResponse.class);
     }
 
-    public static ExceptionResponse getAllBankCardsWhenIncorrectFieldRequest(int port,
-                                                                             int page,
-                                                                             int size,
-                                                                             String sortBy,
-                                                                             Long bankUserId) {
+    public ExceptionResponse getAllBankCardsWhenIncorrectFieldRequest(int port,
+                                                                      int page,
+                                                                      int size,
+                                                                      String sortBy,
+                                                                      Long bankUserId) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -180,7 +179,7 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static void deleteBankCardWhenBankCardExistsRequest(int port, Long existingBankCardId) {
+    public void deleteBankCardWhenBankCardExistsRequest(int port, Long existingBankCardId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingBankCardId)
@@ -190,7 +189,7 @@ public class BankCardClientUtil {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    public static void deleteBankCardWhenBankCardNotExistsRequest(int port, Long invalidBankCardId) {
+    public void deleteBankCardWhenBankCardNotExistsRequest(int port, Long invalidBankCardId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankCardId)
@@ -200,7 +199,7 @@ public class BankCardClientUtil {
                 .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
-    public static void deleteBankUserCardsRequest(int port, Long existingBankCardId) {
+    public void deleteBankUserCardsRequest(int port, Long existingBankCardId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingBankCardId)
@@ -211,7 +210,7 @@ public class BankCardClientUtil {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    public static BankCardResponse makeBankCardDefaultWhenBankCardExistsRequest(int port, Long bankCardId) {
+    public BankCardResponse makeBankCardDefaultWhenBankCardExistsRequest(int port, Long bankCardId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankCardId)
@@ -223,7 +222,7 @@ public class BankCardClientUtil {
                 .as(BankCardResponse.class);
     }
 
-    public static ExceptionResponse makeBankCardDefaultWhenBankCardNotExistsRequest(int port, Long invalidBankCardId) {
+    public ExceptionResponse makeBankCardDefaultWhenBankCardNotExistsRequest(int port, Long invalidBankCardId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankCardId)
@@ -235,7 +234,7 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static BankCardResponse getDefaultBankCardWhenDefaultBankCardExistsRequest(int port, Long bankUserId) {
+    public BankCardResponse getDefaultBankCardWhenDefaultBankCardExistsRequest(int port, Long bankUserId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankUserId)
@@ -248,7 +247,7 @@ public class BankCardClientUtil {
                 .as(BankCardResponse.class);
     }
 
-    public static ExceptionResponse getDefaultBankCardWhenDefaultBankCardNotExistsRequest(int port, Long bankUserId) {
+    public ExceptionResponse getDefaultBankCardWhenDefaultBankCardNotExistsRequest(int port, Long bankUserId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankUserId)
@@ -261,7 +260,7 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static BalanceResponse getBankCardBalanceWhenBankCardExistsRequest(int port, Long existingBankCardId) {
+    public BalanceResponse getBankCardBalanceWhenBankCardExistsRequest(int port, Long existingBankCardId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingBankCardId)
@@ -273,7 +272,7 @@ public class BankCardClientUtil {
                 .as(BalanceResponse.class);
     }
 
-    public static ExceptionResponse getBankCardBalanceWhenBankCardNotExistsRequest(int port, Long invalidBankCardId) {
+    public ExceptionResponse getBankCardBalanceWhenBankCardNotExistsRequest(int port, Long invalidBankCardId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankCardId)
@@ -285,9 +284,9 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static BankCardResponse refillBankCardWhenBankCardExistsRequest(int port,
-                                                                           Long bankCardId,
-                                                                           RefillRequest refillRequest) {
+    public BankCardResponse refillBankCardWhenBankCardExistsRequest(int port,
+                                                                    Long bankCardId,
+                                                                    RefillRequest refillRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankCardId)
@@ -301,9 +300,9 @@ public class BankCardClientUtil {
                 .as(BankCardResponse.class);
     }
 
-    public static ExceptionResponse refillBankCardWhenBankCardNotExistsRequest(int port,
-                                                                               Long invalidBankCardId,
-                                                                               RefillRequest refillRequest) {
+    public ExceptionResponse refillBankCardWhenBankCardNotExistsRequest(int port,
+                                                                        Long invalidBankCardId,
+                                                                        RefillRequest refillRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankCardId)
@@ -317,9 +316,9 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static BankCardResponse withdrawalPaymentFromBankCardWhenBankCardExistsRequest(int port,
-                                                                                          Long bankCardId,
-                                                                                          WithdrawalRequest withdrawalRequest) {
+    public BankCardResponse withdrawalPaymentFromBankCardWhenBankCardExistsRequest(int port,
+                                                                                   Long bankCardId,
+                                                                                   WithdrawalRequest withdrawalRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankCardId)
@@ -333,9 +332,9 @@ public class BankCardClientUtil {
                 .as(BankCardResponse.class);
     }
 
-    public static ExceptionResponse withdrawalPaymentFromBankCardWhenSumMoreThanBalanceRequest(int port,
-                                                                                               Long bankCardId,
-                                                                                               WithdrawalRequest withdrawalRequest) {
+    public ExceptionResponse withdrawalPaymentFromBankCardWhenSumMoreThanBalanceRequest(int port,
+                                                                                        Long bankCardId,
+                                                                                        WithdrawalRequest withdrawalRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankCardId)
@@ -349,9 +348,9 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static ExceptionResponse withdrawalPaymentFromBankCardWhenBankCardNotExistsRequest(int port,
-                                                                                              Long invalidBankCardId,
-                                                                                              WithdrawalRequest withdrawalRequest) {
+    public ExceptionResponse withdrawalPaymentFromBankCardWhenBankCardNotExistsRequest(int port,
+                                                                                       Long invalidBankCardId,
+                                                                                       WithdrawalRequest withdrawalRequest) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidBankCardId)

@@ -5,23 +5,22 @@ import com.example.bankservice.dto.response.BankAccountHistoryPageResponse;
 import com.example.bankservice.dto.response.BankAccountHistoryResponse;
 import com.example.bankservice.dto.response.ExceptionResponse;
 import io.restassured.http.ContentType;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import static io.restassured.RestAssured.given;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class BankAccountHistoryClientUtil {
-    static String BANK_ACCOUNT_SERVICE_URL = "bank/account/{id}/history";
-    static String ID_PARAMETER_NAME = "id";
-    static String PAGE_PARAMETER_NAME = "page";
-    static String SIZE_PARAMETER_NAME = "size";
-    static String SORT_PARAMETER_NAME = "sortBy";
+    private final String BANK_ACCOUNT_SERVICE_URL = "bank/account/{id}/history";
+    private final String ID_PARAMETER_NAME = "id";
+    private final String PAGE_PARAMETER_NAME = "page";
+    private final String SIZE_PARAMETER_NAME = "size";
+    private final String SORT_PARAMETER_NAME = "sortBy";
 
-    public static BankAccountHistoryResponse createBankAccountHistoryRequest(int port,
-                                                                             BankAccountHistoryRequest bankAccountHistoryRequest,
-                                                                             Long bankAccountId) {
+    public BankAccountHistoryResponse createBankAccountHistoryRequest(int port,
+                                                                      BankAccountHistoryRequest bankAccountHistoryRequest,
+                                                                      Long bankAccountId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -35,8 +34,8 @@ public class BankAccountHistoryClientUtil {
                 .as(BankAccountHistoryResponse.class);
     }
 
-    public static BankAccountHistoryPageResponse getAllBankAccountHistoryRecordsRequest(int port, int page, int size,
-                                                                                        String sortBy, Long bankAccountId) {
+    public BankAccountHistoryPageResponse getAllBankAccountHistoryRecordsRequest(int port, int page, int size,
+                                                                                 String sortBy, Long bankAccountId) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -51,8 +50,8 @@ public class BankAccountHistoryClientUtil {
                 .as(BankAccountHistoryPageResponse.class);
     }
 
-    public static ExceptionResponse getAllBankAccountHistoryRecordsWhenIncorrectFieldRequest(int port, int page, int size,
-                                                                                             String sortBy, Long bankAccountId) {
+    public ExceptionResponse getAllBankAccountHistoryRecordsWhenIncorrectFieldRequest(int port, int page, int size,
+                                                                                      String sortBy, Long bankAccountId) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)

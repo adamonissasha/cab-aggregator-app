@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.cloud.contract.wiremock.WireMockSpring;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Sql(scripts = "classpath:sql/delete-test-data.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @Testcontainers
-@AutoConfigureWireMock
 public class BankAccountHistoryControllerTest {
     @LocalServerPort
     private int port;
