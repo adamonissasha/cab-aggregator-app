@@ -1,0 +1,3 @@
+DELETE FROM driver_rating WHERE id IN (98, 99);
+DELETE FROM driver WHERE id IN (99, 100);
+DELETE FROM car WHERE id IN (98, 99);

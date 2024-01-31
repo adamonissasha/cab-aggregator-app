@@ -1,9 +1,9 @@
 package com.example.passengerservice.handler;
 
 import com.example.passengerservice.dto.response.ExceptionResponse;
+import com.example.passengerservice.dto.response.ValidationErrorResponse;
 import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
-import com.example.passengerservice.exception.PassengerRatingNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
     @ExceptionHandler(value = PassengerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handlePassengerException(PassengerNotFoundException ex) {
@@ -28,30 +28,24 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(value = PassengerRatingNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionResponse handlePassengerRatingException(PassengerRatingNotFoundException ex) {
-        return ExceptionResponse.builder()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .message(ex.getMessage())
-                .build();
-    }
-
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleConstraintViolationException(ConstraintViolationException ex) {
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
+        List<String> errors = new ArrayList<>();
         for (ConstraintViolation<?> violation : ex.getConstraintViolations()) {
-            errorResponse.addValidationError(violation.getMessage());
+            errors.add(violation.getMessage());
         }
-        return errorResponse;
+        return ValidationErrorResponse.builder()
+                .errors(errors)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
     }
 
     @ExceptionHandler(value = PhoneNumberUniqueException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handlePhoneNumberUniqueException(PhoneNumberUniqueException ex) {
         return ExceptionResponse.builder()
-                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
                 .build();
     }
@@ -59,12 +53,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ValidationErrorResponse handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
-        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
         List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
-        for (FieldError fieldError : fieldErrors) {
-            errorResponse.addValidationError(fieldError.getDefaultMessage());
-        }
-        return errorResponse;
+
+        List<String> errors = fieldErrors.stream()
+                .map(FieldError::getDefaultMessage)
+                .sorted()
+                .toList();
+
+        return ValidationErrorResponse.builder()
+                .errors(errors)
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .build();
     }
 
     @ExceptionHandler(value = IncorrectFieldNameException.class)

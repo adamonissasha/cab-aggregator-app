@@ -65,7 +65,7 @@ public class DriverRatingServiceImpl implements DriverRatingService {
                 .orElse(0.0);
         return AverageDriverRatingResponse.builder()
                 .averageRating(Math.round(averageRating * 100.0) / 100.0)
-                .passengerId(driverId)
+                .driverId(driverId)
                 .build();
     }
 

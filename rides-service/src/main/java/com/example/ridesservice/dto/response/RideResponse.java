@@ -2,9 +2,11 @@ package com.example.ridesservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,6 +17,8 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode
+@ToString
 public class RideResponse {
     private long rideId;
     private String passengerName;

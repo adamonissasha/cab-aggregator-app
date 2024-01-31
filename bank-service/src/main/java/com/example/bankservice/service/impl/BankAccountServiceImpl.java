@@ -7,13 +7,15 @@ import com.example.bankservice.dto.request.WithdrawalRequest;
 import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankAccountPageResponse;
 import com.example.bankservice.dto.response.BankAccountResponse;
+import com.example.bankservice.dto.response.BankCardResponse;
 import com.example.bankservice.dto.response.BankUserResponse;
+import com.example.bankservice.exception.AccountNumberUniqueException;
 import com.example.bankservice.exception.BankAccountNotFoundException;
-import com.example.bankservice.exception.CardNumberUniqueException;
 import com.example.bankservice.exception.DriverBankAccountException;
 import com.example.bankservice.exception.WithdrawalException;
 import com.example.bankservice.mapper.BankAccountMapper;
 import com.example.bankservice.model.BankAccount;
+import com.example.bankservice.model.enums.BankUser;
 import com.example.bankservice.model.enums.Operation;
 import com.example.bankservice.repository.BankAccountRepository;
 import com.example.bankservice.service.BankAccountHistoryService;
@@ -30,7 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -59,17 +60,17 @@ public class BankAccountServiceImpl implements BankAccountService {
     @Override
     @Transactional
     public BankAccountResponse createBankAccount(BankAccountRequest bankAccountRequest) {
+        String accountNumber = bankAccountRequest.getNumber();
+        bankAccountRepository.findByNumber(accountNumber)
+                .ifPresent(bankAccount -> {
+                    throw new AccountNumberUniqueException(
+                            String.format(BANK_ACCOUNT_NUMBER_EXIST, accountNumber));
+                });
         Long driverId = bankAccountRequest.getDriverId();
         bankAccountRepository.findByDriverId(driverId)
                 .ifPresent(bankAccount -> {
                     throw new DriverBankAccountException(
                             String.format(DRIVER_ALREADY_HAS_ACCOUNT, driverId));
-                });
-        String accountNumber = bankAccountRequest.getNumber();
-        bankAccountRepository.findByNumber(accountNumber)
-                .ifPresent(bankAccount -> {
-                    throw new CardNumberUniqueException(
-                            String.format(BANK_ACCOUNT_NUMBER_EXIST, accountNumber));
                 });
         BankAccount newBankAccount = bankAccountMapper.mapBankAccountRequestToBankAccount(bankAccountRequest);
         BankUserResponse bankUserResponse = driverWebClient.getDriver(driverId);
@@ -146,7 +147,6 @@ public class BankAccountServiceImpl implements BankAccountService {
         BigDecimal refillSum = refillRequest.getSum();
         BigDecimal updatedBalance = bankAccount.getBalance()
                 .add(DRIVER_PERCENT.multiply(refillSum));
-        updatedBalance = updatedBalance.setScale(2, RoundingMode.HALF_UP);
         bankAccount.setBalance(updatedBalance);
 
         bankAccountHistoryService.createBankAccountHistoryRecord(bankAccount.getId(),
@@ -175,7 +175,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     public BankAccountResponse withdrawalFromBankAccount(Long id, WithdrawalRequest withdrawalRequest) {
         BankAccount bankAccount = bankAccountRepository.findById(id)
                 .orElseThrow(() -> new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id)));
-
+        Long bankUserId = bankAccount.getDriverId();
         BigDecimal withdrawalSum = withdrawalRequest.getSum();
         BigDecimal bankAccountBalance = bankAccount.getBalance();
 
@@ -184,10 +184,12 @@ public class BankAccountServiceImpl implements BankAccountService {
         bankAccount.setBalance(bankAccountBalance.subtract(withdrawalSum));
         bankAccount = bankAccountRepository.save(bankAccount);
 
-        bankCardService.refillBankCard(id,
+        BankCardResponse defaultBankCard = bankCardService.getDefaultBankCard(bankUserId, BankUser.DRIVER);
+
+        bankCardService.refillBankCard(defaultBankCard.getId(),
                 RefillRequest.builder()
                         .sum(withdrawalSum)
-                        .bankUserId(bankAccount.getDriverId())
+                        .bankUserId(bankUserId)
                         .build());
 
         bankAccountHistoryService.createBankAccountHistoryRecord(id,
@@ -197,7 +199,7 @@ public class BankAccountServiceImpl implements BankAccountService {
                         .build()
         );
 
-        BankUserResponse bankUserResponse = driverWebClient.getDriver(bankAccount.getDriverId());
+        BankUserResponse bankUserResponse = driverWebClient.getDriver(bankUserId);
         return bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse);
     }
 

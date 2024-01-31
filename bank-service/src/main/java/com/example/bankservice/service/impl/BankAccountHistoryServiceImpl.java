@@ -41,7 +41,7 @@ public class BankAccountHistoryServiceImpl implements BankAccountHistoryService 
                 bankAccountHistoryMapper.mapBankAccountHistoryRequestToBankAccountHistory(id, bankAccountHistoryRequest);
         bankAccountHistory = bankAccountHistoryRepository.save(bankAccountHistory);
         BankAccount bankAccount = bankAccountHistory.getBankAccount();
-        BankUserResponse bankUserResponse = driverWebClient.getDriver(bankAccount.getId());
+        BankUserResponse bankUserResponse = driverWebClient.getDriver(bankAccount.getDriverId());
 
         BankAccountResponse bankAccountResponse =
                 bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse);
@@ -69,7 +69,7 @@ public class BankAccountHistoryServiceImpl implements BankAccountHistoryService 
                 .map(bankAccountHistory -> bankAccountHistoryMapper
                         .mapBankAccountHistoryToBankAccountHistoryResponse(bankAccountHistory, bankAccountMapper
                                 .mapBankAccountToBankAccountResponse(bankAccountHistory.getBankAccount(),
-                                        driverWebClient.getDriver(id))))
+                                        driverWebClient.getDriver(bankAccountHistory.getBankAccount().getDriverId()))))
                 .toList();
 
         return BankAccountHistoryPageResponse.builder()

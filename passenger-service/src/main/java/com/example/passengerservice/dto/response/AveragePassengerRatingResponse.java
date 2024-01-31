@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,6 +14,7 @@ import lombok.Setter;
 @Setter
 @Builder
 @EqualsAndHashCode
+@ToString
 public class AveragePassengerRatingResponse {
     private long passengerId;
     private double averageRating;

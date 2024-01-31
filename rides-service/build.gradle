@@ -21,15 +21,18 @@ ext {
             'postgresql'        : '42.6.0',
             'liquibase'         : '4.24.0',
             'hibernateValidator': '8.0.1.Final',
-            'lombok'            : '1.18.26',
-            'jedis'             : '5.1.0'
+            'lombok'            : '1.18.30',
+            'jedis'             : '5.1.0',
+            'restAssured'       : '5.4.0',
+            'wiremock'          : '4.1.0',
+            'cucumber'          : '7.14.0'
     ]
 }
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-integration"
-    implementation 'org.springframework.integration:spring-integration-kafka'
+    implementation "org.springframework.integration:spring-integration-kafka"
     implementation "org.modelmapper:modelmapper:${versions.modelMapper}"
     implementation "org.postgresql:postgresql:${versions.postgresql}"
     implementation "org.springframework.boot:spring-boot-starter-data-jpa"
@@ -37,10 +40,21 @@ dependencies {
     implementation "org.liquibase:liquibase-core:${versions.liquibase}"
     implementation "org.springframework.boot:spring-boot-starter-webflux"
     implementation "redis.clients:jedis:${versions.jedis}"
+    implementation "org.springframework.cloud:spring-cloud-contract-wiremock:${versions.wiremock}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-    testImplementation "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
+    testImplementation "io.rest-assured:rest-assured:${versions.restAssured}"
+    testImplementation "org.testcontainers:testcontainers"
+    testImplementation "org.testcontainers:junit-jupiter"
+    testImplementation "org.testcontainers:postgresql"
+    testImplementation "org.testcontainers:kafka"
+    testImplementation "io.cucumber:cucumber-junit:${versions.cucumber}"
+    testImplementation "io.cucumber:cucumber-java:${versions.cucumber}"
+    testImplementation "io.cucumber:cucumber-spring:${versions.cucumber}"
+    testImplementation "org.junit.vintage:junit-vintage-engine"
 }
 
 tasks.named('bootBuildImage') {

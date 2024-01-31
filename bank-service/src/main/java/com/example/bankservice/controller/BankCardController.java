@@ -10,6 +10,7 @@ import com.example.bankservice.dto.response.BankCardResponse;
 import com.example.bankservice.model.enums.BankUser;
 import com.example.bankservice.service.BankCardService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -60,8 +61,8 @@ public class BankCardController {
     @GetMapping("/user/{id}")
     public BankCardPageResponse getBankUserCards(@PathVariable("id") Long bankUserId,
                                                  @RequestParam BankUser bankUser,
-                                                 @RequestParam(defaultValue = "0") int page,
-                                                 @RequestParam(defaultValue = "10") int size,
+                                                 @RequestParam(defaultValue = "0") @Min(0) int page,
+                                                 @RequestParam(defaultValue = "10") @Min(1) int size,
                                                  @RequestParam(defaultValue = "id") String sortBy) {
         return bankCardService.getBankCardsByBankUser(bankUserId, bankUser, page, size, sortBy);
     }

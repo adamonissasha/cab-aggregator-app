@@ -129,8 +129,17 @@ public class RideServiceImpl implements RideService {
         existingRide.setEndAddress(newEndAddress);
         existingRide.setPaymentMethod(paymentMethod);
         existingRide = rideRepository.save(existingRide);
-        List<StopResponse> stops = stopService.editStops(editRideRequest.getStops(), existingRide).getStops();
+        List<StopResponse> stops;
+        if (editRideRequest.getStops() != null) {
+            stops = stopService.editStops(editRideRequest.getStops(), existingRide).getStops();
+            return rideMapper.mapRideToPassengerRideResponse(existingRide, stops, driver, driver.getCar());
+        }
 
+        if (stopService.getRideStops(existingRide) == null) {
+            return rideMapper.mapRideToPassengerRideResponse(existingRide, List.of(), driver, driver.getCar());
+        }
+
+        stops = stopService.getRideStops(existingRide).getStops();
         return rideMapper.mapRideToPassengerRideResponse(existingRide, stops, driver, driver.getCar());
     }
 

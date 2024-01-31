@@ -1,30 +1,32 @@
 package com.example.passengerservice.util;
 
 import com.example.passengerservice.dto.request.PassengerRatingRequest;
+import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
+import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.PassengerRatingResponse;
 import com.example.passengerservice.model.PassengerRating;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+import java.util.List;
+
+@UtilityClass
 public class TestPassengerRatingUtil {
-    static Long FIRST_PASSENGER_RATING_ID = 1L;
-    static Long FIRST_PASSENGER_ID = 1L;
-    static Long FIRST_DRIVER_ID = 1L;
-    static Long FIRST_RIDE_ID = 1L;
-    static Integer FIRST_RATING = 5;
-    static Long SECOND_PASSENGER_RATING_ID = 2L;
-    static Long SECOND_PASSENGER_ID = 2L;
-    static Long SECOND_DRIVER_ID = 2L;
-    static Long SECOND_RIDE_ID = 2L;
-    static Integer SECOND_RATING = 4;
-    static Double AVERAGE_RATING = 4.5;
+    private final Long FIRST_PASSENGER_RATING_ID = 98L;
+    private final Long PASSENGER_ID = 99L;
+    private final Long FIRST_DRIVER_ID = 1L;
+    private final Long FIRST_RIDE_ID = 1L;
+    private final Integer FIRST_RATING = 5;
+    private final Long SECOND_PASSENGER_RATING_ID = 99L;
+    private final Long SECOND_DRIVER_ID = 2L;
+    private final Long SECOND_RIDE_ID = 2L;
+    private final Integer SECOND_RATING = 4;
+    private final Double AVERAGE_RATING = 4.5;
 
-    public static Double getAveragePassengerRating() {
+    public Double getAveragePassengerRating() {
         return AVERAGE_RATING;
     }
 
-    public static PassengerRating getFirstPassengerRating() {
+    public PassengerRating getFirstPassengerRating() {
         return PassengerRating.builder()
                 .id(FIRST_PASSENGER_RATING_ID)
                 .driverId(FIRST_DRIVER_ID)
@@ -34,7 +36,7 @@ public class TestPassengerRatingUtil {
                 .build();
     }
 
-    public static PassengerRating getSecondPassengerRating() {
+    public PassengerRating getSecondPassengerRating() {
         return PassengerRating.builder()
                 .id(SECOND_PASSENGER_RATING_ID)
                 .driverId(SECOND_DRIVER_ID)
@@ -44,30 +46,43 @@ public class TestPassengerRatingUtil {
                 .build();
     }
 
-    public static PassengerRatingRequest getPassengerRatingRequest() {
+    public PassengerRatingRequest getPassengerRatingRequest() {
         return PassengerRatingRequest.builder()
-                .driverId(FIRST_PASSENGER_ID)
-                .passengerId(FIRST_PASSENGER_ID)
+                .driverId(FIRST_DRIVER_ID)
+                .passengerId(PASSENGER_ID)
                 .rideId(FIRST_RIDE_ID)
                 .rating(FIRST_RATING)
                 .build();
     }
 
-    public static PassengerRatingResponse getFirstPassengerRatingResponse() {
+    public PassengerRatingResponse getFirstPassengerRatingResponse() {
         return PassengerRatingResponse.builder()
                 .id(FIRST_PASSENGER_RATING_ID)
-                .driverId(FIRST_PASSENGER_ID)
-                .passengerId(FIRST_PASSENGER_ID)
+                .driverId(FIRST_DRIVER_ID)
+                .passengerId(PASSENGER_ID)
                 .rating(FIRST_RATING)
                 .build();
     }
 
-    public static PassengerRatingResponse getSecondPassengerRatingResponse() {
+    public PassengerRatingResponse getSecondPassengerRatingResponse() {
         return PassengerRatingResponse.builder()
                 .id(SECOND_PASSENGER_RATING_ID)
-                .driverId(SECOND_PASSENGER_ID)
-                .passengerId(SECOND_PASSENGER_ID)
+                .driverId(SECOND_DRIVER_ID)
+                .passengerId(PASSENGER_ID)
                 .rating(SECOND_RATING)
+                .build();
+    }
+
+    public AveragePassengerRatingResponse getAveragePassengerRatingResponse() {
+        return AveragePassengerRatingResponse.builder()
+                .passengerId(PASSENGER_ID)
+                .averageRating(AVERAGE_RATING)
+                .build();
+    }
+
+    public AllPassengerRatingsResponse getAllPassengerRatingsResponse() {
+        return AllPassengerRatingsResponse.builder()
+                .passengerRatings(List.of(getFirstPassengerRatingResponse(), getSecondPassengerRatingResponse()))
                 .build();
     }
 }
