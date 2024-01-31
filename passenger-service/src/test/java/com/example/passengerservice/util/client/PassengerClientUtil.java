@@ -6,22 +6,21 @@ import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
 import com.example.passengerservice.dto.response.ValidationErrorResponse;
 import io.restassured.http.ContentType;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import static io.restassured.RestAssured.given;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class PassengerClientUtil {
-    static String PASSENGER_SERVICE_URL = "passenger";
-    static String ID_PARAMETER_NAME = "id";
-    static String PAGE_PARAMETER_NAME = "page";
-    static String SIZE_PARAMETER_NAME = "size";
-    static String SORT_PARAMETER_NAME = "sortBy";
+    private final String PASSENGER_SERVICE_URL = "passenger";
+    private final String ID_PARAMETER_NAME = "id";
+    private final String PAGE_PARAMETER_NAME = "page";
+    private final String SIZE_PARAMETER_NAME = "size";
+    private final String SORT_PARAMETER_NAME = "sortBy";
 
-    public static PassengerResponse createPassengerWhenDataValidRequest(int port,
-                                                                        PassengerRequest passengerRequest) {
+    public PassengerResponse createPassengerWhenDataValidRequest(int port,
+                                                                 PassengerRequest passengerRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -34,8 +33,8 @@ public class PassengerClientUtil {
                 .as(PassengerResponse.class);
     }
 
-    public static ExceptionResponse createPassengerWhenPhoneNumberAlreadyExistsRequest(int port,
-                                                                                       PassengerRequest passengerRequest) {
+    public ExceptionResponse createPassengerWhenPhoneNumberAlreadyExistsRequest(int port,
+                                                                                PassengerRequest passengerRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -48,8 +47,8 @@ public class PassengerClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static ValidationErrorResponse createPassengerWhenDataNotValidRequest(int port,
-                                                                                 PassengerRequest passengerRequest) {
+    public ValidationErrorResponse createPassengerWhenDataNotValidRequest(int port,
+                                                                          PassengerRequest passengerRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -62,9 +61,9 @@ public class PassengerClientUtil {
                 .as(ValidationErrorResponse.class);
     }
 
-    public static PassengerResponse editPassengerWhenValidDataRequest(int port,
-                                                                      PassengerRequest passengerRequest,
-                                                                      Long passengerId) {
+    public PassengerResponse editPassengerWhenValidDataRequest(int port,
+                                                               PassengerRequest passengerRequest,
+                                                               Long passengerId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -78,9 +77,9 @@ public class PassengerClientUtil {
                 .as(PassengerResponse.class);
     }
 
-    public static ValidationErrorResponse editPassengerWhenInvalidDataRequest(int port,
-                                                                              PassengerRequest passengerRequest,
-                                                                              Long passengerId) {
+    public ValidationErrorResponse editPassengerWhenInvalidDataRequest(int port,
+                                                                       PassengerRequest passengerRequest,
+                                                                       Long passengerId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -94,9 +93,9 @@ public class PassengerClientUtil {
                 .as(ValidationErrorResponse.class);
     }
 
-    public static ExceptionResponse editPassengerWhenPassengerNotFoundRequest(int port,
-                                                                              PassengerRequest passengerRequest,
-                                                                              Long invalidPassengerId) {
+    public ExceptionResponse editPassengerWhenPassengerNotFoundRequest(int port,
+                                                                       PassengerRequest passengerRequest,
+                                                                       Long invalidPassengerId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -110,7 +109,7 @@ public class PassengerClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static PassengerResponse getPassengerByIdWhenPassengerExistsRequest(int port, Long existingPassengerId) {
+    public PassengerResponse getPassengerByIdWhenPassengerExistsRequest(int port, Long existingPassengerId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingPassengerId)
@@ -122,7 +121,7 @@ public class PassengerClientUtil {
                 .as(PassengerResponse.class);
     }
 
-    public static ExceptionResponse getPassengerByIdWhenPassengerNotExistsRequest(int port, Long invalidPassengerId) {
+    public ExceptionResponse getPassengerByIdWhenPassengerNotExistsRequest(int port, Long invalidPassengerId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidPassengerId)
@@ -134,7 +133,7 @@ public class PassengerClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static PassengerPageResponse getAllPassengersRequest(int port, int page, int size, String sortBy) {
+    public PassengerPageResponse getAllPassengersRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -148,10 +147,10 @@ public class PassengerClientUtil {
                 .as(PassengerPageResponse.class);
     }
 
-    public static ExceptionResponse getAllPassengersWhenIncorrectFieldRequest(int port,
-                                                                              int page,
-                                                                              int size,
-                                                                              String sortBy) {
+    public ExceptionResponse getAllPassengersWhenIncorrectFieldRequest(int port,
+                                                                       int page,
+                                                                       int size,
+                                                                       String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -165,7 +164,7 @@ public class PassengerClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static void deletePassengerWhenPassengerExistsRequest(int port, Long existingPassengerId) {
+    public void deletePassengerWhenPassengerExistsRequest(int port, Long existingPassengerId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingPassengerId)
@@ -175,7 +174,7 @@ public class PassengerClientUtil {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    public static void deletePassengerWhenPassengerNotExistsRequest(int port, Long invalidPassengerId) {
+    public void deletePassengerWhenPassengerNotExistsRequest(int port, Long invalidPassengerId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidPassengerId)

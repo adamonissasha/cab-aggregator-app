@@ -7,65 +7,64 @@ import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
 import com.example.passengerservice.dto.response.ValidationErrorResponse;
 import com.example.passengerservice.model.Passenger;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@UtilityClass
 public class TestPassengerUtil {
-    static Long FIRST_PASSENGER_ID = 99L;
-    static Long SECOND_PASSENGER_ID = 100L;
-    static Long INVALID_PASSENGER_ID = 123L;
-    static String FIRST_PASSENGER_FIRST_NAME = "Alex";
-    static String SECOND_PASSENGER_FIRST_NAME = "Pasha";
-    static String FIRST_PASSENGER_LAST_NAME = "Alexandrov";
-    static String SECOND_PASSENGER_LAST_NAME = "Pavlov";
-    static String FIRST_PASSENGER_EMAIL = "alex@gmail.com";
-    static String SECOND_PASSENGER_EMAIL = "pasha@gmail.com";
-    static String INVALID_PASSENGER_EMAIL = "alex";
-    static String FIRST_PASSENGER_PHONE_NUMBER = "+375297654321";
-    static String SECOND_PASSENGER_PHONE_NUMBER = "+375297654322";
-    static String INVALID_PHONE_NUMBER = "+728282828282";
-    static String UNIQUE_PHONE_NUMBER = "+375293621333";
-    static String FIRST_PASSENGER_PASSWORD = "321321321";
-    static String SECOND_PASSENGER_PASSWORD = "12345678";
-    static String INVALID_PASSENGER_PASSWORD = "321";
-    static Double FIRST_PASSENGER_RATING = 4.5;
-    static Double SECOND_PASSENGER_RATING = 0.0;
-    static int PAGE_NUMBER = 0;
-    static int PAGE_SIZE = 2;
-    static String CORRECT_SORT_FIELD = "id";
-    static String INCORRECT_SORT_FIELD = "ids";
-    static String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
-    static String PHONE_NUMBER_EXIST = "Passenger with phone number '%s' already exist";
-    static String PASSENGER_FIRST_NAME_REQUIRED_MESSAGE = "First name is required";
-    static String PASSENGER_LAST_NAME_REQUIRED_MESSAGE = "Last name is required";
-    static String PASSENGER_EMAIL_FORMAT_MESSAGE = "Invalid email format";
-    static String PASSENGER_PHONE_NUMBER_FORMAT_MESSAGE = "Phone number must match the format: +375xxxxxxxxx";
-    static String PASSENGER_PASSWORD_FORMAT_MESSAGE = "Password must contain at least one digit and be at least 8 characters long";
-    static String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: [id, firstName, lastName, email, phoneNumber, password, isActive]";
+    private final Long FIRST_PASSENGER_ID = 99L;
+    private final Long SECOND_PASSENGER_ID = 100L;
+    private final Long INVALID_PASSENGER_ID = 123L;
+    private final String FIRST_PASSENGER_FIRST_NAME = "Alex";
+    private final String SECOND_PASSENGER_FIRST_NAME = "Pasha";
+    private final String FIRST_PASSENGER_LAST_NAME = "Alexandrov";
+    private final String SECOND_PASSENGER_LAST_NAME = "Pavlov";
+    private final String FIRST_PASSENGER_EMAIL = "alex@gmail.com";
+    private final String SECOND_PASSENGER_EMAIL = "pasha@gmail.com";
+    private final String INVALID_PASSENGER_EMAIL = "alex";
+    private final String FIRST_PASSENGER_PHONE_NUMBER = "+375297654321";
+    private final String SECOND_PASSENGER_PHONE_NUMBER = "+375297654322";
+    private final String INVALID_PHONE_NUMBER = "+728282828282";
+    private final String UNIQUE_PHONE_NUMBER = "+375293621333";
+    private final String FIRST_PASSENGER_PASSWORD = "321321321";
+    private final String SECOND_PASSENGER_PASSWORD = "12345678";
+    private final String INVALID_PASSENGER_PASSWORD = "321";
+    private final Double FIRST_PASSENGER_RATING = 4.5;
+    private final Double SECOND_PASSENGER_RATING = 0.0;
+    private final int PAGE_NUMBER = 0;
+    private final int PAGE_SIZE = 2;
+    private final String CORRECT_SORT_FIELD = "id";
+    private final String INCORRECT_SORT_FIELD = "ids";
+    private final String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
+    private final String PHONE_NUMBER_EXIST = "Passenger with phone number '%s' already exist";
+    private final String PASSENGER_FIRST_NAME_REQUIRED_MESSAGE = "First name is required";
+    private final String PASSENGER_LAST_NAME_REQUIRED_MESSAGE = "Last name is required";
+    private final String PASSENGER_EMAIL_FORMAT_MESSAGE = "Invalid email format";
+    private final String PASSENGER_PHONE_NUMBER_FORMAT_MESSAGE = "Phone number must match the format: +375xxxxxxxxx";
+    private final String PASSENGER_PASSWORD_FORMAT_MESSAGE = "Password must contain at least one digit and be at least 8 characters long";
+    private final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: [id, firstName, lastName, email, phoneNumber, password, isActive]";
 
-    public static Long getFirstPassengerId() {
+    public Long getFirstPassengerId() {
         return FIRST_PASSENGER_ID;
     }
 
-    public static Long getSecondPassengerId() {
+    public Long getSecondPassengerId() {
         return SECOND_PASSENGER_ID;
     }
 
-    public static Long getInvalidId() {
+    public Long getInvalidId() {
         return INVALID_PASSENGER_ID;
     }
 
-    public static String getFirstPassengerPhoneNumber() {
+    public String getFirstPassengerPhoneNumber() {
         return FIRST_PASSENGER_PHONE_NUMBER;
     }
 
-    public static Passenger getFirstPassenger() {
+    public Passenger getFirstPassenger() {
         return Passenger.builder()
                 .id(FIRST_PASSENGER_ID)
                 .firstName(FIRST_PASSENGER_FIRST_NAME)
@@ -76,7 +75,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static Passenger getSecondPassenger() {
+    public Passenger getSecondPassenger() {
         return Passenger.builder()
                 .id(SECOND_PASSENGER_ID)
                 .firstName(SECOND_PASSENGER_FIRST_NAME)
@@ -87,7 +86,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static PassengerRequest getPassengerRequest() {
+    public PassengerRequest getPassengerRequest() {
         return PassengerRequest.builder()
                 .firstName(FIRST_PASSENGER_FIRST_NAME)
                 .lastName(FIRST_PASSENGER_LAST_NAME)
@@ -97,7 +96,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static PassengerRequest getUniquePassengerRequest() {
+    public PassengerRequest getUniquePassengerRequest() {
         return PassengerRequest.builder()
                 .firstName(FIRST_PASSENGER_FIRST_NAME)
                 .lastName(FIRST_PASSENGER_LAST_NAME)
@@ -107,7 +106,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static PassengerRequest getPassengerRequestWithExistingNumber() {
+    public PassengerRequest getPassengerRequestWithExistingNumber() {
         return PassengerRequest.builder()
                 .firstName(FIRST_PASSENGER_FIRST_NAME)
                 .lastName(FIRST_PASSENGER_LAST_NAME)
@@ -117,7 +116,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static PassengerRequest getPassengerRequestWithInvalidData() {
+    public PassengerRequest getPassengerRequestWithInvalidData() {
         return PassengerRequest.builder()
                 .firstName("")
                 .lastName("")
@@ -127,7 +126,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static PassengerResponse getPassengerResponse() {
+    public PassengerResponse getPassengerResponse() {
         return PassengerResponse.builder()
                 .id(FIRST_PASSENGER_ID)
                 .firstName(FIRST_PASSENGER_FIRST_NAME)
@@ -138,7 +137,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static PassengerResponse getNewPassengerResponse() {
+    public PassengerResponse getNewPassengerResponse() {
         return PassengerResponse.builder()
                 .id(FIRST_PASSENGER_ID)
                 .firstName(FIRST_PASSENGER_FIRST_NAME)
@@ -149,7 +148,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static PassengerResponse getSecondPassengerResponse() {
+    public PassengerResponse getSecondPassengerResponse() {
         return PassengerResponse.builder()
                 .id(SECOND_PASSENGER_ID)
                 .firstName(SECOND_PASSENGER_FIRST_NAME)
@@ -160,64 +159,64 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static AveragePassengerRatingResponse getFirstPassengerRating() {
+    public AveragePassengerRatingResponse getFirstPassengerRating() {
         return AveragePassengerRatingResponse.builder()
                 .averageRating(FIRST_PASSENGER_RATING)
                 .build();
     }
 
-    public static AveragePassengerRatingResponse getSecondPassengerRating() {
+    public AveragePassengerRatingResponse getSecondPassengerRating() {
         return AveragePassengerRatingResponse.builder()
                 .averageRating(SECOND_PASSENGER_RATING)
                 .build();
     }
 
-    public static int getPageNumber() {
+    public int getPageNumber() {
         return PAGE_NUMBER;
     }
 
-    public static int getPageSize() {
+    public int getPageSize() {
         return PAGE_SIZE;
     }
 
-    public static String getCorrectSortField() {
+    public String getCorrectSortField() {
         return CORRECT_SORT_FIELD;
     }
 
-    public static String getIncorrectSortField() {
+    public String getIncorrectSortField() {
         return INCORRECT_SORT_FIELD;
     }
 
-    public static List<Passenger> getPassengers() {
+    public List<Passenger> getPassengers() {
         return List.of(getFirstPassenger(), getSecondPassenger());
     }
 
-    public static List<PassengerResponse> getPassengerResponses() {
+    public List<PassengerResponse> getPassengerResponses() {
         return List.of(getPassengerResponse(), getSecondPassengerResponse());
     }
 
-    public static ExceptionResponse getPhoneNumberExistsExceptionResponse() {
+    public ExceptionResponse getPhoneNumberExistsExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(String.format(PHONE_NUMBER_EXIST, FIRST_PASSENGER_PHONE_NUMBER))
                 .statusCode(HttpStatus.CONFLICT.value())
                 .build();
     }
 
-    public static ExceptionResponse getPassengerNotFoundExceptionResponse() {
+    public ExceptionResponse getPassengerNotFoundExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(String.format(PASSENGER_NOT_FOUND, INVALID_PASSENGER_ID))
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .build();
     }
 
-    public static ExceptionResponse getIncorrectFieldExceptionResponse() {
+    public ExceptionResponse getIncorrectFieldExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(INCORRECT_FIELDS)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .build();
     }
 
-    public static ValidationErrorResponse getValidationErrorResponse() {
+    public ValidationErrorResponse getValidationErrorResponse() {
         List<String> errors = new ArrayList<>();
         errors.add(PASSENGER_PHONE_NUMBER_FORMAT_MESSAGE);
         errors.add(PASSENGER_LAST_NAME_REQUIRED_MESSAGE);
@@ -232,7 +231,7 @@ public class TestPassengerUtil {
                 .build();
     }
 
-    public static PassengerPageResponse getPassengerPageResponse() {
+    public PassengerPageResponse getPassengerPageResponse() {
         return PassengerPageResponse.builder()
                 .passengers(List.of(getPassengerResponse(), getSecondPassengerResponse()))
                 .totalPages(1)

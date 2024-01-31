@@ -3,19 +3,20 @@ package com.example.passengerservice.util.client;
 import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.ExceptionResponse;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 
 import static io.restassured.RestAssured.given;
 
-@Component
+@UtilityClass
 public class PassengerRatingClientUtil {
-    private static final String PASSENGER_RATING_SERVICE_URL = "passenger/{id}/rating";
+    private final String PASSENGER_RATING_SERVICE_URL = "passenger/{id}/rating";
+    private final String ID_PARAMETER_NAME = "id";
 
-    public static AllPassengerRatingsResponse getAllPassengerRatingsWhenPassengerExistsRequest(int port, Long passengerId) {
+    public AllPassengerRatingsResponse getAllPassengerRatingsWhenPassengerExistsRequest(int port, Long passengerId) {
         return given()
                 .port(port)
-                .pathParam("id", passengerId)
+                .pathParam(ID_PARAMETER_NAME, passengerId)
                 .when()
                 .get(PASSENGER_RATING_SERVICE_URL)
                 .then()
@@ -24,10 +25,10 @@ public class PassengerRatingClientUtil {
                 .as(AllPassengerRatingsResponse.class);
     }
 
-    public static ExceptionResponse getPassengerRatingsWhenPassengerNotExistsRequest(int port, Long invalidId) {
+    public ExceptionResponse getPassengerRatingsWhenPassengerNotExistsRequest(int port, Long invalidId) {
         return given()
                 .port(port)
-                .pathParam("id", invalidId)
+                .pathParam(ID_PARAMETER_NAME, invalidId)
                 .when()
                 .get(PASSENGER_RATING_SERVICE_URL)
                 .then()
@@ -36,10 +37,10 @@ public class PassengerRatingClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static AveragePassengerRatingResponse getAveragePassengerRatingWhenPassengerExistsRequest(int port, Long passengerId) {
+    public AveragePassengerRatingResponse getAveragePassengerRatingWhenPassengerExistsRequest(int port, Long passengerId) {
         return given()
                 .port(port)
-                .pathParam("id", passengerId)
+                .pathParam(ID_PARAMETER_NAME, passengerId)
                 .when()
                 .get(PASSENGER_RATING_SERVICE_URL + "/average")
                 .then()
@@ -48,10 +49,10 @@ public class PassengerRatingClientUtil {
                 .as(AveragePassengerRatingResponse.class);
     }
 
-    public static ExceptionResponse getAveragePassengerRatingWhenPassengerNotExistsRequest(int port, Long invalidId) {
+    public ExceptionResponse getAveragePassengerRatingWhenPassengerNotExistsRequest(int port, Long invalidId) {
         return given()
                 .port(port)
-                .pathParam("id", invalidId)
+                .pathParam(ID_PARAMETER_NAME, invalidId)
                 .when()
                 .get(PASSENGER_RATING_SERVICE_URL + "/average")
                 .then()
