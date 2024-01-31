@@ -3,18 +3,17 @@ package com.example.driverservice.util.client;
 import com.example.driverservice.dto.response.AllDriverRatingsResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import static io.restassured.RestAssured.given;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class DriverRatingClientUtil {
-    static String DRIVER_RATING_SERVICE_URL = "driver/{id}/rating";
-    static String ID_PARAMETER_NAME = "id";
+    private final String DRIVER_RATING_SERVICE_URL = "driver/{id}/rating";
+    private final String ID_PARAMETER_NAME = "id";
 
-    public static AllDriverRatingsResponse getAllDriverRatingsWhenDriverExistsRequest(int port, Long driverId) {
+    public AllDriverRatingsResponse getAllDriverRatingsWhenDriverExistsRequest(int port, Long driverId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, driverId)
@@ -26,7 +25,7 @@ public class DriverRatingClientUtil {
                 .as(AllDriverRatingsResponse.class);
     }
 
-    public static ExceptionResponse getDriverRatingsWhenDriverNotExistsRequest(int port, Long invalidId) {
+    public ExceptionResponse getDriverRatingsWhenDriverNotExistsRequest(int port, Long invalidId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidId)
@@ -38,7 +37,7 @@ public class DriverRatingClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static AverageDriverRatingResponse getAverageDriverRatingWhenDriverExistsRequest(int port, Long driverId) {
+    public AverageDriverRatingResponse getAverageDriverRatingWhenDriverExistsRequest(int port, Long driverId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, driverId)
@@ -50,7 +49,7 @@ public class DriverRatingClientUtil {
                 .as(AverageDriverRatingResponse.class);
     }
 
-    public static ExceptionResponse getAverageDriverRatingWhenDriverNotExistsRequest(int port, Long invalidId) {
+    public ExceptionResponse getAverageDriverRatingWhenDriverNotExistsRequest(int port, Long invalidId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidId)

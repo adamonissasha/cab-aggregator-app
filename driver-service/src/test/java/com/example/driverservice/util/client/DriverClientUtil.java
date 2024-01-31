@@ -6,21 +6,20 @@ import com.example.driverservice.dto.response.DriverResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
 import com.example.driverservice.dto.response.ValidationErrorResponse;
 import io.restassured.http.ContentType;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import static io.restassured.RestAssured.given;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class DriverClientUtil {
-    static String DRIVER_SERVICE_URL = "driver";
-    static String ID_PARAMETER_NAME = "id";
-    static String PAGE_PARAMETER_NAME = "page";
-    static String SIZE_PARAMETER_NAME = "size";
-    static String SORT_PARAMETER_NAME = "sortBy";
+    private final String DRIVER_SERVICE_URL = "driver";
+    private final String ID_PARAMETER_NAME = "id";
+    private final String PAGE_PARAMETER_NAME = "page";
+    private final String SIZE_PARAMETER_NAME = "size";
+    private final String SORT_PARAMETER_NAME = "sortBy";
 
-    public static DriverResponse createDriverWhenPhoneNumberUniqueAndDataValidRequest(int port, DriverRequest driverRequest) {
+    public DriverResponse createDriverWhenPhoneNumberUniqueAndDataValidRequest(int port, DriverRequest driverRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -33,7 +32,7 @@ public class DriverClientUtil {
                 .as(DriverResponse.class);
     }
 
-    public static ExceptionResponse createDriverWhenPhoneNumberAlreadyExistsRequest(int port, DriverRequest driverRequest) {
+    public ExceptionResponse createDriverWhenPhoneNumberAlreadyExistsRequest(int port, DriverRequest driverRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -46,7 +45,7 @@ public class DriverClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static ValidationErrorResponse createDriverWhenDataNotValidRequest(int port, DriverRequest driverRequest) {
+    public ValidationErrorResponse createDriverWhenDataNotValidRequest(int port, DriverRequest driverRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -59,12 +58,12 @@ public class DriverClientUtil {
                 .as(ValidationErrorResponse.class);
     }
 
-    public static DriverResponse editDriverWhenDataValidRequest(int port, DriverRequest driverRequest, Long driverId) {
+    public DriverResponse editDriverWhenDataValidRequest(int port, DriverRequest driverRequest, Long driverId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
                 .body(driverRequest)
-                .pathParam("id", driverId)
+                .pathParam(ID_PARAMETER_NAME, driverId)
                 .when()
                 .put(DRIVER_SERVICE_URL + "/{id}")
                 .then()
@@ -73,7 +72,7 @@ public class DriverClientUtil {
                 .as(DriverResponse.class);
     }
 
-    public static ValidationErrorResponse editDriverWhenInvalidDataRequest(int port, DriverRequest driverRequest, Long driverId) {
+    public ValidationErrorResponse editDriverWhenInvalidDataRequest(int port, DriverRequest driverRequest, Long driverId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -87,7 +86,7 @@ public class DriverClientUtil {
                 .as(ValidationErrorResponse.class);
     }
 
-    public static ExceptionResponse editDriverWhenDriverNotFoundRequest(int port, DriverRequest driverRequest, Long invalidDriverId) {
+    public ExceptionResponse editDriverWhenDriverNotFoundRequest(int port, DriverRequest driverRequest, Long invalidDriverId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -101,7 +100,7 @@ public class DriverClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static DriverResponse getDriverByIdWhenDriverExistsRequest(int port, Long existingDriverId) {
+    public DriverResponse getDriverByIdWhenDriverExistsRequest(int port, Long existingDriverId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingDriverId)
@@ -113,7 +112,7 @@ public class DriverClientUtil {
                 .as(DriverResponse.class);
     }
 
-    public static ExceptionResponse getDriverByIdWhenDriverNotExistsRequest(int port, Long invalidDriverId) {
+    public ExceptionResponse getDriverByIdWhenDriverNotExistsRequest(int port, Long invalidDriverId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidDriverId)
@@ -125,7 +124,7 @@ public class DriverClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static DriverPageResponse getAllDriversRequest(int port, int page, int size, String sortBy) {
+    public DriverPageResponse getAllDriversRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -139,7 +138,7 @@ public class DriverClientUtil {
                 .as(DriverPageResponse.class);
     }
 
-    public static ExceptionResponse getAllDriversWhenIncorrectFieldRequest(int port, int page, int size, String sortBy) {
+    public ExceptionResponse getAllDriversWhenIncorrectFieldRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -153,7 +152,7 @@ public class DriverClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static void deleteDriverWhenDriverExistsRequest(int port, Long existingDriverId) {
+    public void deleteDriverWhenDriverExistsRequest(int port, Long existingDriverId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingDriverId)
@@ -163,7 +162,7 @@ public class DriverClientUtil {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    public static void deleteDriverWhenDriverNotExistsRequest(int port, Long invalidDriverId) {
+    public void deleteDriverWhenDriverNotExistsRequest(int port, Long invalidDriverId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidDriverId)
@@ -174,7 +173,7 @@ public class DriverClientUtil {
     }
 
 
-    public static DriverResponse changeStatusToFreeWhenChangeStatusBusyRequest(int port, Long driverId) {
+    public DriverResponse changeStatusToFreeWhenChangeStatusBusyRequest(int port, Long driverId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -187,7 +186,7 @@ public class DriverClientUtil {
                 .as(DriverResponse.class);
     }
 
-    public static ExceptionResponse changeStatusToFreeWhenDriverNotFoundRequest(int port, Long invalidDriverId) {
+    public ExceptionResponse changeStatusToFreeWhenDriverNotFoundRequest(int port, Long invalidDriverId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -200,7 +199,7 @@ public class DriverClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static ExceptionResponse changeStatusToFreeWhenStatusAlreadyFreeRequest(int port, Long driverId) {
+    public ExceptionResponse changeStatusToFreeWhenStatusAlreadyFreeRequest(int port, Long driverId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)

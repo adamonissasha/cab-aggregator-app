@@ -6,21 +6,20 @@ import com.example.driverservice.dto.response.CarResponse;
 import com.example.driverservice.dto.response.ExceptionResponse;
 import com.example.driverservice.dto.response.ValidationErrorResponse;
 import io.restassured.http.ContentType;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import static io.restassured.RestAssured.given;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class CarClientUtil {
-    static String CAR_SERVICE_URL = "driver/car";
-    static String ID_PARAMETER_NAME = "id";
-    static String PAGE_PARAMETER_NAME = "page";
-    static String SIZE_PARAMETER_NAME = "size";
-    static String SORT_PARAMETER_NAME = "sortBy";
+    private final String CAR_SERVICE_URL = "driver/car";
+    private final String ID_PARAMETER_NAME = "id";
+    private final String PAGE_PARAMETER_NAME = "page";
+    private final String SIZE_PARAMETER_NAME = "size";
+    private final String SORT_PARAMETER_NAME = "sortBy";
 
-    public static CarResponse createCarWithUniqueCarNumberAndValidDataRequest(int port, CarRequest carRequest) {
+    public CarResponse createCarWithUniqueCarNumberAndValidDataRequest(int port, CarRequest carRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -33,7 +32,7 @@ public class CarClientUtil {
                 .as(CarResponse.class);
     }
 
-    public static ExceptionResponse createCarWithExistingCarNumberRequest(int port, CarRequest carRequest) {
+    public ExceptionResponse createCarWithExistingCarNumberRequest(int port, CarRequest carRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -46,7 +45,7 @@ public class CarClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static ValidationErrorResponse createCarWithInvalidDataRequest(int port, CarRequest carRequest) {
+    public ValidationErrorResponse createCarWithInvalidDataRequest(int port, CarRequest carRequest) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -59,7 +58,7 @@ public class CarClientUtil {
                 .as(ValidationErrorResponse.class);
     }
 
-    public static CarResponse editCarWithValidDataRequest(int port, CarRequest carRequest, Long carId) {
+    public CarResponse editCarWithValidDataRequest(int port, CarRequest carRequest, Long carId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -73,7 +72,7 @@ public class CarClientUtil {
                 .as(CarResponse.class);
     }
 
-    public static ValidationErrorResponse editCarWithInvalidDataRequest(int port, CarRequest carRequest, Long carId) {
+    public ValidationErrorResponse editCarWithInvalidDataRequest(int port, CarRequest carRequest, Long carId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -87,7 +86,7 @@ public class CarClientUtil {
                 .as(ValidationErrorResponse.class);
     }
 
-    public static ExceptionResponse editCarWhenCarNotFoundRequest(int port, CarRequest carRequest, Long invalidCarId) {
+    public ExceptionResponse editCarWhenCarNotFoundRequest(int port, CarRequest carRequest, Long invalidCarId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -101,7 +100,7 @@ public class CarClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static CarResponse getCarByIdRequest(int port, Long existingCarId) {
+    public CarResponse getCarByIdRequest(int port, Long existingCarId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingCarId)
@@ -113,7 +112,7 @@ public class CarClientUtil {
                 .as(CarResponse.class);
     }
 
-    public static ExceptionResponse getCarByIdWhenCarNotExistsRequest(int port, Long invalidCarId) {
+    public ExceptionResponse getCarByIdWhenCarNotExistsRequest(int port, Long invalidCarId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidCarId)
@@ -125,7 +124,7 @@ public class CarClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public static CarPageResponse getAllCarsRequest(int port, int page, int size, String sortBy) {
+    public CarPageResponse getAllCarsRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -139,7 +138,7 @@ public class CarClientUtil {
                 .as(CarPageResponse.class);
     }
 
-    public static ExceptionResponse getAllCarsWhenIncorrectFieldRequest(int port, int page, int size, String sortBy) {
+    public ExceptionResponse getAllCarsWhenIncorrectFieldRequest(int port, int page, int size, String sortBy) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)

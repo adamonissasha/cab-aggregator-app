@@ -5,29 +5,28 @@ import com.example.driverservice.dto.response.AllDriverRatingsResponse;
 import com.example.driverservice.dto.response.AverageDriverRatingResponse;
 import com.example.driverservice.dto.response.DriverRatingResponse;
 import com.example.driverservice.model.DriverRating;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 
 import java.util.List;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class TestDriverRatingUtil {
-    static Long FIRST_DRIVER_RATING_ID = 98L;
-    static Long DRIVER_ID = 99L;
-    static Long FIRST_PASSENGER_ID = 1L;
-    static Long FIRST_RIDE_ID = 1L;
-    static Integer FIRST_RATING = 5;
-    static Long SECOND_DRIVER_RATING_ID = 99L;
-    static Long SECOND_PASSENGER_ID = 2L;
-    static Long SECOND_RIDE_ID = 2L;
-    static Integer SECOND_RATING = 4;
-    static Double AVERAGE_RATING = 4.5;
+    private final Long FIRST_DRIVER_RATING_ID = 98L;
+    private final Long DRIVER_ID = 99L;
+    private final Long FIRST_PASSENGER_ID = 1L;
+    private final Long FIRST_RIDE_ID = 1L;
+    private final Integer FIRST_RATING = 5;
+    private final Long SECOND_DRIVER_RATING_ID = 99L;
+    private final Long SECOND_PASSENGER_ID = 2L;
+    private final Long SECOND_RIDE_ID = 2L;
+    private final Integer SECOND_RATING = 4;
+    private final Double AVERAGE_RATING = 4.5;
 
-    public static Double getAverageDriverRating() {
+    public Double getAverageDriverRating() {
         return AVERAGE_RATING;
     }
 
-    public static DriverRating getFirstDriverRating() {
+    public DriverRating getFirstDriverRating() {
         return DriverRating.builder()
                 .id(FIRST_DRIVER_RATING_ID)
                 .driver(TestDriverUtil.getFirstDriver())
@@ -37,7 +36,7 @@ public class TestDriverRatingUtil {
                 .build();
     }
 
-    public static DriverRating getSecondDriverRating() {
+    public DriverRating getSecondDriverRating() {
         return DriverRating.builder()
                 .id(SECOND_DRIVER_RATING_ID)
                 .driver(TestDriverUtil.getSecondDriver())
@@ -47,7 +46,7 @@ public class TestDriverRatingUtil {
                 .build();
     }
 
-    public static DriverRatingRequest getDriverRatingRequest() {
+    public DriverRatingRequest getDriverRatingRequest() {
         return DriverRatingRequest.builder()
                 .driverId(DRIVER_ID)
                 .passengerId(FIRST_PASSENGER_ID)
@@ -56,7 +55,7 @@ public class TestDriverRatingUtil {
                 .build();
     }
 
-    public static DriverRatingResponse getFirstDriverRatingResponse() {
+    public DriverRatingResponse getFirstDriverRatingResponse() {
         return DriverRatingResponse.builder()
                 .id(FIRST_DRIVER_RATING_ID)
                 .driverId(DRIVER_ID)
@@ -65,7 +64,7 @@ public class TestDriverRatingUtil {
                 .build();
     }
 
-    public static DriverRatingResponse getSecondDriverRatingResponse() {
+    public DriverRatingResponse getSecondDriverRatingResponse() {
         return DriverRatingResponse.builder()
                 .id(SECOND_DRIVER_RATING_ID)
                 .driverId(DRIVER_ID)
@@ -74,7 +73,7 @@ public class TestDriverRatingUtil {
                 .build();
     }
 
-    public static AllDriverRatingsResponse getAllDriverRatingsResponse() {
+    public AllDriverRatingsResponse getAllDriverRatingsResponse() {
         DriverRatingResponse firstDriverRatingResponse = DriverRatingResponse.builder()
                 .id(FIRST_DRIVER_RATING_ID)
                 .driverId(DRIVER_ID)
@@ -92,7 +91,7 @@ public class TestDriverRatingUtil {
                 .build();
     }
 
-    public static AverageDriverRatingResponse getAverageDriverRatingResponse() {
+    public AverageDriverRatingResponse getAverageDriverRatingResponse() {
         return AverageDriverRatingResponse.builder()
                 .driverId(DRIVER_ID)
                 .averageRating(AVERAGE_RATING)
