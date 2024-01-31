@@ -7,8 +7,7 @@ import com.example.ridesservice.dto.response.ExceptionResponse;
 import com.example.ridesservice.dto.response.PromoCodeResponse;
 import com.example.ridesservice.dto.response.ValidationErrorResponse;
 import com.example.ridesservice.model.PromoCode;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
@@ -17,41 +16,41 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class TestPromoCodeUtil {
-    static Long FIRST_PROMO_CODE_ID = 98L;
-    static Long SECOND_PROMO_CODE_ID = 99L;
-    static Long INVALID_PROMO_CODE_ID = 199L;
-    static String FIRST_PROMO_CODE = "HELLO";
-    static String SECOND_PROMO_CODE = "NEWYEAR";
-    static String NEW_PROMO_CODE = "WINTER";
-    static LocalDate FIRST_PROMO_CODE_START_DATE = LocalDate.parse("2023-11-20");
-    static LocalDate SECOND_PROMO_CODE_START_DATE = LocalDate.parse("2024-01-01");
-    static LocalDate NEW_PROMO_CODE_START_DATE = LocalDate.now().plusDays(2);
-    static LocalDate FIRST_PROMO_CODE_END_DATE = LocalDate.parse("2023-12-03");
-    static LocalDate SECOND_PROMO_CODE_END_DATE = LocalDate.parse("2024-01-27");
-    static LocalDate NEW_PROMO_CODE_END_DATE = LocalDate.now().plusDays(8);
-    static LocalDate INVALID_PROMO_CODE_END_DATE = LocalDate.now().minusDays(8);
-    static Integer FIRST_PROMO_CODE_DISCOUNT_PERCENT = 10;
-    static Integer SECOND_PROMO_CODE_DISCOUNT_PERCENT = 15;
-    static Integer NEW_PROMO_CODE_DISCOUNT_PERCENT = 20;
-    static Integer INVALID_PROMO_CODE_DISCOUNT_PERCENT = 90;
-    static String PROMO_CODE_BY_ID_NOT_FOUND = "Promo code with id '%s' not found";
-    static String PROMO_CODE_ALREADY_EXISTS = "Promo code '%s' already exists in this period of time";
-    static String PROMO_CODE_REQUIRED = "Promo code is required";
-    static String START_DATE_NOT_NULL = "Start date of promo code cannot be null";
-    static String END_DATE_FUTURE = "End date of promo code  must be in the future";
-    static String DISCOUNT_PERCENT_MAX = "Promo code discount percent cannot be grater than 80";
+    private final Long FIRST_PROMO_CODE_ID = 98L;
+    private final Long SECOND_PROMO_CODE_ID = 99L;
+    private final Long INVALID_PROMO_CODE_ID = 199L;
+    private final String FIRST_PROMO_CODE = "HELLO";
+    private final String SECOND_PROMO_CODE = "NEWYEAR";
+    private final String NEW_PROMO_CODE = "WINTER";
+    private final LocalDate FIRST_PROMO_CODE_START_DATE = LocalDate.parse("2023-11-20");
+    private final LocalDate SECOND_PROMO_CODE_START_DATE = LocalDate.now().minusDays(10);
+    private final LocalDate NEW_PROMO_CODE_START_DATE = LocalDate.now().plusDays(2);
+    private final LocalDate FIRST_PROMO_CODE_END_DATE = LocalDate.parse("2023-12-03");
+    private final LocalDate SECOND_PROMO_CODE_END_DATE = LocalDate.now().plusDays(10);
+    private final LocalDate NEW_PROMO_CODE_END_DATE = LocalDate.now().plusDays(8);
+    private final LocalDate INVALID_PROMO_CODE_END_DATE = LocalDate.now().minusDays(8);
+    private final Integer FIRST_PROMO_CODE_DISCOUNT_PERCENT = 10;
+    private final Integer SECOND_PROMO_CODE_DISCOUNT_PERCENT = 15;
+    private final Integer NEW_PROMO_CODE_DISCOUNT_PERCENT = 20;
+    private final Integer INVALID_PROMO_CODE_DISCOUNT_PERCENT = 90;
+    private final String PROMO_CODE_BY_ID_NOT_FOUND = "Promo code with id '%s' not found";
+    private final String PROMO_CODE_ALREADY_EXISTS = "Promo code '%s' already exists in this period of time";
+    private final String PROMO_CODE_REQUIRED = "Promo code is required";
+    private final String START_DATE_NOT_NULL = "Start date of promo code cannot be null";
+    private final String END_DATE_FUTURE = "End date of promo code  must be in the future";
+    private final String DISCOUNT_PERCENT_MAX = "Promo code discount percent cannot be grater than 80";
 
-    public static Long getFirstPromoCodeId() {
+    public Long getFirstPromoCodeId() {
         return FIRST_PROMO_CODE_ID;
     }
 
-    public static Long getInvalidId() {
+    public Long getInvalidId() {
         return INVALID_PROMO_CODE_ID;
     }
 
-    public static PromoCode getFirstPromoCode() {
+    public PromoCode getFirstPromoCode() {
         return PromoCode.builder()
                 .id(FIRST_PROMO_CODE_ID)
                 .code(FIRST_PROMO_CODE)
@@ -61,7 +60,7 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static PromoCode getSecondPromoCode() {
+    public PromoCode getSecondPromoCode() {
         return PromoCode.builder()
                 .id(SECOND_PROMO_CODE_ID)
                 .code(SECOND_PROMO_CODE)
@@ -71,7 +70,7 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static PromoCodeRequest getPromoCodeRequest() {
+    public PromoCodeRequest getPromoCodeRequest() {
         return PromoCodeRequest.builder()
                 .code(SECOND_PROMO_CODE)
                 .startDate(NEW_PROMO_CODE_START_DATE)
@@ -80,7 +79,7 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static PromoCodeRequest getNewPromoCodeRequest() {
+    public PromoCodeRequest getNewPromoCodeRequest() {
         return PromoCodeRequest.builder()
                 .code(NEW_PROMO_CODE)
                 .startDate(NEW_PROMO_CODE_START_DATE)
@@ -89,7 +88,7 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static PromoCodeRequest getPromoCodeRequestWithInvalidData() {
+    public PromoCodeRequest getPromoCodeRequestWithInvalidData() {
         return PromoCodeRequest.builder()
                 .code("")
                 .startDate(null)
@@ -98,7 +97,7 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static PromoCodeResponse getFirstPromoCodeResponse() {
+    public PromoCodeResponse getFirstPromoCodeResponse() {
         return PromoCodeResponse.builder()
                 .id(FIRST_PROMO_CODE_ID)
                 .code(FIRST_PROMO_CODE)
@@ -108,7 +107,7 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static PromoCodeResponse getSecondPromoCodeResponse() {
+    public PromoCodeResponse getSecondPromoCodeResponse() {
         return PromoCodeResponse.builder()
                 .id(SECOND_PROMO_CODE_ID)
                 .code(SECOND_PROMO_CODE)
@@ -118,7 +117,7 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static PromoCodeResponse getNewPromoCodeResponse() {
+    public PromoCodeResponse getNewPromoCodeResponse() {
         return PromoCodeResponse.builder()
                 .id(SECOND_PROMO_CODE_ID)
                 .code(NEW_PROMO_CODE)
@@ -128,15 +127,15 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static List<PromoCode> getPromoCodes() {
+    public List<PromoCode> getPromoCodes() {
         return List.of(getFirstPromoCode(), getSecondPromoCode());
     }
 
-    public static List<PromoCodeResponse> getPromoCodeResponses() {
+    public List<PromoCodeResponse> getPromoCodeResponses() {
         return List.of(getFirstPromoCodeResponse(), getSecondPromoCodeResponse());
     }
 
-    public static ExceptionResponse getPromoCodeExistsExceptionResponse() {
+    public ExceptionResponse getPromoCodeExistsExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(String.format(PROMO_CODE_ALREADY_EXISTS, SECOND_PROMO_CODE))
                 .statusCode(HttpStatus.CONFLICT.value())
@@ -144,14 +143,14 @@ public class TestPromoCodeUtil {
 
     }
 
-    public static ExceptionResponse getPromoCodeNotFoundExceptionResponse() {
+    public ExceptionResponse getPromoCodeNotFoundExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(String.format(PROMO_CODE_BY_ID_NOT_FOUND, INVALID_PROMO_CODE_ID))
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .build();
     }
 
-    public static ValidationErrorResponse getValidationErrorResponse() {
+    public ValidationErrorResponse getValidationErrorResponse() {
         List<String> errors = new ArrayList<>();
         errors.add(START_DATE_NOT_NULL);
         errors.add(END_DATE_FUTURE);
@@ -165,7 +164,7 @@ public class TestPromoCodeUtil {
                 .build();
     }
 
-    public static AllPromoCodesResponse getAllPromoCodesResponse() {
+    public AllPromoCodesResponse getAllPromoCodesResponse() {
         List<PromoCodeResponse> promoCodeResponses = new ArrayList<>();
         promoCodeResponses.add(getFirstPromoCodeResponse());
         promoCodeResponses.add(getSecondPromoCodeResponse());

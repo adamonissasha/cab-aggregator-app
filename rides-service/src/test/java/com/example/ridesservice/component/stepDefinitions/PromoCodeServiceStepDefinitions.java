@@ -66,7 +66,7 @@ public class PromoCodeServiceStepDefinitions {
 
     @Given("There is a promo code with id {long}")
     public void thereIsAPromoCodeWithId(long id) {
-        promoCode = TestPromoCodeUtil.getFirstPromoCode();
+        promoCode = TestPromoCodeUtil.getSecondPromoCode();
         expected = TestPromoCodeUtil.getFirstPromoCodeResponse();
 
         when(promoCodeRepository.findById(id))

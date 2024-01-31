@@ -19,8 +19,7 @@ import com.example.ridesservice.model.PromoCode;
 import com.example.ridesservice.model.Ride;
 import com.example.ridesservice.model.enums.PaymentMethod;
 import com.example.ridesservice.model.enums.RideStatus;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
@@ -29,96 +28,96 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class TestRideUtil {
-    static Long FIRST_RIDE_ID = 98L;
-    static Long SECOND_RIDE_ID = 99L;
-    static Long THIRD_RIDE_ID = 100L;
-    static Long FOURTH_RIDE_ID = 101L;
-    static Long INVALID_RIDE_ID = 111L;
-    static String FIRST_START_ADDRESS = "Platonova 49";
-    static String SECOND_START_ADDRESS = "Sovetskaya 12";
-    static String FIRST_END_ADDRESS = "Masherova 113";
-    static String SECOND_END_ADDRESS = "Lenina 89";
-    static Long NEW_PASSENGER_ID = 3L;
-    static Long FIRST_PASSENGER_ID = 13L;
-    static PaymentMethod FIRST_PAYMENT_METHOD = PaymentMethod.CARD;
-    static PaymentMethod SECOND_PAYMENT_METHOD = PaymentMethod.CASH;
-    static Long FIRST_BANK_CARD_ID = 1L;
-    static PromoCode FIRST_PROMO_CODE = TestPromoCodeUtil.getSecondPromoCode();
-    static BigDecimal FIRST_PRICE = BigDecimal.valueOf(12.5);
-    static RideStatus FIRST_RIDE_STATUS = RideStatus.CREATED;
-    static LocalDateTime FIRST_CREATION_DATE_TIME = LocalDateTime.now();
-    static Long FIRST_DRIVER_ID = 1L;
-    static Long FIRST_CAR_ID = 1L;
-    static LocalDateTime FIRST_START_DATE_TIME = null;
-    static LocalDateTime FIRST_END_DATE_TIME = null;
-    static String PASSENGER_PHONE_NUMBER = "+375291234967";
-    static String PASSENGER_NAME = "Ivan";
-    static Double PASSENGER_RATING = 0.0;
-    static String DRIVER_PHONE_NUMBER = "+375099490457";
-    static String DRIVER_NAME = "Sasha";
-    static Double DRIVER_RATING = 4.5;
-    static long CAR_ID = 1L;
-    static String CAR_MAKE = "Audi";
-    static String CAR_COLOR = "red";
-    static String CAR_NUMBER = "1961-DF-7";
-    static Integer RATING = 5;
-    static List<StopRequest> STOP_REQUESTS = List.of(TestStopUtil.getFirstStopRequest());
-    static List<StopResponse> STOP_RESPONSES = List.of(TestStopUtil.getStopResponse());
-    static int PAGE_NUMBER = 0;
-    static int PAGE_SIZE = 2;
-    static String CORRECT_SORT_FIELD = "id";
-    static String INCORRECT_SORT_FIELD = "age";
-    static String CARD_PAYMENT_METHOD = "If you have chosen CARD payment method, select the card for payment";
-    static String PASSENGER_RIDE_EXCEPTION = "Passenger with id '%s' has already book a ride";
-    static String START_ADDRESS_REQUIRED = "Start address is required";
-    static String PAYMENT_METHOD_REQUIRED = "Payment method is required";
-    static String RIDE_NOT_FOUND = "Ride with id '%s' not found";
-    static String STATUS_EXCEPTION = "The ride with id '%s' has already been canceled";
-    static String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: [id, startAddress, endAddress, passengerId, paymentMethod, bankCardId, promoCode, price, status, creationDateTime, driverId, carId, startDateTime, endDateTime]";
+    private final Long FIRST_RIDE_ID = 98L;
+    private final Long SECOND_RIDE_ID = 99L;
+    private final Long THIRD_RIDE_ID = 100L;
+    private final Long FOURTH_RIDE_ID = 101L;
+    private final Long INVALID_RIDE_ID = 111L;
+    private final String FIRST_START_ADDRESS = "Platonova 49";
+    private final String SECOND_START_ADDRESS = "Sovetskaya 12";
+    private final String FIRST_END_ADDRESS = "Masherova 113";
+    private final String SECOND_END_ADDRESS = "Lenina 89";
+    private final Long NEW_PASSENGER_ID = 3L;
+    private final Long FIRST_PASSENGER_ID = 13L;
+    private final PaymentMethod FIRST_PAYMENT_METHOD = PaymentMethod.CARD;
+    private final PaymentMethod SECOND_PAYMENT_METHOD = PaymentMethod.CASH;
+    private final Long FIRST_BANK_CARD_ID = 1L;
+    private final PromoCode FIRST_PROMO_CODE = TestPromoCodeUtil.getSecondPromoCode();
+    private final BigDecimal FIRST_PRICE = BigDecimal.valueOf(12.5);
+    private final RideStatus FIRST_RIDE_STATUS = RideStatus.CREATED;
+    private final LocalDateTime FIRST_CREATION_DATE_TIME = LocalDateTime.now();
+    private final Long FIRST_DRIVER_ID = 1L;
+    private final Long FIRST_CAR_ID = 1L;
+    private final LocalDateTime FIRST_START_DATE_TIME = null;
+    private final LocalDateTime FIRST_END_DATE_TIME = null;
+    private final String PASSENGER_PHONE_NUMBER = "+375291234967";
+    private final String PASSENGER_NAME = "Ivan";
+    private final Double PASSENGER_RATING = 0.0;
+    private final String DRIVER_PHONE_NUMBER = "+375099490457";
+    private final String DRIVER_NAME = "Sasha";
+    private final Double DRIVER_RATING = 4.5;
+    private final long CAR_ID = 1L;
+    private final String CAR_MAKE = "Audi";
+    private final String CAR_COLOR = "red";
+    private final String CAR_NUMBER = "1961-DF-7";
+    private final Integer RATING = 5;
+    private final List<StopRequest> STOP_REQUESTS = List.of(TestStopUtil.getFirstStopRequest());
+    private final List<StopResponse> STOP_RESPONSES = List.of(TestStopUtil.getStopResponse());
+    private final int PAGE_NUMBER = 0;
+    private final int PAGE_SIZE = 2;
+    private final String CORRECT_SORT_FIELD = "id";
+    private final String INCORRECT_SORT_FIELD = "age";
+    private final String CARD_PAYMENT_METHOD = "If you have chosen CARD payment method, select the card for payment";
+    private final String PASSENGER_RIDE_EXCEPTION = "Passenger with id '%s' has already book a ride";
+    private final String START_ADDRESS_REQUIRED = "Start address is required";
+    private final String PAYMENT_METHOD_REQUIRED = "Payment method is required";
+    private final String RIDE_NOT_FOUND = "Ride with id '%s' not found";
+    private final String STATUS_EXCEPTION = "The ride with id '%s' has already been canceled";
+    private final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: [id, startAddress, endAddress, passengerId, paymentMethod, bankCardId, promoCode, price, status, creationDateTime, driverId, carId, startDateTime, endDateTime]";
 
-    public static Long getFirstRideId() {
+    public Long getFirstRideId() {
         return FIRST_RIDE_ID;
     }
 
-    public static Long getSecondRideId() {
+    public Long getSecondRideId() {
         return SECOND_RIDE_ID;
     }
 
-    public static Long getThirdRideId() {
+    public Long getThirdRideId() {
         return THIRD_RIDE_ID;
     }
 
-    public static Long getFourthRideId() {
+    public Long getFourthRideId() {
         return FOURTH_RIDE_ID;
     }
 
-    public static Long getInvalidRideId() {
+    public Long getInvalidRideId() {
         return INVALID_RIDE_ID;
     }
 
-    public static Long getFirstPassengerId() {
+    public Long getFirstPassengerId() {
         return FIRST_PASSENGER_ID;
     }
 
-    public static Long getFirstDriverId() {
+    public Long getFirstDriverId() {
         return FIRST_DRIVER_ID;
     }
 
-    public static List<StopResponse> getRideStopResponses() {
+    public List<StopResponse> getRideStopResponses() {
         return STOP_RESPONSES;
     }
 
-    public static List<StopRequest> getRideStopRequests() {
+    public List<StopRequest> getRideStopRequests() {
         return STOP_REQUESTS;
     }
 
-    public static PromoCode getFirstPromoCode() {
+    public PromoCode getFirstPromoCode() {
         return FIRST_PROMO_CODE;
     }
 
-    public static Ride getFirstRide() {
+    public Ride getFirstRide() {
         return Ride.builder()
                 .id(FIRST_RIDE_ID)
                 .startAddress(FIRST_START_ADDRESS)
@@ -137,7 +136,7 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static CreateRideRequest getCreateRideRequest() {
+    public CreateRideRequest getCreateRideRequest() {
         return CreateRideRequest.builder()
                 .startAddress(FIRST_START_ADDRESS)
                 .endAddress(FIRST_END_ADDRESS)
@@ -149,26 +148,26 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static CreateRideRequest getCreateRideRequestWithIncorrectPaymentMethod() {
+    public CreateRideRequest getCreateRideRequestWithIncorrectPaymentMethod() {
         CreateRideRequest createRideRequest = getCreateRideRequest();
         createRideRequest.setBankCardId(null);
         return createRideRequest;
     }
 
-    public static CreateRideRequest getCreateExistingRideRequest() {
+    public CreateRideRequest getCreateExistingRideRequest() {
         CreateRideRequest createRideRequest = getCreateRideRequest();
         createRideRequest.setPassengerId(FIRST_PASSENGER_ID);
         return createRideRequest;
     }
 
-    public static CreateRideRequest getCreateRideRequestWithInvalidData() {
+    public CreateRideRequest getCreateRideRequestWithInvalidData() {
         CreateRideRequest createRideRequest = getCreateRideRequest();
         createRideRequest.setStartAddress(null);
         createRideRequest.setPaymentMethod(null);
         return createRideRequest;
     }
 
-    public static EditRideRequest getEditRideRequest() {
+    public EditRideRequest getEditRideRequest() {
         return EditRideRequest.builder()
                 .startAddress(SECOND_START_ADDRESS)
                 .endAddress(SECOND_END_ADDRESS)
@@ -176,20 +175,20 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static EditRideRequest getEditRideRequestWithInvalidData() {
+    public EditRideRequest getEditRideRequestWithInvalidData() {
         EditRideRequest editRideRequest = getEditRideRequest();
         editRideRequest.setStartAddress(null);
         editRideRequest.setPaymentMethod(null);
         return editRideRequest;
     }
 
-    public static RatingRequest getRatingRequest() {
+    public RatingRequest getRatingRequest() {
         return RatingRequest.builder()
                 .rating(RATING)
                 .build();
     }
 
-    public static RideResponse getFirstRideResponse() {
+    public RideResponse getFirstRideResponse() {
         return RideResponse.builder()
                 .rideId(FIRST_RIDE_ID)
                 .passengerName(PASSENGER_NAME)
@@ -214,27 +213,27 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static RideResponse getSecondRideResponse() {
+    public RideResponse getSecondRideResponse() {
         RideResponse rideResponse = getFirstRideResponse();
         rideResponse.setRideId(SECOND_RIDE_ID);
         rideResponse.setStatus(RideStatus.CANCELED.name());
         return rideResponse;
     }
 
-    public static RideResponse getStartedRideResponse() {
+    public RideResponse getStartedRideResponse() {
         RideResponse rideResponse = getFirstRideResponse();
         rideResponse.setStatus(RideStatus.STARTED.name());
         rideResponse.setStartDateTime(LocalDateTime.now());
         return rideResponse;
     }
 
-    public static RideResponse getCanceledRideResponse() {
+    public RideResponse getCanceledRideResponse() {
         RideResponse rideResponse = getFirstRideResponse();
         rideResponse.setStatus(RideStatus.CANCELED.name());
         return rideResponse;
     }
 
-    public static RideResponse getCompletedRideResponse() {
+    public RideResponse getCompletedRideResponse() {
         RideResponse rideResponse = getFirstRideResponse();
         rideResponse.setStops(List.of(TestStopUtil.getThirdStopResponse()));
         rideResponse.setRideId(THIRD_RIDE_ID);
@@ -244,7 +243,7 @@ public class TestRideUtil {
         return rideResponse;
     }
 
-    public static PassengerRideResponse getPassengerRideResponse() {
+    public PassengerRideResponse getPassengerRideResponse() {
         return PassengerRideResponse.builder()
                 .rideId(FIRST_RIDE_ID)
                 .passengerId(NEW_PASSENGER_ID)
@@ -267,14 +266,14 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static PassengerRideResponse getSecondPassengerRideResponse() {
+    public PassengerRideResponse getSecondPassengerRideResponse() {
         PassengerRideResponse passengerRideResponse = getPassengerRideResponse();
         passengerRideResponse.setRideId(SECOND_RIDE_ID);
         passengerRideResponse.setStatus(RideStatus.CANCELED.name());
         return passengerRideResponse;
     }
 
-    public static PassengerRideResponse getEditedPassengerRideResponse() {
+    public PassengerRideResponse getEditedPassengerRideResponse() {
         PassengerRideResponse passengerRideResponse = getPassengerRideResponse();
         passengerRideResponse.setPassengerId(FIRST_PASSENGER_ID);
         passengerRideResponse.setStartAddress(SECOND_START_ADDRESS);
@@ -283,7 +282,7 @@ public class TestRideUtil {
         return passengerRideResponse;
     }
 
-    public static PassengerResponse getPassengerResponse() {
+    public PassengerResponse getPassengerResponse() {
         return PassengerResponse.builder()
                 .id(FIRST_PASSENGER_ID)
                 .firstName(PASSENGER_NAME)
@@ -292,7 +291,7 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static DriverResponse getDriverResponse() {
+    public DriverResponse getDriverResponse() {
         return DriverResponse.builder()
                 .id(FIRST_DRIVER_ID)
                 .firstName(DRIVER_NAME)
@@ -307,21 +306,21 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static ExceptionResponse getPaymentMethodExceptionResponse() {
+    public ExceptionResponse getPaymentMethodExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(CARD_PAYMENT_METHOD)
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .build();
     }
 
-    public static ExceptionResponse getPassengerExceptionResponse() {
+    public ExceptionResponse getPassengerExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(String.format(PASSENGER_RIDE_EXCEPTION, FIRST_PASSENGER_ID))
                 .statusCode(HttpStatus.CONFLICT.value())
                 .build();
     }
 
-    public static ExceptionResponse getRideNotFoundExceptionResponse() {
+    public ExceptionResponse getRideNotFoundExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(String.format(RIDE_NOT_FOUND, INVALID_RIDE_ID))
                 .statusCode(HttpStatus.NOT_FOUND.value())
@@ -329,14 +328,14 @@ public class TestRideUtil {
     }
 
 
-    public static ExceptionResponse getStatusExceptionResponse() {
+    public ExceptionResponse getStatusExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(String.format(STATUS_EXCEPTION, SECOND_RIDE_ID))
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .build();
     }
 
-    public static ValidationErrorResponse getValidationErrorResponse() {
+    public ValidationErrorResponse getValidationErrorResponse() {
         List<String> errors = new ArrayList<>();
         errors.add(START_ADDRESS_REQUIRED);
         errors.add(PAYMENT_METHOD_REQUIRED);
@@ -348,23 +347,23 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static int getPageNumber() {
+    public int getPageNumber() {
         return PAGE_NUMBER;
     }
 
-    public static int getPageSize() {
+    public int getPageSize() {
         return PAGE_SIZE;
     }
 
-    public static String getCorrectSortField() {
+    public String getCorrectSortField() {
         return CORRECT_SORT_FIELD;
     }
 
-    public static String getIncorrectSortField() {
+    public String getIncorrectSortField() {
         return INCORRECT_SORT_FIELD;
     }
 
-    public static PassengerRidesPageResponse getPassengerRidesPageResponse() {
+    public PassengerRidesPageResponse getPassengerRidesPageResponse() {
         return PassengerRidesPageResponse.builder()
                 .rides(List.of(getPassengerRideResponse(), getSecondPassengerRideResponse()))
                 .totalPages(2)
@@ -374,7 +373,7 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static RidesPageResponse getDriverRidesPageResponse() {
+    public RidesPageResponse getDriverRidesPageResponse() {
         return RidesPageResponse.builder()
                 .rides(List.of(getFirstRideResponse(), getSecondRideResponse()))
                 .totalPages(2)
@@ -384,7 +383,7 @@ public class TestRideUtil {
                 .build();
     }
 
-    public static ExceptionResponse getIncorrectFieldExceptionResponse() {
+    public ExceptionResponse getIncorrectFieldExceptionResponse() {
         return ExceptionResponse.builder()
                 .message(INCORRECT_FIELDS)
                 .statusCode(HttpStatus.BAD_REQUEST.value())

@@ -21,7 +21,7 @@ ext {
             'postgresql'        : '42.6.0',
             'liquibase'         : '4.24.0',
             'hibernateValidator': '8.0.1.Final',
-            'lombok'            : '1.18.26',
+            'lombok'            : '1.18.30',
             'jedis'             : '5.1.0',
             'restAssured'       : '5.4.0',
             'wiremock'          : '4.1.0',
@@ -43,7 +43,8 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-contract-wiremock:${versions.wiremock}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
-    testImplementation "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "io.rest-assured:rest-assured:${versions.restAssured}"
     testImplementation "org.testcontainers:testcontainers"

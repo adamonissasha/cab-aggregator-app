@@ -133,12 +133,13 @@ public class RideServiceImpl implements RideService {
         if (editRideRequest.getStops() != null) {
             stops = stopService.editStops(editRideRequest.getStops(), existingRide).getStops();
             return rideMapper.mapRideToPassengerRideResponse(existingRide, stops, driver, driver.getCar());
-        } else if (stopService.getRideStops(existingRide) == null) {
-            return rideMapper.mapRideToPassengerRideResponse(existingRide, List.of(), driver, driver.getCar());
-        } else {
-            stops = stopService.getRideStops(existingRide).getStops();
         }
 
+        if (stopService.getRideStops(existingRide) == null) {
+            return rideMapper.mapRideToPassengerRideResponse(existingRide, List.of(), driver, driver.getCar());
+        }
+
+        stops = stopService.getRideStops(existingRide).getStops();
         return rideMapper.mapRideToPassengerRideResponse(existingRide, stops, driver, driver.getCar());
     }
 

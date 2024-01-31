@@ -3,20 +3,19 @@ package com.example.ridesservice.util;
 import com.example.ridesservice.dto.request.StopRequest;
 import com.example.ridesservice.dto.response.StopResponse;
 import com.example.ridesservice.model.Stop;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
+import lombok.experimental.UtilityClass;
 
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@UtilityClass
 public class TestStopUtil {
-    static Long FIRST_RIDE_STOP_ID = 98L;
-    static String FIRST_RIDE_ADDRESS = "Kupaly 88";
-    static Integer FIRST_STOP_NUMBER = 1;
-    static Long SECOND_RIDE_STOP_ID = 99L;
-    static String SECOND_RIDE_ADDRESS = "Brovki 1";
-    static Integer SECOND_STOP_NUMBER = 1;
-    static Long THIRD_RIDE_STOP_ID = 100L;
+    private final Long FIRST_RIDE_STOP_ID = 98L;
+    private final String FIRST_RIDE_ADDRESS = "Kupaly 88";
+    private final Integer FIRST_STOP_NUMBER = 1;
+    private final Long SECOND_RIDE_STOP_ID = 99L;
+    private final String SECOND_RIDE_ADDRESS = "Brovki 1";
+    private final Integer SECOND_STOP_NUMBER = 1;
+    private final Long THIRD_RIDE_STOP_ID = 100L;
 
-    public static Stop getFirstStop() {
+    public Stop getFirstStop() {
         return Stop.builder()
                 .id(FIRST_RIDE_STOP_ID)
                 .number(FIRST_STOP_NUMBER)
@@ -25,7 +24,7 @@ public class TestStopUtil {
                 .build();
     }
 
-    public static Stop getSecondStop() {
+    public Stop getSecondStop() {
         return Stop.builder()
                 .id(SECOND_RIDE_STOP_ID)
                 .number(SECOND_STOP_NUMBER)
@@ -34,21 +33,21 @@ public class TestStopUtil {
                 .build();
     }
 
-    public static StopRequest getFirstStopRequest() {
+    public StopRequest getFirstStopRequest() {
         return StopRequest.builder()
                 .address(FIRST_RIDE_ADDRESS)
                 .number(FIRST_STOP_NUMBER)
                 .build();
     }
 
-    public static StopRequest getSecondStopRequest() {
+    public StopRequest getSecondStopRequest() {
         return StopRequest.builder()
                 .address(SECOND_RIDE_ADDRESS)
                 .number(SECOND_STOP_NUMBER)
                 .build();
     }
 
-    public static StopResponse getStopResponse() {
+    public StopResponse getStopResponse() {
         return StopResponse.builder()
                 .id(FIRST_RIDE_STOP_ID)
                 .number(FIRST_STOP_NUMBER)
@@ -56,7 +55,7 @@ public class TestStopUtil {
                 .build();
     }
 
-    public static StopResponse getSecondStopResponse() {
+    public StopResponse getSecondStopResponse() {
         return StopResponse.builder()
                 .id(SECOND_RIDE_STOP_ID)
                 .number(SECOND_STOP_NUMBER)
@@ -64,7 +63,7 @@ public class TestStopUtil {
                 .build();
     }
 
-    public static StopResponse getThirdStopResponse() {
+    public StopResponse getThirdStopResponse() {
         return StopResponse.builder()
                 .id(THIRD_RIDE_STOP_ID)
                 .number(FIRST_STOP_NUMBER)
