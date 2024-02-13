@@ -75,3 +75,12 @@ resilience4j:
           - java.util.concurrent.TimeoutException
           - java.net.ConnectException
         automatic-transition-from-open-to-half-open-enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    tags:
+      application: rides-service

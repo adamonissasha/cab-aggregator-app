@@ -2,8 +2,10 @@ version: '3.7'
 
 networks:
   cab-aggregator:
+  elk:
 
 services:
+
   zookeeper:
     image: confluentinc/cp-zookeeper
     container_name: zookeeper
@@ -32,6 +34,16 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    networks:
+      - cab-aggregator
+
+  kafka-exporter:
+    image: bitnami/kafka-exporter
+    container_name: kafka-exporter
+    ports:
+      - "9308:9308"
+    environment:
+      KAFKA_SERVER: kafka:9092
     networks:
       - cab-aggregator
 
@@ -158,6 +170,30 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bank_db
     networks:
       - cab-aggregator
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - cab-aggregator
+
+  grafana:
+    image: grafana/grafana:10.1.5
+    container_name: grafana
+    ports:
+      - '3000:3000'
+    depends_on:
+      - prometheus
+    volumes:
+      - ./config/grafana/dashboards:/etc/grafana/dashboards
+      - ./config/grafana/datasources:/etc/grafana/datasources
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
 
 volumes:
   postgres:

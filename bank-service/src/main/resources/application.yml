@@ -50,5 +50,11 @@ resilience4j:
           - java.util.concurrent.TimeoutException
         automatic-transition-from-open-to-half-open-enabled: true
 
-passenger-service:
-  url: ${PASSENGER_SERVICE_URI:http://localhost:8080/passenger}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    tags:
+      application: bank-service

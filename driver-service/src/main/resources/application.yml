@@ -45,3 +45,12 @@ topic:
     driver-rating: driver_rating_topic
   group-id:
     driver-rating: driver-rating-consumer-group
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    tags:
+      application: driver-service

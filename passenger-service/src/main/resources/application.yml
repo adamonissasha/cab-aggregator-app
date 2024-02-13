@@ -43,3 +43,12 @@ eureka:
   client:
     service-url:
       defaultZone: ${REGISTRY_SERVICE_URI:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    tags:
+      application: passenger-service
