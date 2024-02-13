@@ -6,7 +6,7 @@ spring:
     name: driver-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/driver_service_db
+    url: jdbc:postgresql://localhost:5432/driver_db
     username: postgres
     password: postgres
 
@@ -19,7 +19,7 @@ spring:
       ddl-auto: none
 
   kafka:
-    bootstrap-servers: ${KAFKA_URI:http://localhost:9092}
+    bootstrap-servers: ${KAFKA_URI:localhost:9093}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

@@ -45,6 +45,7 @@ dependencies {
     implementation "org.springframework.cloud:spring-cloud-contract-wiremock:${versions.wiremock}"
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j'
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
     testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"
