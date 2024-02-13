@@ -8,12 +8,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
+@ToString
 public class PassengerRequest {
     private static final String PASSENGER_PHONE_NUMBER_FORMAT = "^\\+375\\d{9}$";
     private static final String PASSENGER_PASSWORD_FORMAT =  "^(?=.*\\d).{8,}$";

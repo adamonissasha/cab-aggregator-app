@@ -15,6 +15,7 @@ import com.example.bankservice.service.BankAccountHistoryService;
 import com.example.bankservice.util.FieldValidator;
 import com.example.bankservice.webClient.DriverWebClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BankAccountHistoryServiceImpl implements BankAccountHistoryService {
     private final BankAccountHistoryRepository bankAccountHistoryRepository;
     private final BankAccountHistoryMapper bankAccountHistoryMapper;
@@ -37,6 +39,8 @@ public class BankAccountHistoryServiceImpl implements BankAccountHistoryService 
     @Override
     @Transactional
     public BankAccountHistoryResponse createBankAccountHistoryRecord(Long id, BankAccountHistoryRequest bankAccountHistoryRequest) {
+        log.info("Creating bank account history record for bank account with id {}: {}", id, bankAccountHistoryRequest);
+
         BankAccountHistory bankAccountHistory =
                 bankAccountHistoryMapper.mapBankAccountHistoryRequestToBankAccountHistory(id, bankAccountHistoryRequest);
         bankAccountHistory = bankAccountHistoryRepository.save(bankAccountHistory);
@@ -52,6 +56,8 @@ public class BankAccountHistoryServiceImpl implements BankAccountHistoryService 
 
     @Override
     public LocalDateTime getLastWithdrawalDate(Long id) {
+        log.info("Retrieving last withdrawal date for bank account with id {}", id);
+
         return bankAccountHistoryRepository.findFirstByBankAccountIdAndOperationOrderByOperationDateTimeDesc(id,
                         Operation.WITHDRAWAL)
                 .map(BankAccountHistory::getOperationDateTime)
@@ -61,9 +67,13 @@ public class BankAccountHistoryServiceImpl implements BankAccountHistoryService 
     @Override
     @Transactional
     public BankAccountHistoryPageResponse getBankAccountHistory(Long id, int page, int size, String sortBy) {
+        log.info("Retrieving bank account history for bank account with id: {}", id);
+
         fieldValidator.checkSortField(BankAccountHistory.class, sortBy);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankAccountHistory> bankAccountHistoryPage = bankAccountHistoryRepository.findAllByBankAccountId(id, pageable);
+
         List<BankAccountHistoryResponse> bankAccountHistoryResponses = bankAccountHistoryPage.getContent()
                 .stream()
                 .map(bankAccountHistory -> bankAccountHistoryMapper

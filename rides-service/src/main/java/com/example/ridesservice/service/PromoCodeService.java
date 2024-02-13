@@ -5,8 +5,6 @@ import com.example.ridesservice.dto.response.AllPromoCodesResponse;
 import com.example.ridesservice.dto.response.PromoCodeResponse;
 import com.example.ridesservice.model.PromoCode;
 
-import java.util.List;
-
 public interface PromoCodeService {
     PromoCodeResponse createPromoCode(PromoCodeRequest promoCodeRequest);
 

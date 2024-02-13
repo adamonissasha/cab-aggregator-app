@@ -1,7 +1,6 @@
 package com.example.bankservice.mapper;
 
 import com.example.bankservice.dto.request.BankCardRequest;
-import com.example.bankservice.dto.request.UpdateBankCardRequest;
 import com.example.bankservice.dto.response.BankCardResponse;
 import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.model.BankCard;

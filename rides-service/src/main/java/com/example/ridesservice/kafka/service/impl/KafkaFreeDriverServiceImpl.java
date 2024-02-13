@@ -24,6 +24,8 @@ public class KafkaFreeDriverServiceImpl implements KafkaFreeDriverService {
         try {
             String driverResponseJson = objectMapper.writeValueAsString(driverResponse);
             jedis.rpush(REDIS_FREE_DRIVER_LIST_NAME, driverResponseJson);
+
+            log.info("Free driver added to Redis free driver list: {}", driverResponse);
         } catch (JsonProcessingException e) {
             log.error(JSON_ERROR_MESSAGE, e.getMessage());
         }

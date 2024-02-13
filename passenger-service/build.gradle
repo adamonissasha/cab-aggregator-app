@@ -30,7 +30,8 @@ ext {
             'lombok'            : '1.18.26',
             'springCloudVersion': '2023.0.0',
             'restAssured'       : '5.4.0',
-            'cucumber'          : '7.14.0'
+            'cucumber'          : '7.14.0',
+            'logbackEncoder'   : '7.4'
     ]
 }
 
@@ -51,6 +52,7 @@ dependencies {
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "io.micrometer:micrometer-registry-prometheus"
+    implementation "net.logstash.logback:logstash-logback-encoder:${versions.logbackEncoder}"
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
     testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testImplementation "org.springframework.boot:spring-boot-starter-test"

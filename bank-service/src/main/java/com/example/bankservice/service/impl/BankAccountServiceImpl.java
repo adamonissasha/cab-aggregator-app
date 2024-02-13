@@ -24,6 +24,7 @@ import com.example.bankservice.service.BankCardService;
 import com.example.bankservice.util.FieldValidator;
 import com.example.bankservice.webClient.DriverWebClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BankAccountServiceImpl implements BankAccountService {
     private static final String BANK_ACCOUNT_NUMBER_EXIST = "Bank account with number '%s' already exist";
     private static final String DRIVER_ALREADY_HAS_ACCOUNT = "Driver with id '%s' already has bank account";
@@ -60,18 +62,22 @@ public class BankAccountServiceImpl implements BankAccountService {
     @Override
     @Transactional
     public BankAccountResponse createBankAccount(BankAccountRequest bankAccountRequest) {
+        log.info("Creating bank account: {}", bankAccountRequest);
+
         String accountNumber = bankAccountRequest.getNumber();
         bankAccountRepository.findByNumber(accountNumber)
                 .ifPresent(bankAccount -> {
-                    throw new AccountNumberUniqueException(
-                            String.format(BANK_ACCOUNT_NUMBER_EXIST, accountNumber));
+                    log.error("Bank account with number {} already exist", accountNumber);
+                    throw new AccountNumberUniqueException(String.format(BANK_ACCOUNT_NUMBER_EXIST, accountNumber));
                 });
+
         Long driverId = bankAccountRequest.getDriverId();
         bankAccountRepository.findByDriverId(driverId)
                 .ifPresent(bankAccount -> {
-                    throw new DriverBankAccountException(
-                            String.format(DRIVER_ALREADY_HAS_ACCOUNT, driverId));
+                    log.error("Driver with id {} already has bank account", driverId);
+                    throw new DriverBankAccountException(String.format(DRIVER_ALREADY_HAS_ACCOUNT, driverId));
                 });
+
         BankAccount newBankAccount = bankAccountMapper.mapBankAccountRequestToBankAccount(bankAccountRequest);
         BankUserResponse bankUserResponse = driverWebClient.getDriver(driverId);
         newBankAccount = bankAccountRepository.save(newBankAccount);
@@ -80,24 +86,37 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public void deleteBankAccount(Long driverId) {
+        log.info("Deleting bank account for driver with id: {}", driverId);
+
         BankAccount bankAccount = bankAccountRepository.findByDriverId(driverId)
-                .orElseThrow(() -> new BankAccountNotFoundException(
-                        String.format(BANK_ACCOUNT_BY_DRIVER_ID_NOT_FOUND, driverId)));
+                .orElseThrow(() -> {
+                    log.error("Driver with id {} bank account not found", driverId);
+                    return new BankAccountNotFoundException(String.format(BANK_ACCOUNT_BY_DRIVER_ID_NOT_FOUND, driverId));
+                });
         bankAccount.setIsActive(false);
         bankAccountRepository.save(bankAccount);
     }
 
     @Override
     public BankAccountResponse getBankAccountById(Long id) {
+        log.info("Retrieving bank account with id: {}", id);
+
         BankAccount bankAccount = bankAccountRepository.findById(id)
-                .orElseThrow(() -> new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Bank account with id {} not found", id);
+                    return new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id));
+                });
+
         BankUserResponse bankUserResponse = driverWebClient.getDriver(bankAccount.getDriverId());
         return bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse);
     }
 
     @Override
     public BankAccountPageResponse getAllActiveBankAccounts(int page, int size, String sortBy) {
+        log.info("Retrieving all active bank accounts (page {}, size {}, sorted by {})", page, size, sortBy);
+
         fieldValidator.checkSortField(BankAccount.class, sortBy);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankAccount> bankAccountPage = bankAccountRepository.findAll(pageable);
         List<BankAccountResponse> bankAccountResponses = bankAccountPage.getContent()
@@ -118,7 +137,10 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountPageResponse getAllBankAccounts(int page, int size, String sortBy) {
+        log.info("Retrieving all bank accounts (page {}, size {}, sorted by {})", page, size, sortBy);
+
         fieldValidator.checkSortField(BankAccount.class, sortBy);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<BankAccount> bankAccountPage = bankAccountRepository.findAll(pageable);
         List<BankAccountResponse> bankAccountResponses = bankAccountPage.getContent()
@@ -139,10 +161,14 @@ public class BankAccountServiceImpl implements BankAccountService {
     @Override
     @Transactional
     public BankAccountResponse refillBankAccount(RefillRequest refillRequest) {
+        log.info("Refilling bank account: {}", refillRequest);
+
         Long driverId = refillRequest.getBankUserId();
         BankAccount bankAccount = bankAccountRepository.findByDriverId(driverId)
-                .orElseThrow(() -> new BankAccountNotFoundException(
-                        String.format(BANK_ACCOUNT_BY_DRIVER_ID_NOT_FOUND, driverId)));
+                .orElseThrow(() -> {
+                    log.error("Driver with id {} bank account not found", driverId);
+                    return new BankAccountNotFoundException(String.format(BANK_ACCOUNT_BY_DRIVER_ID_NOT_FOUND, driverId));
+                });
 
         BigDecimal refillSum = refillRequest.getSum();
         BigDecimal updatedBalance = bankAccount.getBalance()
@@ -163,8 +189,14 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BalanceResponse getBankAccountBalance(Long id) {
+        log.info("Retrieving balance for bank account with id {}", id);
+
         BankAccount bankAccount = bankAccountRepository.findById(id)
-                .orElseThrow(() -> new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Bank account with id {} not found", id);
+                    return new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id));
+                });
+
         return BalanceResponse.builder()
                 .balance(bankAccount.getBalance())
                 .build();
@@ -173,8 +205,14 @@ public class BankAccountServiceImpl implements BankAccountService {
     @Override
     @Transactional
     public BankAccountResponse withdrawalFromBankAccount(Long id, WithdrawalRequest withdrawalRequest) {
+        log.info("Withdrawing money from bank account with id {}: {}", id, withdrawalRequest);
+
         BankAccount bankAccount = bankAccountRepository.findById(id)
-                .orElseThrow(() -> new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Bank account with id {} not found", id);
+                    return new BankAccountNotFoundException(String.format(BANK_ACCOUNT_NOT_FOUND, id));
+                });
+
         Long bankUserId = bankAccount.getDriverId();
         BigDecimal withdrawalSum = withdrawalRequest.getSum();
         BigDecimal bankAccountBalance = bankAccount.getBalance();
@@ -205,17 +243,26 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     private void checkWithdrawalConditions(Long id, BigDecimal withdrawalSum, BigDecimal bankAccountBalance) {
         if (withdrawalSum.compareTo(MIN_WITHDRAWAL_SUM) < 0 || withdrawalSum.compareTo(MAX_WITHDRAWAL_SUM) > 0) {
+            log.error("Withdrawal sum {} isn't included in the range from 30 to 300 BYN", withdrawalSum);
             throw new WithdrawalException(String.format(WITHDRAWAL_SUM_IS_OUTSIDE, withdrawalSum));
         }
+
         LocalDateTime lastWithdrawalDate = bankAccountHistoryService.getLastWithdrawalDate(id);
         if (lastWithdrawalDate != null) {
             LocalDateTime nextAvailableWithdrawalDate = lastWithdrawalDate.plusDays(WITHDRAWAL_LIMIT_DAYS);
             if (nextAvailableWithdrawalDate.isAfter(LocalDateTime.now())) {
+                log.error("Withdrawal from the bank account is allowed once every {} days." +
+                                "The last withdrawal date - {}. The next available withdrawal date - {}.",
+                        WITHDRAWAL_DATE_MESSAGE,
+                        lastWithdrawalDate,
+                        nextAvailableWithdrawalDate);
                 throw new WithdrawalException(String.format(WITHDRAWAL_DATE_MESSAGE, WITHDRAWAL_LIMIT_DAYS,
                         lastWithdrawalDate, nextAvailableWithdrawalDate));
             }
         }
+
         if (bankAccountBalance.compareTo(withdrawalSum) < 0) {
+            log.error("Withdrawal sum {} exceeds bank account balance", withdrawalSum);
             throw new WithdrawalException(String.format(LARGE_WITHDRAWAL_SUM, withdrawalSum));
         }
     }

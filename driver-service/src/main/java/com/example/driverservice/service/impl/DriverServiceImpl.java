@@ -16,6 +16,7 @@ import com.example.driverservice.service.DriverService;
 import com.example.driverservice.util.FieldValidator;
 import com.example.driverservice.webClient.BankWebClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +29,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DriverServiceImpl implements DriverService {
     private static final String DRIVER_NOT_FOUND = "Driver with id '%s' not found";
     private static final String DRIVER_ALREADY_FREE = "Driver with id '%s' is already free";
@@ -42,31 +44,46 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse createDriver(DriverRequest driverRequest) {
-        String phoneNumber = driverRequest.getPhoneNumber();
+        log.info("Creating driver: {}", driverRequest);
+
         carService.getCarById(driverRequest.getCarId());
+
+        String phoneNumber = driverRequest.getPhoneNumber();
         driverRepository.findDriverByPhoneNumber(phoneNumber)
                 .ifPresent(driver -> {
+                    log.error("Driver with phone number {} already exist", phoneNumber);
                     throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                 });
+
         Driver newDriver = mapDriverRequestToDriver(driverRequest);
         newDriver = driverRepository.save(newDriver);
         DriverResponse driverResponse = mapDriverToDriverResponse(newDriver);
+
         kafkaFreeDriverService.sendFreeDriverToConsumer(driverResponse);
+
         return driverResponse;
     }
 
     @Override
     public DriverResponse editDriver(long id, DriverRequest driverRequest) {
+        log.info("Updating driver with id {}: {}", id, driverRequest);
+
         carService.getCarById(driverRequest.getCarId());
         Driver existingDriver = driverRepository.findById(id)
-                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Driver with id {} not found", id);
+                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id));
+                });
+
         String phoneNumber = driverRequest.getPhoneNumber();
         driverRepository.findDriverByPhoneNumber(phoneNumber)
                 .ifPresent(driver -> {
                     if (driver.getId() != id) {
+                        log.error("Driver with phone number {} already exist", phoneNumber);
                         throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                     }
                 });
+
         Driver updatedDriver = mapDriverRequestToDriver(driverRequest);
         updatedDriver.setId(existingDriver.getId());
         updatedDriver = driverRepository.save(updatedDriver);
@@ -75,13 +92,20 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse getDriverById(long id) {
+        log.info("Retrieving driver by id: {}", id);
+
         return driverRepository.findById(id)
                 .map(this::mapDriverToDriverResponse)
-                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Driver with id {} not found", id);
+                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id));
+                });
     }
 
     @Override
     public DriverPageResponse getAllDrivers(int page, int size, String sortBy) {
+        log.info("Retrieving all drivers with pagination: page={}, size={}, sortBy={}", page, size, sortBy);
+
         fieldValidator.checkSortField(Driver.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Driver> driverPage = driverRepository.findAll(pageable);
@@ -102,29 +126,44 @@ public class DriverServiceImpl implements DriverService {
 
     @Override
     public DriverResponse changeDriverStatusToFree(Long id) {
+        log.info("Changing status of driver with id {} to FREE", id);
+
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Driver with id {} not found", id);
+                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id));
+                });
+
         if (driver.getStatus() == Status.FREE) {
+            log.error("Driver with id {} is already free", id);
             throw new DriverStatusException(String.format(DRIVER_ALREADY_FREE, id));
         }
+
         driver.setStatus(Status.FREE);
         driver = driverRepository.save(driver);
         DriverResponse driverResponse = mapDriverToDriverResponse(driver);
+
         kafkaFreeDriverService.sendFreeDriverToConsumer(driverResponse);
+
         return driverResponse;
     }
 
     @Override
     @Transactional
     public void deleteDriverById(long id) {
+        log.info("Deleting driver with id: {}", id);
+
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Driver with id {} not found", id);
+                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id));
+                });
+
         driver.setActive(false);
         driverRepository.save(driver);
 
-        Long driverId = driver.getId();
-        bankWebClient.deleteDriverBankAccount(driverId);
-        bankWebClient.deleteDriverBankCards(driverId);
+        bankWebClient.deleteDriverBankAccount(id);
+        bankWebClient.deleteDriverBankCards(id);
     }
 
     public Driver mapDriverRequestToDriver(DriverRequest driverRequest) {

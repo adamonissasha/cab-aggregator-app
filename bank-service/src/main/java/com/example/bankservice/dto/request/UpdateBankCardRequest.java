@@ -7,12 +7,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Builder
+@ToString
 public class UpdateBankCardRequest {
     private static final String BANK_CARD_NUMBER_FORMAT = "^\\d{4} \\d{4} \\d{4} \\d{4}$";
     private static final String BANK_CARD_EXPIRY_DATE_FORMAT = "^(0[1-9]|1[0-2])/\\d{2}$";
