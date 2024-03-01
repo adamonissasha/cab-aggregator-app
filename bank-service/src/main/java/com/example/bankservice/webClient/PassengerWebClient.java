@@ -25,7 +25,7 @@ public class PassengerWebClient {
     private final WebClient webClient;
 
     @CircuitBreaker(name = "passenger-service", fallbackMethod = "getPassengerFallback")
-    public BankUserResponse getPassenger(long id) {
+    public BankUserResponse getPassenger(String id) {
         return webClient.get()
                 .uri(passengerServiceUrl + "/{id}", id)
                 .retrieve()

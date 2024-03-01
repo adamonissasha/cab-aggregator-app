@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
@@ -15,15 +16,15 @@ public class BankWebClient {
     private String bankServiceUrl;
     private final WebClient webClient;
 
-    public void deletePassengerBankCards(Long passengerId) {
+    public Mono<Void> deletePassengerBankCards(String passengerId) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(bankServiceUrl + "/card/user/{passengerId}");
         builder.queryParam("bankUser", "PASSENGER");
         URI uri = builder.buildAndExpand(passengerId).toUri();
 
-        webClient.delete()
+        return webClient.delete()
                 .uri(uri)
                 .retrieve()
                 .toBodilessEntity()
-                .subscribe();
+                .then();
     }
 }

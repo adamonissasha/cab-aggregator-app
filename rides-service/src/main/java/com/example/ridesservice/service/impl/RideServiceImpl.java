@@ -88,7 +88,7 @@ public class RideServiceImpl implements RideService {
 
         PromoCode promoCode = promoCodeService.getPromoCodeByName(createRideRequest.getPromoCode());
         BigDecimal price = calculatePrice(promoCode);
-        Long passengerId = passengerWebClient.getPassenger(createRideRequest.getPassengerId()).getId();
+        String passengerId = passengerWebClient.getPassenger(createRideRequest.getPassengerId()).getId();
         checkPassengerRides(passengerId);
         DriverResponse driver = getFreeDriver();
 
@@ -160,7 +160,7 @@ public class RideServiceImpl implements RideService {
     }
 
     @Override
-    public PassengerRidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy) {
+    public PassengerRidesPageResponse getPassengerRides(String passengerId, int page, int size, String sortBy) {
         log.info("Retrieving passenger with id {} rides (page={}, size={}, sortBy={})", passengerId, page, size, sortBy);
 
         fieldValidator.checkSortField(Ride.class, sortBy);
@@ -311,7 +311,7 @@ public class RideServiceImpl implements RideService {
         return PaymentMethod.valueOf(paymentMethod);
     }
 
-    private void checkPassengerRides(Long passengerId) {
+    private void checkPassengerRides(String passengerId) {
         if (rideRepository.findAll()
                 .stream()
                 .filter(ride -> ride.getPassengerId().equals(passengerId))

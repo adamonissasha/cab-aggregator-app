@@ -16,8 +16,8 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class PassengerRatingResponse {
-    private long id;
-    private long passengerId;
+    private String id;
+    private String passengerId;
     private long driverId;
     private int rating;
 }

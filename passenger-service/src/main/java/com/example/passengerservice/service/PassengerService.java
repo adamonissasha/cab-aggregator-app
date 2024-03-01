@@ -3,15 +3,16 @@ package com.example.passengerservice.service;
 import com.example.passengerservice.dto.request.PassengerRequest;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
+import reactor.core.publisher.Mono;
 
 public interface PassengerService {
-    PassengerResponse createPassenger(PassengerRequest passengerRequest);
+    Mono<PassengerResponse> createPassenger(PassengerRequest passengerRequest);
 
-    PassengerResponse editPassenger(long id, PassengerRequest passengerRequest);
+    Mono<PassengerResponse> editPassenger(String id, PassengerRequest passengerRequest);
 
-    PassengerResponse getPassengerById(long id);
+    Mono<PassengerResponse> getPassengerById(String id);
 
-    PassengerPageResponse getAllPassengers(int page, int size, String sortBy);
+    Mono<PassengerPageResponse> getAllPassengers(int page, int size, String sortBy);
 
-    void deletePassengerById(long id);
+    Mono<Void> deletePassengerById(String id);
 }

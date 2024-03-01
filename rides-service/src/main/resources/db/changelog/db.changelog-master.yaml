@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/changeset/create-ride-table.yaml
   - include:
       file: db/changelog/changeset/create-stop-table.yaml
+  - include:
+      file: db/changelog/changeset/change-passenger-id-type.yaml

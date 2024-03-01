@@ -29,8 +29,8 @@ public class TestBankAccountUtil {
     private final String UNIQUE_EXISTING_ACCOUNT_NUMBER = "1726fh5ke829sk";
     private final BigDecimal FIRST_ACCOUNT_BALANCE = BigDecimal.valueOf(250.6);
     private final BigDecimal SECOND_ACCOUNT_BALANCE = BigDecimal.valueOf(123.3);
-    private final Long FIRST_BANK_DRIVER_ID = 1L;
-    private final Long SECOND_BANK_DRIVER_ID = 2L;
+    private final Long FIRST_DRIVER_ID = 1L;
+    private final Long SECOND_DRIVER_ID = 2L;
     private final String BANK_USER_FIRST_NAME = "Sasha";
     private final String BANK_USER_LAST_NAME = "Adamonis";
     private final String BANK_USER_EMAIL = "sasha@gmail.com";
@@ -68,7 +68,7 @@ public class TestBankAccountUtil {
                 .id(FIRST_BANK_ACCOUNT_ID)
                 .number(FIRST_ACCOUNT_NUMBER)
                 .balance(FIRST_ACCOUNT_BALANCE)
-                .driverId(FIRST_BANK_DRIVER_ID)
+                .driverId(FIRST_DRIVER_ID)
                 .isActive(true)
                 .build();
     }
@@ -78,7 +78,7 @@ public class TestBankAccountUtil {
                 .id(SECOND_BANK_ACCOUNT_ID)
                 .number(SECOND_ACCOUNT_NUMBER)
                 .balance(SECOND_ACCOUNT_BALANCE)
-                .driverId(SECOND_BANK_DRIVER_ID)
+                .driverId(SECOND_DRIVER_ID)
                 .isActive(true)
                 .build();
     }
@@ -86,7 +86,7 @@ public class TestBankAccountUtil {
     public BankAccountRequest getBankAccountRequest() {
         return BankAccountRequest.builder()
                 .number(FIRST_ACCOUNT_NUMBER)
-                .driverId(FIRST_BANK_DRIVER_ID)
+                .driverId(FIRST_DRIVER_ID)
                 .build();
     }
 
@@ -100,14 +100,14 @@ public class TestBankAccountUtil {
     public BankAccountRequest getUniqueBankAccountRequest() {
         return BankAccountRequest.builder()
                 .number(UNIQUE_EXISTING_ACCOUNT_NUMBER)
-                .driverId(FIRST_BANK_DRIVER_ID)
+                .driverId(FIRST_DRIVER_ID)
                 .build();
     }
 
     public BankAccountRequest getCreateBankAccountRequest() {
         return BankAccountRequest.builder()
                 .number(UNIQUE_EXISTING_ACCOUNT_NUMBER)
-                .driverId(SECOND_BANK_DRIVER_ID)
+                .driverId(SECOND_DRIVER_ID)
                 .build();
     }
 
@@ -149,7 +149,7 @@ public class TestBankAccountUtil {
 
     public BankUserResponse getFirstBankUserResponse() {
         return BankUserResponse.builder()
-                .id(FIRST_BANK_DRIVER_ID)
+                .id(FIRST_DRIVER_ID.toString())
                 .email(BANK_USER_EMAIL)
                 .firstName(BANK_USER_FIRST_NAME)
                 .lastName(BANK_USER_LAST_NAME)
@@ -159,7 +159,7 @@ public class TestBankAccountUtil {
 
     public BankUserResponse getSecondBankUserResponse() {
         return BankUserResponse.builder()
-                .id(SECOND_BANK_DRIVER_ID)
+                .id(SECOND_DRIVER_ID.toString())
                 .email(BANK_USER_EMAIL)
                 .firstName(BANK_USER_FIRST_NAME)
                 .lastName(BANK_USER_LAST_NAME)
@@ -223,14 +223,14 @@ public class TestBankAccountUtil {
 
     public RefillRequest getRefillRequest() {
         return RefillRequest.builder()
-                .bankUserId(FIRST_BANK_DRIVER_ID)
+                .bankUserId(FIRST_DRIVER_ID.toString())
                 .sum(REFILL_SUM)
                 .build();
     }
 
     public RefillRequest getInvalidRefillRequest() {
         return RefillRequest.builder()
-                .bankUserId(INVALID_BANK_ACCOUNT_ID)
+                .bankUserId(INVALID_BANK_ACCOUNT_ID.toString())
                 .sum(REFILL_SUM)
                 .build();
     }
@@ -275,7 +275,7 @@ public class TestBankAccountUtil {
 
     public ExceptionResponse getDriverAlreadyHasAccountExceptionResponse() {
         return ExceptionResponse.builder()
-                .message(String.format(DRIVER_ALREADY_HAS_ACCOUNT, FIRST_BANK_DRIVER_ID))
+                .message(String.format(DRIVER_ALREADY_HAS_ACCOUNT, FIRST_DRIVER_ID))
                 .statusCode(HttpStatus.CONFLICT.value())
                 .build();
     }

@@ -19,5 +19,5 @@ import java.math.BigDecimal;
 @ToString
 public class RefillRequest {
     private BigDecimal sum;
-    private Long bankUserId;
+    private String bankUserId;
 }

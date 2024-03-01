@@ -26,7 +26,7 @@ public class DriverWebClient {
     private final WebClient webClient;
 
     @CircuitBreaker(name = "driver-service", fallbackMethod = "getDriverFallback")
-    public BankUserResponse getDriver(long id) {
+    public BankUserResponse getDriver(Long id) {
         return webClient.get()
                 .uri(driverServiceUrl + "/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)

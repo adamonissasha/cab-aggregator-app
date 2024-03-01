@@ -11,12 +11,12 @@ import java.util.List;
 
 @UtilityClass
 public class TestPassengerRatingUtil {
-    private final Long FIRST_PASSENGER_RATING_ID = 98L;
-    private final Long PASSENGER_ID = 99L;
+    private final String FIRST_PASSENGER_RATING_ID = "65cbc3c1a85b366e0ef0564c";
+    private final String PASSENGER_ID = "65cbbb08e399fa178470785d";
     private final Long FIRST_DRIVER_ID = 1L;
     private final Long FIRST_RIDE_ID = 1L;
     private final Integer FIRST_RATING = 5;
-    private final Long SECOND_PASSENGER_RATING_ID = 99L;
+    private final String SECOND_PASSENGER_RATING_ID = "65cbbb08e399fa178470785d";
     private final Long SECOND_DRIVER_ID = 2L;
     private final Long SECOND_RIDE_ID = 2L;
     private final Integer SECOND_RATING = 4;
@@ -31,7 +31,7 @@ public class TestPassengerRatingUtil {
                 .id(FIRST_PASSENGER_RATING_ID)
                 .driverId(FIRST_DRIVER_ID)
                 .rideId(FIRST_RIDE_ID)
-                .passenger(TestPassengerUtil.getFirstPassenger())
+                .passenger(TestPassengerUtil.getSecondPassenger())
                 .rating(FIRST_RATING)
                 .build();
     }
@@ -75,7 +75,7 @@ public class TestPassengerRatingUtil {
 
     public AveragePassengerRatingResponse getAveragePassengerRatingResponse() {
         return AveragePassengerRatingResponse.builder()
-                .passengerId(PASSENGER_ID)
+                .passengerId(SECOND_PASSENGER_RATING_ID)
                 .averageRating(AVERAGE_RATING)
                 .build();
     }

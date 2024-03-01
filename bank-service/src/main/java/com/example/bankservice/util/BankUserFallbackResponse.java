@@ -8,7 +8,7 @@ public class BankUserFallbackResponse {
 
     public BankUserResponse getBankUserFallbackResponse() {
         return BankUserResponse.builder()
-                .id(-1)
+                .id("FallbackId")
                 .firstName("FallbackFirstName")
                 .lastName("FallbackLastName")
                 .email("FallbackEmail")

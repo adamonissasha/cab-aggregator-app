@@ -17,7 +17,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class RatingMessage {
     private Long driverId;
-    private Long passengerId;
+    private String passengerId;
     private Long rideId;
     private Integer rating;
 }

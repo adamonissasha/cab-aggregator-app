@@ -3,11 +3,12 @@ package com.example.passengerservice.service;
 import com.example.passengerservice.dto.request.PassengerRatingRequest;
 import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
+import reactor.core.publisher.Mono;
 
 public interface PassengerRatingService {
-    void ratePassenger(PassengerRatingRequest passengerRatingRequest);
+    Mono<Void> ratePassenger(PassengerRatingRequest passengerRatingRequest);
 
-    AllPassengerRatingsResponse getRatingsByPassengerId(long passengerId);
+    Mono<AllPassengerRatingsResponse> getRatingsByPassengerId(String passengerId);
 
-    AveragePassengerRatingResponse getAveragePassengerRating(long passengerId);
+    Mono<AveragePassengerRatingResponse> getAveragePassengerRating(String passengerId);
 }

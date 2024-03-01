@@ -1,7 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: rollback-create-passenger-table
-      author: AlexandraA
-      changes:
-        - dropTable:
-            tableName: passenger

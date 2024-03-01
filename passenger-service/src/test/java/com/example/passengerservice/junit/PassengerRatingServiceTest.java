@@ -20,14 +20,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -52,11 +51,12 @@ public class PassengerRatingServiceTest {
         Passenger existingPassenger = TestPassengerUtil.getFirstPassenger();
 
         when(passengerRepository.findById(passengerRatingRequest.getPassengerId()))
-                .thenReturn(Optional.of(existingPassenger));
+                .thenReturn(Mono.just(existingPassenger));
         when(passengerRatingRepository.save(any(PassengerRating.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+                .thenReturn(Mono.just(TestPassengerRatingUtil.getFirstPassengerRating()));
 
-        assertDoesNotThrow(() -> passengerRatingService.ratePassenger(passengerRatingRequest));
+        StepVerifier.create(passengerRatingService.ratePassenger(passengerRatingRequest))
+                .verifyComplete();
 
         verify(passengerRatingRepository, times(1))
                 .save(any(PassengerRating.class));
@@ -69,9 +69,11 @@ public class PassengerRatingServiceTest {
         PassengerRatingRequest passengerRatingRequest = TestPassengerRatingUtil.getPassengerRatingRequest();
 
         when(passengerRepository.findById(passengerRatingRequest.getPassengerId()))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
 
-        assertThrows(PassengerNotFoundException.class, () -> passengerRatingService.ratePassenger(passengerRatingRequest));
+        StepVerifier.create(passengerRatingService.ratePassenger(passengerRatingRequest))
+                .expectError(PassengerNotFoundException.class)
+                .verify();
 
         verify(passengerRatingRepository, never())
                 .save(any(PassengerRating.class));
@@ -81,7 +83,7 @@ public class PassengerRatingServiceTest {
 
     @Test
     public void testGetRatingsByPassengerId_WhenPassengerExists_ShouldReturnPassengerRatings() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
 
         PassengerRating firstPassengerRating = TestPassengerRatingUtil.getFirstPassengerRating();
         PassengerRating secondPassengerRating = TestPassengerRatingUtil.getSecondPassengerRating();
@@ -95,41 +97,43 @@ public class PassengerRatingServiceTest {
                 .build();
 
         when(passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId))
-                .thenReturn(passengerRatings);
+                .thenReturn(Flux.fromIterable(passengerRatings));
         when(modelMapper.map(firstPassengerRating, PassengerRatingResponse.class))
                 .thenReturn(firstPassengerRatingResponse);
         when(modelMapper.map(secondPassengerRating, PassengerRatingResponse.class))
                 .thenReturn(secondPassengerRatingResponse);
-        when(passengerRepository.existsById(passengerId))
-                .thenReturn(true);
+        when(passengerRepository.findById(passengerId))
+                .thenReturn(Mono.just(TestPassengerUtil.getFirstPassenger()));
 
-        AllPassengerRatingsResponse actual = passengerRatingService.getRatingsByPassengerId(passengerId);
+        StepVerifier.create(passengerRatingService.getRatingsByPassengerId(passengerId))
+                .expectNext(expected)
+                .verifyComplete();
 
-        assertDoesNotThrow(() -> passengerRatingService.validatePassengerExists(passengerId));
-        assertEquals(expected, actual);
 
         verify(passengerRatingRepository, times(1))
                 .getPassengerRatingsByPassengerId(passengerId);
-        verify(passengerRepository, times(2))
-                .existsById(passengerId);
+        verify(passengerRepository, times(1))
+                .findById(passengerId);
     }
 
     @Test
     void testGetRatingsByPassengerId_WhenPassengerNotExists_ShouldThrowPassengerNotFoundException() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
 
-        when(passengerRepository.existsById(passengerId))
-                .thenReturn(false);
+        when(passengerRepository.findById(passengerId))
+                .thenReturn(Mono.empty());
 
-        assertThrows(PassengerNotFoundException.class, () -> passengerRatingService.getRatingsByPassengerId(passengerId));
+        StepVerifier.create(passengerRatingService.getRatingsByPassengerId(passengerId))
+                .expectError(PassengerNotFoundException.class)
+                .verify();
 
         verify(passengerRepository, times(1))
-                .existsById(passengerId);
+                .findById(passengerId);
     }
 
     @Test
     void testGetAveragePassengerRating_WhenPassengerExists_ShouldReturnAveragePassengerRatingResponse() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
         PassengerRating firstPassengerRating = TestPassengerRatingUtil.getFirstPassengerRating();
         PassengerRating secondPassengerRating = TestPassengerRatingUtil.getSecondPassengerRating();
         List<PassengerRating> passengerRatings = Arrays.asList(firstPassengerRating, secondPassengerRating);
@@ -140,31 +144,33 @@ public class PassengerRatingServiceTest {
                         .passengerId(passengerId)
                         .build();
 
-        when(passengerRepository.existsById(passengerId))
-                .thenReturn(true);
+        when(passengerRepository.findById(passengerId))
+                .thenReturn(Mono.just(TestPassengerUtil.getFirstPassenger()));
         when(passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId))
-                .thenReturn(passengerRatings);
+                .thenReturn(Flux.fromIterable(passengerRatings));
 
-        AveragePassengerRatingResponse actual = passengerRatingService.getAveragePassengerRating(passengerId);
-
-        assertEquals(expected, actual);
+        StepVerifier.create(passengerRatingService.getAveragePassengerRating(passengerId))
+                .expectNext(expected)
+                .verifyComplete();
 
         verify(passengerRepository, times(1))
-                .existsById(passengerId);
+                .findById(passengerId);
         verify(passengerRatingRepository, times(1))
                 .getPassengerRatingsByPassengerId(passengerId);
     }
 
     @Test
     void testGetAveragePassengerRating_WhenPassengerNotExists_ShouldThrowPassengerNotFoundException() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
 
-        when(passengerRepository.existsById(passengerId))
-                .thenReturn(false);
+        when(passengerRepository.findById(passengerId))
+                .thenReturn(Mono.empty());
 
-        assertThrows(PassengerNotFoundException.class, () -> passengerRatingService.getAveragePassengerRating(passengerId));
+        StepVerifier.create(passengerRatingService.getAveragePassengerRating(passengerId))
+                .expectError(PassengerNotFoundException.class)
+                .verify();
 
         verify(passengerRepository, times(1))
-                .existsById(passengerId);
+                .findById(passengerId);
     }
 }

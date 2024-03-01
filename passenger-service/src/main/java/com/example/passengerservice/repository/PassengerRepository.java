@@ -1,14 +1,18 @@
 package com.example.passengerservice.repository;
 
 import com.example.passengerservice.model.Passenger;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface PassengerRepository extends JpaRepository<Passenger, Long> {
-    Optional<Passenger> findPassengerByPhoneNumber(String phoneNumber);
-    Optional<Passenger> findPassengerByPhoneNumberAndIdIsNot(String phoneNumber, long id);
+public interface PassengerRepository extends ReactiveMongoRepository<Passenger, String> {
+    Mono<Passenger> findPassengerByPhoneNumber(String phoneNumber);
+
+    Flux<Passenger> findAllByIsActiveTrue(Pageable pageable);
+
+    Mono<Long> countAllByIsActiveTrue();
 
 }

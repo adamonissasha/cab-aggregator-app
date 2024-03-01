@@ -262,8 +262,8 @@ public class BankCardServiceStepDefinitions {
         }
     }
 
-    @Given("There are bank cards of user {string} with id {long} in the system in page {int} with size {int} and sort by {string}")
-    public void thereAreBankCardsOfUserWithIdInTheSystem(String bankUser, long bankUserId, int page, int size, String sortBy) {
+    @Given("There are bank cards of user {string} with id {string} in the system in page {int} with size {int} and sort by {string}")
+    public void thereAreBankCardsOfUserWithIdInTheSystem(String bankUser, String bankUserId, int page, int size, String sortBy) {
         List<BankCard> bankCards = TestBankCardUtil.getBankCards();
         BankCard firstBankCard = bankCards.get(0);
         List<BankCardResponse> bankCardResponses = TestBankCardUtil.getBankCardResponses();
@@ -289,8 +289,8 @@ public class BankCardServiceStepDefinitions {
         assertTrue(bankCardPage.hasContent());
     }
 
-    @When("Method getBankCardsByBankUser for user {string} with id {long} called with page {int}, size {int}, and sort by {string}")
-    public void methodGetBankCardsByBankUserCalledWithPageSizeAndSortBy(String bankUser, long bankUserId, int page, int size, String sortBy) {
+    @When("Method getBankCardsByBankUser for user {string} with id {string} called with page {int}, size {int}, and sort by {string}")
+    public void methodGetBankCardsByBankUserCalledWithPageSizeAndSortBy(String bankUser, String bankUserId, int page, int size, String sortBy) {
         try {
             actualPageResponse = bankCardService.getBankCardsByBankUser(bankUserId, BankUser.valueOf(bankUser), page, size, sortBy);
         } catch (IncorrectFieldNameException ex) {
@@ -313,8 +313,8 @@ public class BankCardServiceStepDefinitions {
         assertEquals(expectedPageResponse, actualPageResponse);
     }
 
-    @Given("There is a default user {string} with id {long} bank card")
-    public void thereIsADefaultUserWithIdBankCard(String bankUser, long bankUserId) {
+    @Given("There is a default user {string} with id {string} bank card")
+    public void thereIsADefaultUserWithIdBankCard(String bankUser, String bankUserId) {
         bankCard = TestBankCardUtil.getFirstBankCard();
         bankUserResponse = TestBankCardUtil.getBankUserResponse();
         expected = TestBankCardUtil.getFirstBankCardResponse();
@@ -327,8 +327,8 @@ public class BankCardServiceStepDefinitions {
                 .thenReturn(expected);
     }
 
-    @Given("There is no default user {string} with id {long} bank card")
-    public void thereIsNoDefaultUserWithIdBankCard(String bankUser, long bankUserId) {
+    @Given("There is no default user {string} with id {string} bank card")
+    public void thereIsNoDefaultUserWithIdBankCard(String bankUser, String bankUserId) {
         when(bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankUserId, BankUser.valueOf(bankUser)))
                 .thenReturn(Optional.empty());
 
@@ -336,8 +336,8 @@ public class BankCardServiceStepDefinitions {
                 .isEmpty());
     }
 
-    @When("Method getDefaultBankCard of user {string} with id {long} called")
-    public void methodGetDefaultBankCardOfUserWithIdCalled(String bankUser, long bankUserId) {
+    @When("Method getDefaultBankCard of user {string} with id {string} called")
+    public void methodGetDefaultBankCardOfUserWithIdCalled(String bankUser, String bankUserId) {
         try {
             actual = bankCardService.getDefaultBankCard(bankUserId, BankUser.valueOf(bankUser));
         } catch (BankCardNotFoundException ex) {
@@ -424,7 +424,7 @@ public class BankCardServiceStepDefinitions {
 
     @Given("There is bank card with id {long} to refill")
     public void thereIsBankCardWithIdToRefill(long id) {
-        long bankUserId = 3L;
+        String bankUserId = TestBankCardUtil.getBankUserId();
         refillRequest = TestBankCardUtil.getRefillRequest();
         bankCard = TestBankCardUtil.getFirstBankCard();
         bankUserResponse = TestBankCardUtil.getBankUserResponse();
@@ -446,7 +446,7 @@ public class BankCardServiceStepDefinitions {
 
     @Given("Bank card id to refill not provided")
     public void bankCardIdNotProvided() {
-        long bankUserId = 3L;
+        String bankUserId = TestBankCardUtil.getBankUserId();
         refillRequest = TestBankCardUtil.getRefillRequest();
         bankCard = TestBankCardUtil.getFirstBankCard();
         bankUserResponse = TestBankCardUtil.getBankUserResponse();

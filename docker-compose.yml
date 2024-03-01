@@ -93,6 +93,14 @@ services:
     networks:
       - cab-aggregator
 
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
   passenger-service:
     image: passenger-service
     container_name: passenger-service
@@ -108,7 +116,7 @@ services:
       KAFKA_URI: kafka:9092
       REGISTRY_SERVICE_URI: http://registry-service:8761/eureka/
       BANK_SERVICE_URI: http://bank-service:8083/bank
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/passenger_db
+      SPRING_DATA_MONGODB_URL: mongodb://localhost:27017/passenger_db
     networks:
       - cab-aggregator
 
@@ -244,3 +252,4 @@ volumes:
   esdata:
     driver: local
   postgres:
+  mongodb_data:

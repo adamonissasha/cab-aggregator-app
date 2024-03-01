@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: change-bank-user-id-type
+      author: AlexandraA
+      changes:
+        - modifyDataType:
+            tableName: bank_card
+            columnName: bank_user_id
+            newDataType: varchar(30)

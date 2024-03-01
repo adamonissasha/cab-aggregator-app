@@ -17,7 +17,8 @@ public class KafkaPassengerRatingConsumer {
         return passengerRatingRequest -> {
             log.info("Received passenger rating request: {}", passengerRatingRequest);
 
-            passengerRatingService.ratePassenger(passengerRatingRequest);
+            passengerRatingService.ratePassenger(passengerRatingRequest)
+                    .subscribe();
         };
     }
 }

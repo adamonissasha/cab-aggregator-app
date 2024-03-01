@@ -37,7 +37,7 @@ public class Ride {
 
     private String endAddress;
 
-    private Long passengerId;
+    private String passengerId;
 
     @Enumerated(value = EnumType.STRING)
     private PaymentMethod paymentMethod;

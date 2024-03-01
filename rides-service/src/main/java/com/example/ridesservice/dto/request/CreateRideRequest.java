@@ -20,7 +20,7 @@ import java.util.List;
 @ToString
 public class CreateRideRequest {
     @NotNull(message = "{ride.passenger-id.not-null}")
-    private Long passengerId;
+    private String passengerId;
 
     @NotBlank(message = "{ride.start-address.required}")
     private String startAddress;

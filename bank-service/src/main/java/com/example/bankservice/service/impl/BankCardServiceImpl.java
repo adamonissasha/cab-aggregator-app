@@ -107,7 +107,7 @@ public class BankCardServiceImpl implements BankCardService {
 
     @Override
     @Transactional
-    public void deleteBankUserCards(Long bankUserId, BankUser bankUser) {
+    public void deleteBankUserCards(String bankUserId, BankUser bankUser) {
         log.info("Deleting bank cards of user {} with id: {}", bankUser, bankUserId);
 
         bankCardRepository.deleteAllByBankUserIdAndBankUser(bankUserId, bankUser);
@@ -155,7 +155,7 @@ public class BankCardServiceImpl implements BankCardService {
 
     @Override
     @Transactional
-    public BankCardPageResponse getBankCardsByBankUser(Long bankUserId, BankUser bankUser, int page, int size, String sortBy) {
+    public BankCardPageResponse getBankCardsByBankUser(String bankUserId, BankUser bankUser, int page, int size, String sortBy) {
         log.info("Retrieving bank cards of user {} with id {} (page {}, size {}, sorted by {})", bankUser, bankUserId, page, size, sortBy);
 
         fieldValidator.checkSortField(BankCard.class, sortBy);
@@ -202,7 +202,7 @@ public class BankCardServiceImpl implements BankCardService {
 
     @Override
     @Transactional
-    public BankCardResponse getDefaultBankCard(Long bankUserId, BankUser bankUser) {
+    public BankCardResponse getDefaultBankCard(String bankUserId, BankUser bankUser) {
         log.info("Retrieving default bank card of user {} with id : {}", bankUser, bankUserId);
 
         BankCard defaultBankCard = bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankUserId, bankUser)
@@ -223,7 +223,7 @@ public class BankCardServiceImpl implements BankCardService {
         BankCard bankCard;
         if (id == null) {
             BankUser bankUser = BankUser.DRIVER;
-            Long bankUserId = refillRequest.getBankUserId();
+            String bankUserId = refillRequest.getBankUserId();
             bankCard = bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankUserId, bankUser)
                     .orElseThrow(() -> {
                         log.error("{}'s with id {} default card not found", bankUser, bankUserId);
@@ -258,13 +258,13 @@ public class BankCardServiceImpl implements BankCardService {
                 .build();
     }
 
-    private BankUserResponse getBankUser(Long bankUserId, BankUser bankUser) {
+    private BankUserResponse getBankUser(String bankUserId, BankUser bankUser) {
         BankUserResponse bankUserResponse;
 
         if (bankUser == BankUser.PASSENGER) {
             bankUserResponse = passengerWebClient.getPassenger(bankUserId);
         } else {
-            bankUserResponse = driverWebClient.getDriver(bankUserId);
+            bankUserResponse = driverWebClient.getDriver(Long.parseLong(bankUserId));
         }
 
         return bankUserResponse;

@@ -10,18 +10,15 @@ import com.example.passengerservice.repository.PassengerRepository;
 import com.example.passengerservice.service.PassengerRatingService;
 import com.example.passengerservice.service.PassengerService;
 import com.example.passengerservice.util.FieldValidator;
-import com.example.passengerservice.webClient.BankWebClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -32,104 +29,114 @@ public class PassengerServiceImpl implements PassengerService {
     private final PassengerRepository passengerRepository;
     private final ModelMapper modelMapper;
     private final PassengerRatingService passengerRatingService;
-    private final BankWebClient bankWebClient;
     private final FieldValidator fieldValidator;
 
     @Override
-    public PassengerResponse createPassenger(PassengerRequest passengerRequest) {
+    public Mono<PassengerResponse> createPassenger(PassengerRequest passengerRequest) {
         log.info("Creating passenger: {}", passengerRequest);
         String phoneNumber = passengerRequest.getPhoneNumber();
-        passengerRepository.findPassengerByPhoneNumber(phoneNumber)
-                .ifPresent(passenger -> {
+        return passengerRepository.findPassengerByPhoneNumber(phoneNumber)
+                .flatMap(passenger -> {
                     log.error("Passenger with phone number {} already exist", phoneNumber);
-                    throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
-                });
-        Passenger newPassenger = mapPassengerRequestToPassenger(passengerRequest);
-        newPassenger = passengerRepository.save(newPassenger);
-        return mapPassengerToPassengerResponse(newPassenger);
+                    return Mono.error(new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber)));
+                })
+                .hasElement()
+                .flatMap(passengerExists -> mapPassengerRequestToPassenger(passengerRequest)
+                        .flatMap(passengerRepository::save)
+                        .flatMap(this::mapPassengerToPassengerResponse));
     }
 
     @Override
-    public PassengerResponse editPassenger(long id, PassengerRequest passengerRequest) {
-        Passenger existingPassenger = passengerRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Passenger with id {} not found", id);
-                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id));
-                });
-        String phoneNumber = passengerRequest.getPhoneNumber();
+    public Mono<PassengerResponse> editPassenger(String id, PassengerRequest passengerRequest) {
         log.info("Updating passenger with id {}: {}", id, passengerRequest);
-        passengerRepository.findPassengerByPhoneNumber(phoneNumber)
-                .ifPresent(passenger -> {
-                    if (passenger.getId() != id) {
-                        log.error("Passenger with phone number {} already exist", phoneNumber);
-                        throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
+
+        return getPassenger(id)
+                .flatMap(existingPassenger -> {
+                    String newPhoneNumber = passengerRequest.getPhoneNumber();
+                    if (!existingPassenger.getPhoneNumber().equals(newPhoneNumber)) {
+                        return passengerRepository.findPassengerByPhoneNumber(newPhoneNumber)
+                                .flatMap(passenger -> {
+                                    log.error("Passenger with phone number {} already exists", newPhoneNumber);
+                                    return Mono.error(new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, newPhoneNumber)));
+                                })
+                                .switchIfEmpty(Mono.just(existingPassenger));
+                    } else {
+                        return Mono.just(existingPassenger);
                     }
-                });
-        Passenger updatedPassenger = mapPassengerRequestToPassenger(passengerRequest);
-        updatedPassenger.setId(existingPassenger.getId());
-        updatedPassenger = passengerRepository.save(updatedPassenger);
-        return mapPassengerToPassengerResponse(updatedPassenger);
+                })
+                .flatMap(existingPassenger -> mapPassengerRequestToPassenger(passengerRequest))
+                .flatMap(updatedPassenger -> {
+                    updatedPassenger.setId(id);
+                    return passengerRepository.save(updatedPassenger);
+                })
+                .flatMap(this::mapPassengerToPassengerResponse);
     }
 
     @Override
-    public PassengerResponse getPassengerById(long id) {
+    public Mono<PassengerResponse> getPassengerById(String id) {
         log.info("Retrieving passenger by id: {}", id);
 
-        return passengerRepository.findById(id)
-                .map(this::mapPassengerToPassengerResponse)
-                .orElseThrow(() -> {
-                    log.error("Passenger with id {} not found", id);
-                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id));
-                });
+        return getPassenger(id)
+                .flatMap(this::mapPassengerToPassengerResponse);
     }
 
     @Override
-    public PassengerPageResponse getAllPassengers(int page, int size, String sortBy) {
+    public Mono<PassengerPageResponse> getAllPassengers(int page, int size, String sortBy) {
         log.info("Retrieving all passengers with pagination: page={}, size={}, sortBy={}", page, size, sortBy);
 
-        fieldValidator.checkSortField(Passenger.class, sortBy);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<Passenger> passengerPage = passengerRepository.findAll(pageable);
-        List<PassengerResponse> passengerResponses = passengerPage.getContent()
-                .stream()
-                .map(this::mapPassengerToPassengerResponse)
-                .toList();
-
-        return PassengerPageResponse.builder()
-                .passengers(passengerResponses)
-                .totalPages(passengerPage.getTotalPages())
-                .totalElements(passengerPage.getTotalElements())
-                .currentPage(passengerPage.getNumber())
-                .pageSize(passengerPage.getSize())
-                .build();
+        return fieldValidator.checkSortField(Passenger.class, sortBy)
+                .then(Mono.defer(() -> {
+                    Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+                    return passengerRepository.findAllByIsActiveTrue(pageable)
+                            .flatMap(this::mapPassengerToPassengerResponse)
+                            .collectList()
+                            .flatMap(passengerResponses -> passengerRepository.countAllByIsActiveTrue()
+                                    .map(totalElements -> PassengerPageResponse.builder()
+                                            .passengers(passengerResponses)
+                                            .totalPages((int) Math.ceil((double) totalElements / size))
+                                            .totalElements(totalElements)
+                                            .currentPage(page)
+                                            .pageSize(size)
+                                            .build()
+                                    )
+                            );
+                }));
     }
 
     @Override
     @Transactional
-    public void deletePassengerById(long id) {
+    public Mono<Void> deletePassengerById(String id) {
         log.info("Deleting passenger by id: {}", id);
 
-        Passenger passenger = passengerRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Passenger with id {} not found", id);
-                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id));
+        return getPassenger(id)
+                .flatMap(passenger -> {
+                    passenger.setActive(false);
+                    return passengerRepository.save(passenger)
+                            .then();
                 });
-        passenger.setActive(false);
-        passengerRepository.save(passenger);
-
-        bankWebClient.deletePassengerBankCards(id);
     }
 
-    public Passenger mapPassengerRequestToPassenger(PassengerRequest passengerRequest) {
+    private Mono<Passenger> mapPassengerRequestToPassenger(PassengerRequest passengerRequest) {
         Passenger passenger = modelMapper.map(passengerRequest, Passenger.class);
         passenger.setActive(true);
-        return passenger;
+        return Mono.just(passenger);
     }
 
-    public PassengerResponse mapPassengerToPassengerResponse(Passenger passenger) {
-        PassengerResponse passengerResponse = modelMapper.map(passenger, PassengerResponse.class);
-        passengerResponse.setRating(passengerRatingService.getAveragePassengerRating(passenger.getId())
-                .getAverageRating());
-        return passengerResponse;
+    private Mono<PassengerResponse> mapPassengerToPassengerResponse(Passenger passenger) {
+        return passengerRatingService.getAveragePassengerRating(passenger.getId())
+                .map(averageRatingResponse -> {
+                    PassengerResponse passengerResponse = modelMapper.map(passenger, PassengerResponse.class);
+                    passengerResponse.setRating(averageRatingResponse.getAverageRating());
+                    return passengerResponse;
+                });
+    }
+
+    private Mono<Passenger> getPassenger(String passengerId) {
+        return passengerRepository.findById(passengerId)
+                .filter(Passenger::isActive)
+                .switchIfEmpty(Mono.error(() -> {
+                    log.error("Passenger with id {} not found", passengerId);
+                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
+                }));
     }
 }

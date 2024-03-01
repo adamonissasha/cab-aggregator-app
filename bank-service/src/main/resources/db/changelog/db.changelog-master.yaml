@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/changeset/create-bank-account-table.yaml
   - include:
       file: db/changelog/changeset/create-bank-account-history-table.yaml
+  - include:
+      file: db/changelog/changeset/change-bank-user-id-type.yaml

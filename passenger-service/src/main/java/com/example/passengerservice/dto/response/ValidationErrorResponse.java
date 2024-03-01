@@ -5,7 +5,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -13,6 +12,6 @@ import java.util.List;
 @EqualsAndHashCode
 @ToString
 public class ValidationErrorResponse {
-    private  List<String> errors;
+    private List<String> errors;
     private int statusCode;
 }

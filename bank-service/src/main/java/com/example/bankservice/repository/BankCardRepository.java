@@ -13,11 +13,11 @@ import java.util.Optional;
 public interface BankCardRepository extends JpaRepository<BankCard, Long> {
     Optional<BankCard> findBankCardByNumber(String number);
 
-    boolean existsByBankUserIdAndBankUser(Long bankUserId, BankUser bankUser);
+    boolean existsByBankUserIdAndBankUser(String bankUserId, BankUser bankUser);
 
-    Page<BankCard> findAllByBankUserIdAndBankUser(Long bankUserId, BankUser bankUser, Pageable pageable);
+    Page<BankCard> findAllByBankUserIdAndBankUser(String bankUserId, BankUser bankUser, Pageable pageable);
 
-    Optional<BankCard> findByBankUserIdAndBankUserAndIsDefaultTrue(Long bankUserId, BankUser bankUser);
+    Optional<BankCard> findByBankUserIdAndBankUserAndIsDefaultTrue(String bankUserId, BankUser bankUser);
 
-    void deleteAllByBankUserIdAndBankUser(Long bankUserId, BankUser bankUser);
+    void deleteAllByBankUserIdAndBankUser(String bankUserId, BankUser bankUser);
 }

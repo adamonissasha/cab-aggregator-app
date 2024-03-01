@@ -4,7 +4,6 @@ import com.example.passengerservice.dto.request.PassengerRequest;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.PassengerPageResponse;
 import com.example.passengerservice.dto.response.PassengerResponse;
-import com.example.passengerservice.exception.IncorrectFieldNameException;
 import com.example.passengerservice.exception.PassengerNotFoundException;
 import com.example.passengerservice.exception.PhoneNumberUniqueException;
 import com.example.passengerservice.model.Passenger;
@@ -18,28 +17,27 @@ import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import lombok.extern.slf4j.Slf4j;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.List;
-import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+@Slf4j
 public class PassengerServiceStepDefinitions {
     @Mock
     private PassengerRepository passengerRepository;
@@ -62,10 +60,10 @@ public class PassengerServiceStepDefinitions {
     private PassengerRequest passengerRequest;
     private Passenger passenger;
     private PassengerResponse expected;
-    private PassengerResponse actual;
-    private Exception exception;
+    private Mono<PassengerResponse> actual;
+    private Mono<Void> actualDeleting;
     private AveragePassengerRatingResponse passengerRating;
-    private PassengerPageResponse actualPageResponse;
+    private Mono<PassengerPageResponse> actualPageResponse;
 
     @Before
     public void setUp() {
@@ -82,19 +80,20 @@ public class PassengerServiceStepDefinitions {
         expected = TestPassengerUtil.getPassengerResponse();
 
         when(passengerRepository.findPassengerByPhoneNumber(uniquePhoneNumber))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
 
-        when(passengerRatingService.getAveragePassengerRating(anyLong()))
-                .thenReturn(passengerRating);
+        when(passengerRatingService.getAveragePassengerRating(anyString()))
+                .thenReturn(Mono.just(passengerRating));
         when(modelMapper.map(any(PassengerRequest.class), eq(Passenger.class)))
                 .thenReturn(passenger);
         when(modelMapper.map(passenger, PassengerResponse.class))
                 .thenReturn(expected);
         when(passengerRepository.save(any(Passenger.class)))
-                .thenReturn(passenger);
+                .thenReturn(Mono.just(passenger));
 
-        Optional<Passenger> optionalPassenger = passengerRepository.findPassengerByPhoneNumber(uniquePhoneNumber);
-        assertFalse(optionalPassenger.isPresent());
+        StepVerifier.create(passengerRepository.findPassengerByPhoneNumber(uniquePhoneNumber))
+                .expectNextCount(0)
+                .verifyComplete();
     }
 
     @Given("New passenger has existing phone number {string}")
@@ -105,158 +104,162 @@ public class PassengerServiceStepDefinitions {
         passengerRequest.setPhoneNumber(existingPhoneNumber);
 
         when(passengerRepository.findPassengerByPhoneNumber(existingPhoneNumber))
-                .thenReturn(Optional.of(passenger));
+                .thenReturn(Mono.just(passenger));
 
-        Optional<Passenger> optionalPassenger = passengerRepository.findPassengerByPhoneNumber(existingPhoneNumber);
-        assertTrue(optionalPassenger.isPresent());
+        StepVerifier.create(passengerRepository.findPassengerByPhoneNumber(existingPhoneNumber))
+                .expectNext(passenger)
+                .verifyComplete();
     }
 
     @When("Method createPassenger called")
     public void whenCreatePassengerMethodCalled() {
-        try {
-            actual = passengerService.createPassenger(passengerRequest);
-        } catch (PhoneNumberUniqueException ex) {
-            exception = ex;
-        }
+        actual = passengerService.createPassenger(passengerRequest);
     }
 
     @Then("The response should contain the details of the created passenger")
     public void thenResponseShouldContainCreatedPassengerDetails() {
-        passenger = passengerRepository.save(passenger);
-        expected = passengerService.mapPassengerToPassengerResponse(passenger);
-
-        assertThat(actual).isEqualTo(expected);
+        StepVerifier.create(actual)
+                .expectNext(expected)
+                .verifyComplete();
     }
 
     @Then("The PhoneNumberUniqueException should be thrown with message {string}")
     public void thenPhoneNumberUniqueExceptionShouldBeThrownWithMessage(String message) {
-        assertEquals(message, exception.getMessage());
+        StepVerifier.create(actual)
+                .verifyErrorMatches(throwable ->
+                        throwable instanceof PhoneNumberUniqueException
+                                && throwable.getMessage().equals(message));
     }
 
-    @Given("Editing passenger with id {long} exists and phone number {string} unique")
-    public void editingPassengerWithIdExistsAndPhoneNumberUnique(long id, String phoneNumber) {
+    @Given("Editing passenger with id {string} exists and phone number {string} unique")
+    public void editingPassengerWithIdExistsAndPhoneNumberUnique(String id, String phoneNumber) {
         passengerRequest = TestPassengerUtil.getPassengerRequest();
         passenger = TestPassengerUtil.getFirstPassenger();
         expected = TestPassengerUtil.getPassengerResponse();
         passengerRating = TestPassengerUtil.getFirstPassengerRating();
 
         when(passengerRepository.findById(id))
-                .thenReturn(Optional.of(passenger));
+                .thenReturn(Mono.just(passenger));
         when(passengerRepository.findPassengerByPhoneNumber(phoneNumber))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
         when(modelMapper.map(passengerRequest, Passenger.class))
                 .thenReturn(passenger);
         when(passengerRepository.save(passenger))
-                .thenReturn(passenger);
-        when(passengerRatingService.getAveragePassengerRating(anyLong()))
-                .thenReturn(passengerRating);
+                .thenReturn(Mono.just(passenger));
+        when(passengerRatingService.getAveragePassengerRating(anyString()))
+                .thenReturn(Mono.just(passengerRating));
         when(modelMapper.map(passenger, PassengerResponse.class))
                 .thenReturn(expected);
 
-        Optional<Passenger> optionalPassenger = passengerRepository.findPassengerByPhoneNumber(phoneNumber);
-        assertFalse(optionalPassenger.isPresent());
+        StepVerifier.create(passengerRepository.findPassengerByPhoneNumber(phoneNumber))
+                .expectNextCount(0)
+                .verifyComplete();
     }
 
-    @Given("Editing passenger with id {long} has existing phone number {string}")
-    public void editingPassengerHasExistingPhoneNumber(long id, String existingPhoneNumber) {
+    @Given("Editing passenger with id {string} has existing phone number {string}")
+    public void editingPassengerHasExistingPhoneNumber(String id, String existingPhoneNumber) {
         passenger = TestPassengerUtil.getFirstPassenger();
-        passenger.setPhoneNumber(existingPhoneNumber);
+        Passenger existingPassenger = TestPassengerUtil.getSecondPassenger();
+        existingPassenger.setPhoneNumber(existingPhoneNumber);
         passengerRequest = TestPassengerUtil.getPassengerRequest();
         passengerRequest.setPhoneNumber(existingPhoneNumber);
 
         when(passengerRepository.findById(id))
-                .thenReturn(Optional.of(passenger));
-        when(passengerRepository.findPassengerByPhoneNumber(existingPhoneNumber))
-                .thenReturn(Optional.of(passenger));
+                .thenReturn(Mono.just(passenger));
+        when(passengerRepository.findPassengerByPhoneNumber(passengerRequest.getPhoneNumber()))
+                .thenReturn(Mono.just(existingPassenger));
 
-        Optional<Passenger> optionalPassenger = passengerRepository.findPassengerByPhoneNumber(existingPhoneNumber);
-        assertTrue(optionalPassenger.isPresent());
+        StepVerifier.create(passengerRepository.findPassengerByPhoneNumber(existingPhoneNumber))
+                .expectNext(existingPassenger)
+                .verifyComplete();
     }
 
-    @Given("There is no passenger with id {long}")
-    public void givenPassengerWithIdNotExists(long id) {
+    @Given("There is no passenger with id {string}")
+    public void givenPassengerWithIdNotExists(String id) {
         passenger = TestPassengerUtil.getFirstPassenger();
         passenger.setId(id);
 
         when(passengerRepository.findById(id))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
 
-        Optional<Passenger> passenger = passengerRepository.findById(id);
-        assertFalse(passenger.isPresent());
+        StepVerifier.create(passengerRepository.findById(id))
+                .expectNextCount(0)
+                .verifyComplete();
     }
 
-    @When("Method editPassenger called with id {long}")
-    public void methodEditPassengerCalled(long id) {
-        try {
-            actual = passengerService.editPassenger(id, passengerRequest);
-        } catch (PhoneNumberUniqueException | PassengerNotFoundException ex) {
-            exception = ex;
-        }
+    @When("Method editPassenger called with id {string}")
+    public void methodEditPassengerCalled(String id) {
+        actual = passengerService.editPassenger(id, passengerRequest);
     }
 
     @Then("The response should contain the details of the edited passenger")
     public void theResponseShouldContainTheDetailsOfTheEditedPassenger() {
-        passenger = passengerRepository.save(passenger);
-        expected = passengerService.mapPassengerToPassengerResponse(passenger);
-
-        assertThat(actual).isEqualTo(expected);
+        StepVerifier.create(actual)
+                .expectNext(expected)
+                .verifyComplete();
     }
 
     @Then("The PassengerNotFoundException should be thrown with message {string}")
     public void thenPassengerNotFoundExceptionShouldBeThrownWithMessage(String message) {
-        assertEquals(message, exception.getMessage());
+        StepVerifier.create(actual)
+                .verifyErrorMatches(throwable ->
+                        throwable instanceof PassengerNotFoundException
+                                && throwable.getMessage().equals(message));
     }
 
-    @Given("There is a passenger with id {long}")
-    public void givenPassengerWithIdExists(long id) {
+    @Given("There is a passenger with id {string}")
+    public void givenPassengerWithIdExists(String id) {
         passenger = TestPassengerUtil.getFirstPassenger();
         expected = TestPassengerUtil.getPassengerResponse();
         passengerRating = TestPassengerUtil.getFirstPassengerRating();
 
         when(passengerRepository.findById(id))
-                .thenReturn(Optional.of(passenger));
-        when(passengerRatingService.getAveragePassengerRating(anyLong()))
-                .thenReturn(passengerRating);
+                .thenReturn(Mono.just(passenger));
+        when(passengerRatingService.getAveragePassengerRating(anyString()))
+                .thenReturn(Mono.just(passengerRating));
         when(modelMapper.map(passenger, PassengerResponse.class))
                 .thenReturn(expected);
 
-        assertTrue(passengerRepository.findById(id).isPresent());
+        StepVerifier.create(passengerRepository.findById(id))
+                .expectNext(passenger)
+                .verifyComplete();
     }
 
-    @When("Method getPassengerById called with id {long}")
-    public void whenGetPassengerByIdMethodCalled(long id) {
-        try {
-            actual = passengerService.getPassengerById(id);
-        } catch (PassengerNotFoundException ex) {
-            exception = ex;
-        }
+    @When("Method getPassengerById called with id {string}")
+    public void whenGetPassengerByIdMethodCalled(String id) {
+        actual = passengerService.getPassengerById(id);
     }
 
-    @Then("The response should contain the details of passenger with id {long}")
-    public void thenResponseShouldContainPassengerDetails(long id) {
-        passenger = passengerRepository.findById(id).get();
-        expected = passengerService.mapPassengerToPassengerResponse(passenger);
-
-        assertThat(actual).isEqualTo(expected);
+    @Then("The response should contain the details of passenger with id {string}")
+    public void thenResponseShouldContainPassengerDetails(String id) {
+        StepVerifier.create(actual)
+                .expectNext(expected)
+                .verifyComplete();
     }
 
-    @Given("Deleting passenger with id {long} exists")
-    public void deletingPassengerWithIdExists(long id) {
+    @Given("Deleting passenger with id {string} exists")
+    public void deletingPassengerWithIdExists(String id) {
         passenger = TestPassengerUtil.getFirstPassenger();
 
         when(passengerRepository.findById(id))
-                .thenReturn(Optional.of(passenger));
+                .thenReturn(Mono.just(passenger));
 
-        assertTrue(passengerRepository.findById(id).isPresent());
+        StepVerifier.create(passengerRepository.findById(id))
+                .expectNext(passenger)
+                .verifyComplete();
     }
 
-    @When("Method deletePassengerById called with id {long}")
-    public void methodDeletePassengerCalledWithId(long id) {
-        try {
-            passengerService.deletePassengerById(id);
-        } catch (PassengerNotFoundException ex) {
-            exception = ex;
-        }
+    @When("Method deletePassengerById called with id {string}")
+    public void methodDeletePassengerCalledWithId(String id) {
+        actualDeleting = passengerService.deletePassengerById(id);
+    }
+
+    @Then("The PassengerNotFoundException should be thrown after deleting with message {string}")
+    public void thePassengerNotFoundExceptionShouldBeThrownAfterDeletingWithMessage(String message) {
+        StepVerifier.create(actualDeleting)
+                .verifyErrorMatches(throwable ->
+                        throwable instanceof PassengerNotFoundException
+                                && throwable.getMessage().equals(message));
     }
 
     @Given("There are passengers in the system in page {int} with size {int} and sort by {string}")
@@ -264,31 +267,29 @@ public class PassengerServiceStepDefinitions {
         List<Passenger> passengers = TestPassengerUtil.getPassengers();
         List<PassengerResponse> passengerResponses = TestPassengerUtil.getPassengerResponses();
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<Passenger> mockPassengerPage = new PageImpl<>(passengers, pageable, passengers.size());
 
-        when(passengerRepository.findAll(any(Pageable.class)))
-                .thenReturn(mockPassengerPage);
+        when(fieldValidator.checkSortField(eq(Passenger.class), eq(sortBy)))
+                .thenReturn(Mono.empty());
+        when(passengerRepository.findAllByIsActiveTrue(any(Pageable.class)))
+                .thenReturn(Flux.fromIterable(passengers));
         when(modelMapper.map(passengers.get(0), PassengerResponse.class))
                 .thenReturn(passengerResponses.get(0));
         when(modelMapper.map(passengers.get(1), PassengerResponse.class))
                 .thenReturn(passengerResponses.get(1));
+        when(passengerRepository.countAllByIsActiveTrue())
+                .thenReturn(Mono.just(2L));
+        when(passengerRatingService.getAveragePassengerRating(TestPassengerUtil.getFirstPassengerId()))
+                .thenReturn(Mono.just(TestPassengerUtil.getFirstPassengerRating()));
+        when(passengerRatingService.getAveragePassengerRating(TestPassengerUtil.getSecondPassengerId()))
+                .thenReturn(Mono.just(TestPassengerUtil.getSecondPassengerRating()));
 
-        Page<Passenger> passengerPage = passengerRepository.findAll(pageable);
-        assertTrue(passengerPage.hasContent());
+        Flux<Passenger> passengerPage = passengerRepository.findAllByIsActiveTrue(pageable);
+        assertEquals(Boolean.TRUE, passengerPage.hasElements().block());
     }
 
     @When("Method getAllPassengers called with page {int}, size {int}, and sort by {string}")
     public void methodGetAllPassengersCalledWithPageSizeAndSortBy(int page, int size, String sortBy) {
-        when(passengerRatingService.getAveragePassengerRating(TestPassengerUtil.getFirstPassengerId()))
-                .thenReturn(TestPassengerUtil.getFirstPassengerRating());
-        when(passengerRatingService.getAveragePassengerRating(TestPassengerUtil.getSecondPassengerId()))
-                .thenReturn(TestPassengerUtil.getSecondPassengerRating());
-
-        try {
-            actualPageResponse = passengerService.getAllPassengers(page, size, sortBy);
-        } catch (IncorrectFieldNameException ex) {
-            exception = ex;
-        }
+        actualPageResponse = passengerService.getAllPassengers(page, size, sortBy);
     }
 
     @Then("The response should contain a page of passengers number {int} with size {int}")
@@ -303,6 +304,8 @@ public class PassengerServiceStepDefinitions {
                 .totalPages(1)
                 .build();
 
-        assertEquals(expectedPageResponse, actualPageResponse);
+        StepVerifier.create(actualPageResponse)
+                .expectNext(expectedPageResponse)
+                .verifyComplete();
     }
 }

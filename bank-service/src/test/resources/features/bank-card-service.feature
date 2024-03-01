@@ -45,19 +45,19 @@ Feature: Bank card service
     Then The BankCardNotFoundException should be thrown with message "Card with id '1' not found"
 
   Scenario: Successful retrieval user bank cards with pagination and sorting
-    Given There are bank cards of user "PASSENGER" with id 1 in the system in page 0 with size 2 and sort by "id"
-    When Method getBankCardsByBankUser for user "PASSENGER" with id 1 called with page 0, size 2, and sort by "id"
+    Given There are bank cards of user "PASSENGER" with id "65dc582a0bac76266ffe3c1d" in the system in page 0 with size 2 and sort by "id"
+    When Method getBankCardsByBankUser for user "PASSENGER" with id "65dc582a0bac76266ffe3c1d" called with page 0, size 2, and sort by "id"
     Then The response should contain a page of user bank cards number 0 with size 2
 
   Scenario: Successful retrieval of default user bank card
-    Given There is a default user "PASSENGER" with id 1 bank card
-    When Method getDefaultBankCard of user "PASSENGER" with id 1 called
+    Given There is a default user "PASSENGER" with id "65dc582a0bac76266ffe3c1d" bank card
+    When Method getDefaultBankCard of user "PASSENGER" with id "65dc582a0bac76266ffe3c1d" called
     Then The response should contain the details of default user bank card
 
   Scenario: Error when attempting to get non-existing default user bank card
-    Given There is no default user "PASSENGER" with id 1 bank card
-    When Method getDefaultBankCard of user "PASSENGER" with id 1 called
-    Then The BankCardNotFoundException should be thrown with message "PASSENGER's with id 1 default card not found"
+    Given There is no default user "PASSENGER" with id "65dc582a0bac76266ffe3c1d" bank card
+    When Method getDefaultBankCard of user "PASSENGER" with id "65dc582a0bac76266ffe3c1d" called
+    Then The BankCardNotFoundException should be thrown with message "PASSENGER's with id 65dc582a0bac76266ffe3c1d default card not found"
 
   Scenario: Successful retrieval of bank card balance by id
     Given There is a bank card with id 1 to retrieval balance
@@ -75,7 +75,7 @@ Feature: Bank card service
     Then The response should contain the details of bank card with id 1 after withdrawal payment
 
   Scenario: Error when attempting to withdrawal payment from bank card with id with insufficient balance
-  Given There is bank card with id 1 with insufficient balance to pay 50 BYN
+    Given There is bank card with id 1 with insufficient balance to pay 50 BYN
     When Method withdrawalPaymentFromBankCard for card with id 1 called
     Then The BankCardBalanceException should be thrown with message "There is not enough balance money to pay 50 BYN for the ride. Refill card or change payment method";
 

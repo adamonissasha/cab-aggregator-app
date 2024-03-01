@@ -3,17 +3,20 @@ package com.example.passengerservice.integration;
 import com.example.passengerservice.dto.response.AllPassengerRatingsResponse;
 import com.example.passengerservice.dto.response.AveragePassengerRatingResponse;
 import com.example.passengerservice.dto.response.ExceptionResponse;
+import com.example.passengerservice.sql.InitDb;
 import com.example.passengerservice.util.TestPassengerRatingUtil;
 import com.example.passengerservice.util.TestPassengerUtil;
 import com.example.passengerservice.util.client.PassengerRatingClientUtil;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -21,34 +24,44 @@ import org.testcontainers.utility.DockerImageName;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Sql(scripts = "classpath:sql/add-test-data.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(scripts = "classpath:sql/delete-test-data.sql",
-        executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 @Testcontainers
 public class PassengerRatingControllerTest {
     @LocalServerPort
     private int port;
+    private final InitDb initDb;
 
     @Container
-    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:latest");
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
 
     @Container
     static final KafkaContainer kafka = new KafkaContainer(
             DockerImageName.parse("confluentinc/cp-kafka:latest")
     );
 
+    @Autowired
+    public PassengerRatingControllerTest(InitDb initDb) {
+        this.initDb = initDb;
+    }
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry dynamicPropertyRegistry) {
         dynamicPropertyRegistry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-        dynamicPropertyRegistry.add("spring.datasource.url", postgreSQLContainer::getJdbcUrl);
-        dynamicPropertyRegistry.add("spring.datasource.username", postgreSQLContainer::getUsername);
-        dynamicPropertyRegistry.add("spring.datasource.password", postgreSQLContainer::getPassword);
+        dynamicPropertyRegistry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+    }
+
+    @BeforeEach
+    public void setUp() {
+        initDb.addTestData();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        initDb.deleteTestData();
     }
 
     @Test
     void getAllPassengerRatings_WhenPassengerExists_ShouldReturnPassengerResponse() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getSecondPassengerId();
         AllPassengerRatingsResponse expected = TestPassengerRatingUtil.getAllPassengerRatingsResponse();
 
         AllPassengerRatingsResponse actual =
@@ -59,7 +72,7 @@ public class PassengerRatingControllerTest {
 
     @Test
     void getPassengerRatings_WhenPassengerNotExists_ShouldReturnNotFoundResponse() {
-        Long invalidId = TestPassengerUtil.getInvalidId();
+        String invalidId = TestPassengerUtil.getInvalidId();
         ExceptionResponse expected = TestPassengerUtil.getPassengerNotFoundExceptionResponse();
 
         ExceptionResponse actual =
@@ -70,7 +83,7 @@ public class PassengerRatingControllerTest {
 
     @Test
     void getAveragePassengerRating_WhenPassengerExists_ShouldReturnAveragePassengerRatingResponse() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getSecondPassengerId();
         AveragePassengerRatingResponse expected = TestPassengerRatingUtil.getAveragePassengerRatingResponse();
 
         AveragePassengerRatingResponse actual =
@@ -81,7 +94,7 @@ public class PassengerRatingControllerTest {
 
     @Test
     void getAveragePassengerRating_WhenPassengerNotExists_ShouldReturnNotFoundResponse() {
-        Long invalidId = TestPassengerUtil.getInvalidId();
+        String invalidId = TestPassengerUtil.getInvalidId();
         ExceptionResponse expected = TestPassengerUtil.getPassengerNotFoundExceptionResponse();
 
         ExceptionResponse actual =

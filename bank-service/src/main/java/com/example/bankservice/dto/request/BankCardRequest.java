@@ -39,8 +39,8 @@ public class BankCardRequest {
 
     private BigDecimal balance;
 
-    @NotNull(message = "{bank.card.user-id.required}")
-    private Long bankUserId;
+    @NotBlank(message = "{bank.card.user-id.required}")
+    private String bankUserId;
 
     @NotNull(message = "{bank.card.user.required}")
     private BankUser bankUser;

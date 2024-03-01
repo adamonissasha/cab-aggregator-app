@@ -15,7 +15,7 @@ import lombok.ToString;
 @ToString
 public class PassengerRatingRequest {
     private Long driverId;
-    private Long passengerId;
+    private String passengerId;
     private Long rideId;
     private Integer rating;
 }

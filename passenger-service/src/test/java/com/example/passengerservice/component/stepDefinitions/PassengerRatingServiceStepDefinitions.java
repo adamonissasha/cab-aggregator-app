@@ -20,14 +20,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.modelmapper.ModelMapper;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class PassengerRatingServiceStepDefinitions {
@@ -44,65 +43,71 @@ public class PassengerRatingServiceStepDefinitions {
     private PassengerRatingServiceImpl passengerRatingService;
 
     private Passenger passenger;
-    private Exception exception;
-    private AveragePassengerRatingResponse actualAveragePassengerRatingResponse;
-    private AllPassengerRatingsResponse actualAllPassengerRatingsResponse;
+    private Mono<AveragePassengerRatingResponse> actualAveragePassengerRatingResponse;
+    private Mono<AllPassengerRatingsResponse> actualAllPassengerRatingsResponse;
+    private Mono<Void> actualRating;
+
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
-    @Given("Rating passenger with id {long} exists")
-    public void ratingPassengerWithIdExists(long id) {
+    @Given("Rating passenger with id {string} exists")
+    public void ratingPassengerWithIdExists(String id) {
         passenger = TestPassengerUtil.getFirstPassenger();
 
         when(passengerRepository.findById(id))
-                .thenReturn(Optional.of(passenger));
+                .thenReturn(Mono.just(passenger));
 
-        Optional<Passenger> optionalPassenger = passengerRepository.findById(id);
-        assertTrue(optionalPassenger.isPresent());
+        StepVerifier.create(passengerRepository.findById(id))
+                .expectNext(passenger)
+                .verifyComplete();
     }
 
-    @Given("Rating passenger with id {long} not exists")
-    public void ratingPassengerWithIdNotExists(long id) {
+    @Given("Rating passenger with id {string} not exists")
+    public void ratingPassengerWithIdNotExists(String id) {
         passenger = TestPassengerUtil.getFirstPassenger();
         passenger.setId(id);
 
         when(passengerRepository.findById(id))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
 
-        Optional<Passenger> passenger = passengerRepository.findById(id);
-        assertFalse(passenger.isPresent());
+        StepVerifier.create(passengerRepository.findById(id))
+                .expectNextCount(0)
+                .verifyComplete();
     }
 
-    @When("Method ratePassenger called with id {long}")
-    public void methodDeletePassengerCalledWithId(long id) {
+    @When("Method ratePassenger called with id {string}")
+    public void methodDeletePassengerCalledWithId(String id) {
         PassengerRatingRequest passengerRatingRequest = TestPassengerRatingUtil.getPassengerRatingRequest();
         passengerRatingRequest.setPassengerId(id);
 
-        try {
-            passengerRatingService.ratePassenger(passengerRatingRequest);
-        } catch (PassengerNotFoundException ex) {
-            exception = ex;
-        }
+        actualRating = passengerRatingService.ratePassenger(passengerRatingRequest);
     }
 
     @Then("The PassengerNotFoundException should be thrown with the following message {string}")
     public void thePassengerNotFoundExceptionInRatePassengerMethodShouldBeThrownWithMessage(String message) {
-        assertEquals(message, exception.getMessage());
+        StepVerifier.create(actualRating)
+                .verifyErrorMatches(throwable ->
+                        throwable instanceof PassengerNotFoundException
+                                && throwable.getMessage().equals(message));
     }
 
-    @Given("Passenger with id {long} to retrieval all ratings exists")
-    public void passengerWithIdToRetrievalAllRatingsExists(long id) {
-        when(passengerRepository.existsById(id))
-                .thenReturn(true);
+    @Given("Passenger with id {string} to retrieval all ratings exists")
+    public void passengerWithIdToRetrievalAllRatingsExists(String id) {
+        passenger = TestPassengerUtil.getFirstPassenger();
 
-        assertTrue(passengerRepository.existsById(id));
+        when(passengerRepository.findById(id))
+                .thenReturn(Mono.just(passenger));
+
+        StepVerifier.create(passengerRepository.findById(id))
+                .expectNext(passenger)
+                .verifyComplete();
     }
 
-    @When("Method getRatingsByPassengerId called with id {long}")
-    public void methodGetRatingsByPassengerIdCalled(long id) {
+    @When("Method getRatingsByPassengerId called with id {string}")
+    public void methodGetRatingsByPassengerIdCalled(String id) {
         PassengerRating firstPassengerRating = TestPassengerRatingUtil.getFirstPassengerRating();
         PassengerRating secondPassengerRating = TestPassengerRatingUtil.getSecondPassengerRating();
         PassengerRatingResponse firstPassengerRatingResponse = TestPassengerRatingUtil.getFirstPassengerRatingResponse();
@@ -114,13 +119,9 @@ public class PassengerRatingServiceStepDefinitions {
         when(modelMapper.map(secondPassengerRating, PassengerRatingResponse.class))
                 .thenReturn(secondPassengerRatingResponse);
         when(passengerRatingRepository.getPassengerRatingsByPassengerId(id))
-                .thenReturn(passengerRatings);
+                .thenReturn(Flux.fromIterable(passengerRatings));
 
-        try {
-            actualAllPassengerRatingsResponse = passengerRatingService.getRatingsByPassengerId(id);
-        } catch (PassengerNotFoundException ex) {
-            exception = ex;
-        }
+        actualAllPassengerRatingsResponse = passengerRatingService.getRatingsByPassengerId(id);
     }
 
     @Then("The response should contains the list of passenger ratings")
@@ -132,35 +133,45 @@ public class PassengerRatingServiceStepDefinitions {
                 .passengerRatings(expectedPassengerRatings)
                 .build();
 
-        assertEquals(expected, actualAllPassengerRatingsResponse);
+        StepVerifier.create(actualAllPassengerRatingsResponse)
+                .expectNext(expected)
+                .verifyComplete();
     }
 
-    @Given("Passenger with id {long} to retrieval average rating exists")
-    public void passengerWithIdToRetrievalAverageRatingExists(long id) {
-        when(passengerRepository.existsById(id))
-                .thenReturn(true);
-
-        assertTrue(passengerRepository.existsById(id));
+    @Then("The PassengerNotFoundException should be thrown in the getRatingsByPassengerId method with the following message {string}")
+    public void thePassengerNotFoundExceptionShouldBeThrownInTheGetRatingsByPassengerIdMethodWithTheFollowingMessage(String message) {
+        StepVerifier.create(actualAllPassengerRatingsResponse)
+                .verifyErrorMatches(throwable ->
+                        throwable instanceof PassengerNotFoundException
+                                && throwable.getMessage().equals(message));
     }
 
-    @When("Method getAveragePassengerRating called with id {long}")
-    public void methodGetAveragePassengerRatingCalled(long id) {
+    @Given("Passenger with id {string} to retrieval average rating exists")
+    public void passengerWithIdToRetrievalAverageRatingExists(String id) {
+        passenger = TestPassengerUtil.getFirstPassenger();
+
+        when(passengerRepository.findById(id))
+                .thenReturn(Mono.just(passenger));
+
+        StepVerifier.create(passengerRepository.findById(id))
+                .expectNext(passenger)
+                .verifyComplete();
+    }
+
+    @When("Method getAveragePassengerRating called with id {string}")
+    public void methodGetAveragePassengerRatingCalled(String id) {
         PassengerRating firstPassengerRating = TestPassengerRatingUtil.getFirstPassengerRating();
         PassengerRating secondPassengerRating = TestPassengerRatingUtil.getSecondPassengerRating();
         List<PassengerRating> passengerRatings = Arrays.asList(firstPassengerRating, secondPassengerRating);
 
         when(passengerRatingRepository.getPassengerRatingsByPassengerId(id))
-                .thenReturn(passengerRatings);
+                .thenReturn(Flux.fromIterable(passengerRatings));
 
-        try {
-            actualAveragePassengerRatingResponse = passengerRatingService.getAveragePassengerRating(id);
-        } catch (PassengerNotFoundException ex) {
-            exception = ex;
-        }
+        actualAveragePassengerRatingResponse = passengerRatingService.getAveragePassengerRating(id);
     }
 
-    @Then("The response should contains the average passenger with id {long} rating")
-    public void theResponseShouldContainsTheAveragePassengerWithIdRating(long id) {
+    @Then("The response should contains the average passenger with id {string} rating")
+    public void theResponseShouldContainsTheAveragePassengerWithIdRating(String id) {
         Double expectedAverageRating = TestPassengerRatingUtil.getAveragePassengerRating();
         AveragePassengerRatingResponse expected =
                 AveragePassengerRatingResponse.builder()
@@ -168,6 +179,16 @@ public class PassengerRatingServiceStepDefinitions {
                         .passengerId(id)
                         .build();
 
-        assertEquals(expected, actualAveragePassengerRatingResponse);
+        StepVerifier.create(actualAveragePassengerRatingResponse)
+                .expectNext(expected)
+                .verifyComplete();
+    }
+
+    @Then("The PassengerNotFoundException should be thrown in the getAveragePassengerRating method with the following message {string}")
+    public void thePassengerNotFoundExceptionShouldBeThrownInTheGetAveragePassengerRatingMethodWithTheFollowingMessage(String message) {
+        StepVerifier.create(actualAveragePassengerRatingResponse)
+                .verifyErrorMatches(throwable ->
+                        throwable instanceof PassengerNotFoundException
+                                && throwable.getMessage().equals(message));
     }
 }

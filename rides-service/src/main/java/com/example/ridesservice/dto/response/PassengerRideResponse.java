@@ -21,7 +21,7 @@ import java.util.List;
 @ToString
 public class PassengerRideResponse {
     private long rideId;
-    private long passengerId;
+    private String passengerId;
     private String driverName;
     private String driverPhoneNumber;
     private double driverRating;

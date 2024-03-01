@@ -271,30 +271,30 @@ public class BankAccountServiceStepDefinitions {
     }
 
     @Given("There is bank account of driver with id {long} to refill")
-    public void thereIsBankAccountOfDriverWithIdToRefill(long id) {
+    public void thereIsBankAccountOfDriverWithIdToRefill(Long id) {
         refillRequest = TestBankAccountUtil.getRefillRequest();
-        refillRequest.setBankUserId(id);
+        refillRequest.setBankUserId(id.toString());
         bankAccount = TestBankAccountUtil.getFirstBankAccount();
         bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         expected = TestBankAccountUtil.getFirstBankAccountResponse();
 
-        when(bankAccountRepository.findByDriverId(refillRequest.getBankUserId()))
+        when(bankAccountRepository.findByDriverId(Long.parseLong(refillRequest.getBankUserId())))
                 .thenReturn(Optional.of(bankAccount));
-        when(driverWebClient.getDriver(refillRequest.getBankUserId()))
+        when(driverWebClient.getDriver(Long.parseLong(refillRequest.getBankUserId())))
                 .thenReturn(bankUserResponse);
         when(bankAccountRepository.save(bankAccount))
                 .thenReturn(bankAccount);
         when(bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse))
                 .thenReturn(expected);
 
-        Optional<BankAccount> optionalBankAccount = bankAccountRepository.findByDriverId(refillRequest.getBankUserId());
+        Optional<BankAccount> optionalBankAccount = bankAccountRepository.findByDriverId(Long.parseLong(refillRequest.getBankUserId()));
         assertTrue(optionalBankAccount.isPresent());
     }
 
     @Given("There is no bank account of driver with id {long}")
-    public void thereIsNoBankAccountOfDriverWithId(long id) {
+    public void thereIsNoBankAccountOfDriverWithId(Long id) {
         refillRequest = TestBankAccountUtil.getRefillRequest();
-        refillRequest.setBankUserId(id);
+        refillRequest.setBankUserId(id.toString());
 
         when(bankAccountRepository.findByDriverId(id))
                 .thenReturn(Optional.empty());
@@ -324,7 +324,7 @@ public class BankAccountServiceStepDefinitions {
         expected = TestBankAccountUtil.getFirstBankAccountResponse();
         BankCardResponse defaultBankCard = TestBankCardUtil.getFirstBankCardResponse();
         RefillRequest refillRequest = RefillRequest.builder()
-                .bankUserId(bankAccount.getDriverId())
+                .bankUserId(bankAccount.getDriverId().toString())
                 .sum(withdrawalRequest.getSum())
                 .build();
 
@@ -338,7 +338,7 @@ public class BankAccountServiceStepDefinitions {
                 .thenReturn(bankAccount);
         when(bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse))
                 .thenReturn(expected);
-        when(bankCardService.getDefaultBankCard(bankAccount.getDriverId(), BankUser.DRIVER))
+        when(bankCardService.getDefaultBankCard(bankAccount.getDriverId().toString(), BankUser.DRIVER))
                 .thenReturn(defaultBankCard);
 
         assertTrue(bankAccountRepository.findById(id).isPresent());

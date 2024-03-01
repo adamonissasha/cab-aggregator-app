@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class PassengerResponse {
-    private long id;
+    private String id;
     private String firstName;
     private String phoneNumber;
     private double rating;

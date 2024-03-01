@@ -163,7 +163,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     public BankAccountResponse refillBankAccount(RefillRequest refillRequest) {
         log.info("Refilling bank account: {}", refillRequest);
 
-        Long driverId = refillRequest.getBankUserId();
+        Long driverId = Long.parseLong(refillRequest.getBankUserId());
         BankAccount bankAccount = bankAccountRepository.findByDriverId(driverId)
                 .orElseThrow(() -> {
                     log.error("Driver with id {} bank account not found", driverId);
@@ -222,12 +222,12 @@ public class BankAccountServiceImpl implements BankAccountService {
         bankAccount.setBalance(bankAccountBalance.subtract(withdrawalSum));
         bankAccount = bankAccountRepository.save(bankAccount);
 
-        BankCardResponse defaultBankCard = bankCardService.getDefaultBankCard(bankUserId, BankUser.DRIVER);
+        BankCardResponse defaultBankCard = bankCardService.getDefaultBankCard(bankUserId.toString(), BankUser.DRIVER);
 
         bankCardService.refillBankCard(defaultBankCard.getId(),
                 RefillRequest.builder()
                         .sum(withdrawalSum)
-                        .bankUserId(bankUserId)
+                        .bankUserId(bankUserId.toString())
                         .build());
 
         bankAccountHistoryService.createBankAccountHistoryRecord(id,

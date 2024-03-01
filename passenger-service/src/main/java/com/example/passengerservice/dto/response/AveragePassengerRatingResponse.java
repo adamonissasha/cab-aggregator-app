@@ -16,6 +16,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class AveragePassengerRatingResponse {
-    private long passengerId;
+    private String passengerId;
     private double averageRating;
 }

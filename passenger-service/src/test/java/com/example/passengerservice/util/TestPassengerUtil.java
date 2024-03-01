@@ -16,9 +16,9 @@ import java.util.List;
 
 @UtilityClass
 public class TestPassengerUtil {
-    private final Long FIRST_PASSENGER_ID = 99L;
-    private final Long SECOND_PASSENGER_ID = 100L;
-    private final Long INVALID_PASSENGER_ID = 123L;
+    private final String FIRST_PASSENGER_ID = "65cbc3c1a85b366e0ef0564c";
+    private final String SECOND_PASSENGER_ID = "65cbbb08e399fa178470785d";
+    private final String INVALID_PASSENGER_ID = "65cbbb08e399fa118470785d";
     private final String FIRST_PASSENGER_FIRST_NAME = "Alex";
     private final String SECOND_PASSENGER_FIRST_NAME = "Pasha";
     private final String FIRST_PASSENGER_LAST_NAME = "Alexandrov";
@@ -33,8 +33,8 @@ public class TestPassengerUtil {
     private final String FIRST_PASSENGER_PASSWORD = "321321321";
     private final String SECOND_PASSENGER_PASSWORD = "12345678";
     private final String INVALID_PASSENGER_PASSWORD = "321";
-    private final Double FIRST_PASSENGER_RATING = 4.5;
-    private final Double SECOND_PASSENGER_RATING = 0.0;
+    private final Double FIRST_PASSENGER_RATING = 0.0;
+    private final Double SECOND_PASSENGER_RATING = 4.5;
     private final int PAGE_NUMBER = 0;
     private final int PAGE_SIZE = 2;
     private final String CORRECT_SORT_FIELD = "id";
@@ -48,15 +48,15 @@ public class TestPassengerUtil {
     private final String PASSENGER_PASSWORD_FORMAT_MESSAGE = "Password must contain at least one digit and be at least 8 characters long";
     private final String INCORRECT_FIELDS = "Invalid sortBy field. Allowed fields: [id, firstName, lastName, email, phoneNumber, password, isActive]";
 
-    public Long getFirstPassengerId() {
+    public String getFirstPassengerId() {
         return FIRST_PASSENGER_ID;
     }
 
-    public Long getSecondPassengerId() {
+    public String getSecondPassengerId() {
         return SECOND_PASSENGER_ID;
     }
 
-    public Long getInvalidId() {
+    public String getInvalidId() {
         return INVALID_PASSENGER_ID;
     }
 
@@ -72,6 +72,7 @@ public class TestPassengerUtil {
                 .email(FIRST_PASSENGER_EMAIL)
                 .phoneNumber(FIRST_PASSENGER_PHONE_NUMBER)
                 .password(FIRST_PASSENGER_PASSWORD)
+                .isActive(true)
                 .build();
     }
 
@@ -83,6 +84,7 @@ public class TestPassengerUtil {
                 .email(SECOND_PASSENGER_EMAIL)
                 .phoneNumber(SECOND_PASSENGER_PHONE_NUMBER)
                 .password(SECOND_PASSENGER_PASSWORD)
+                .isActive(true)
                 .build();
     }
 
@@ -134,6 +136,7 @@ public class TestPassengerUtil {
                 .email(FIRST_PASSENGER_EMAIL)
                 .phoneNumber(FIRST_PASSENGER_PHONE_NUMBER)
                 .rating(FIRST_PASSENGER_RATING)
+                .isActive(true)
                 .build();
     }
 
@@ -144,7 +147,8 @@ public class TestPassengerUtil {
                 .lastName(FIRST_PASSENGER_LAST_NAME)
                 .email(FIRST_PASSENGER_EMAIL)
                 .phoneNumber(UNIQUE_PHONE_NUMBER)
-                .rating(SECOND_PASSENGER_RATING)
+                .rating(0.0)
+                .isActive(true)
                 .build();
     }
 
@@ -156,6 +160,7 @@ public class TestPassengerUtil {
                 .email(SECOND_PASSENGER_EMAIL)
                 .phoneNumber(SECOND_PASSENGER_PHONE_NUMBER)
                 .rating(SECOND_PASSENGER_RATING)
+                .isActive(true)
                 .build();
     }
 

@@ -16,10 +16,11 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class PassengerResponse {
-    private long id;
+    private String id;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
     private double rating;
+    private boolean isActive;
 }
