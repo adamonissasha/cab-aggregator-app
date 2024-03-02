@@ -54,7 +54,6 @@ public class BankCardServiceImpl implements BankCardService {
         String cardNumber = bankCardRequest.getNumber();
         bankCardRepository.findBankCardByNumber(cardNumber)
                 .ifPresent(bankCard -> {
-                    log.error("Card with number {} already exist", cardNumber);
                     throw new CardNumberUniqueException(String.format(CARD_NUMBER_EXIST, cardNumber));
                 });
 
@@ -70,16 +69,12 @@ public class BankCardServiceImpl implements BankCardService {
         log.info("Updating bank card with id {}: {}", id, updateBankCardRequest);
 
         BankCard updatedBankCard = bankCardRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Card with id {} not found", id);
-                    return new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
 
         String cardNumber = updateBankCardRequest.getNumber();
         bankCardRepository.findBankCardByNumber(cardNumber)
                 .ifPresent(bankCard -> {
                     if (!bankCard.getId().equals(id)) {
-                        log.error("Card with number {} already exist", cardNumber);
                         throw new CardNumberUniqueException(String.format(CARD_NUMBER_EXIST, bankCard.getNumber()));
                     }
                 });
@@ -97,10 +92,7 @@ public class BankCardServiceImpl implements BankCardService {
         log.info("Deleting bank card with id: {}", id);
 
         BankCard bankCard = bankCardRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Card with id {} not found", id);
-                    return new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
 
         bankCardRepository.delete(bankCard);
     }
@@ -119,16 +111,11 @@ public class BankCardServiceImpl implements BankCardService {
         log.info("Withdrawing payment from bank card with id {}: {}", id, withdrawalRequest);
 
         BankCard bankCard = bankCardRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Card with id {} not found", id);
-                    return new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
 
         BigDecimal withdrawalSum = withdrawalRequest.getSum();
         BigDecimal bankCardBalance = bankCard.getBalance();
         if (bankCardBalance.compareTo(withdrawalSum) < 0) {
-            log.error("There is not enough balance money to pay {} BYN " +
-                    "for the ride. Refill card or change payment method", withdrawalSum);
             throw new BankCardBalanceException(String.format(INSUFFICIENT_CARD_BALANCE_TO_PAY, withdrawalSum));
         }
 
@@ -144,10 +131,7 @@ public class BankCardServiceImpl implements BankCardService {
         log.info("Retrieving bank card with id: {}", id);
 
         BankCard bankCard = bankCardRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Card with id {} not found", id);
-                    return new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
 
         return bankCardMapper.mapBankCardToBankCardResponse(bankCard,
                 getBankUser(bankCard.getBankUserId(), bankCard.getBankUser()));
@@ -183,10 +167,7 @@ public class BankCardServiceImpl implements BankCardService {
         log.info("Making bank card default by id: {}", id);
 
         BankCard bankCard = bankCardRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Card with id {} not found", id);
-                    return new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
 
         bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankCard.getBankUserId(), bankCard.getBankUser())
                 .ifPresent(previousDefaultCard -> {
@@ -206,10 +187,7 @@ public class BankCardServiceImpl implements BankCardService {
         log.info("Retrieving default bank card of user {} with id : {}", bankUser, bankUserId);
 
         BankCard defaultBankCard = bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankUserId, bankUser)
-                .orElseThrow(() -> {
-                    log.error("{}'s with id {} default card not found", bankUser, bankUserId);
-                    return new BankCardNotFoundException(String.format(DEFAULT_CARD_NOT_FOUND, bankUser, bankUserId));
-                });
+                .orElseThrow(() -> new BankCardNotFoundException(String.format(DEFAULT_CARD_NOT_FOUND, bankUser, bankUserId)));
 
         BankUserResponse bankUserResponse = getBankUser(bankUserId, bankUser);
         return bankCardMapper.mapBankCardToBankCardResponse(defaultBankCard, bankUserResponse);
@@ -225,16 +203,10 @@ public class BankCardServiceImpl implements BankCardService {
             BankUser bankUser = BankUser.DRIVER;
             String bankUserId = refillRequest.getBankUserId();
             bankCard = bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankUserId, bankUser)
-                    .orElseThrow(() -> {
-                        log.error("{}'s with id {} default card not found", bankUser, bankUserId);
-                        return new BankCardNotFoundException(String.format(DEFAULT_CARD_NOT_FOUND, bankUser, bankUserId));
-                    });
+                    .orElseThrow(() -> new BankCardNotFoundException(String.format(DEFAULT_CARD_NOT_FOUND, bankUser, bankUserId)));
         } else {
             bankCard = bankCardRepository.findById(id)
-                    .orElseThrow(() -> {
-                        log.error("Card with id {} not found", id);
-                        return new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id));
-                    });
+                    .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
         }
 
         bankCard.setBalance(bankCard.getBalance().add(refillRequest.getSum()));
@@ -248,10 +220,7 @@ public class BankCardServiceImpl implements BankCardService {
         log.info("Retrieving balance for bank card with id {}", id);
 
         BankCard bankCard = bankCardRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Card with id {} not found", id);
-                    return new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new BankCardNotFoundException(String.format(CARD_NOT_FOUND, id)));
 
         return BalanceResponse.builder()
                 .balance(bankCard.getBalance())

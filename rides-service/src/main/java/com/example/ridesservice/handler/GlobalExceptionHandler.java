@@ -19,6 +19,7 @@ import com.example.ridesservice.exception.passenger.PassengerException;
 import com.example.ridesservice.exception.passenger.PassengerNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -30,10 +31,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = PromoCodeNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handlePromoCodeNotFoundException(PromoCodeNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -43,6 +47,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = DriverNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleDriverNotFoundException(DriverNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -52,6 +58,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = FreeDriverNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleFreeDriverNotFoundException(FreeDriverNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -61,6 +69,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = BankCardBalanceException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handleBankCardBalanceException(BankCardBalanceException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -70,6 +80,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PaymentMethodException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handlePaymentMethodException(PaymentMethodException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -79,6 +91,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = CarNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleCarNotFoundException(CarNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -88,6 +102,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PromoCodeAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handlePromoCodeAlreadyExistsException(PromoCodeAlreadyExistsException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -97,6 +113,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PassengerException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handlePassengerException(PassengerException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -106,6 +124,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = IncorrectDateException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleIncorrectDateException(IncorrectDateException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -115,6 +135,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = RideStatusException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleRideStatusException(RideStatusException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -124,6 +146,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = IncorrectPaymentMethodException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleIncorrectPaymentMethodException(IncorrectPaymentMethodException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -133,6 +157,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = IncorrectFieldNameException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionResponse handleIncorrectFieldNameException(IncorrectFieldNameException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .message(ex.getMessage())
@@ -142,6 +168,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = RideNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleRideNotFoundException(RideNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -151,6 +179,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PassengerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handlePassengerNotFoundException(PassengerNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -160,6 +190,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = BankAccountNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleBankAccountNotFoundException(BankAccountNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())

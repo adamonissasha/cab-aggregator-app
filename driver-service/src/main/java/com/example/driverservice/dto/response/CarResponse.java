@@ -2,19 +2,13 @@ package com.example.driverservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@Builder
-@ToString
-@EqualsAndHashCode
+@Data
 public class CarResponse {
     private long id;
     private String number;

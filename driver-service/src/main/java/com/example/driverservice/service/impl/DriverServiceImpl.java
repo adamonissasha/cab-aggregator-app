@@ -51,7 +51,6 @@ public class DriverServiceImpl implements DriverService {
         String phoneNumber = driverRequest.getPhoneNumber();
         driverRepository.findDriverByPhoneNumber(phoneNumber)
                 .ifPresent(driver -> {
-                    log.error("Driver with phone number {} already exist", phoneNumber);
                     throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                 });
 
@@ -70,16 +69,12 @@ public class DriverServiceImpl implements DriverService {
 
         carService.getCarById(driverRequest.getCarId());
         Driver existingDriver = driverRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Driver with id {} not found", id);
-                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
 
         String phoneNumber = driverRequest.getPhoneNumber();
         driverRepository.findDriverByPhoneNumber(phoneNumber)
                 .ifPresent(driver -> {
                     if (driver.getId() != id) {
-                        log.error("Driver with phone number {} already exist", phoneNumber);
                         throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                     }
                 });
@@ -96,10 +91,7 @@ public class DriverServiceImpl implements DriverService {
 
         return driverRepository.findById(id)
                 .map(this::mapDriverToDriverResponse)
-                .orElseThrow(() -> {
-                    log.error("Driver with id {} not found", id);
-                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
     }
 
     @Override
@@ -129,13 +121,9 @@ public class DriverServiceImpl implements DriverService {
         log.info("Changing status of driver with id {} to FREE", id);
 
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Driver with id {} not found", id);
-                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
 
         if (driver.getStatus() == Status.FREE) {
-            log.error("Driver with id {} is already free", id);
             throw new DriverStatusException(String.format(DRIVER_ALREADY_FREE, id));
         }
 
@@ -154,10 +142,7 @@ public class DriverServiceImpl implements DriverService {
         log.info("Deleting driver with id: {}", id);
 
         Driver driver = driverRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Driver with id {} not found", id);
-                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, id)));
 
         driver.setActive(false);
         driverRepository.save(driver);

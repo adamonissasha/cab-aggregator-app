@@ -2,19 +2,13 @@ package com.example.ridesservice.dto.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@Getter
-@Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-@ToString
-@EqualsAndHashCode
+@AllArgsConstructor
+@Data
 public class RatingMessage {
     private Long driverId;
     private String passengerId;

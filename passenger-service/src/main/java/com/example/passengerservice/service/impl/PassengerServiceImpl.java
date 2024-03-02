@@ -34,12 +34,11 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public Mono<PassengerResponse> createPassenger(PassengerRequest passengerRequest) {
         log.info("Creating passenger: {}", passengerRequest);
+
         String phoneNumber = passengerRequest.getPhoneNumber();
+
         return passengerRepository.findPassengerByPhoneNumber(phoneNumber)
-                .flatMap(passenger -> {
-                    log.error("Passenger with phone number {} already exist", phoneNumber);
-                    return Mono.error(new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber)));
-                })
+                .flatMap(passenger -> Mono.error(new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber))))
                 .hasElement()
                 .flatMap(passengerExists -> mapPassengerRequestToPassenger(passengerRequest)
                         .flatMap(passengerRepository::save)
@@ -55,10 +54,7 @@ public class PassengerServiceImpl implements PassengerService {
                     String newPhoneNumber = passengerRequest.getPhoneNumber();
                     if (!existingPassenger.getPhoneNumber().equals(newPhoneNumber)) {
                         return passengerRepository.findPassengerByPhoneNumber(newPhoneNumber)
-                                .flatMap(passenger -> {
-                                    log.error("Passenger with phone number {} already exists", newPhoneNumber);
-                                    return Mono.error(new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, newPhoneNumber)));
-                                })
+                                .flatMap(passenger -> Mono.error(new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, newPhoneNumber))))
                                 .switchIfEmpty(Mono.just(existingPassenger));
                     } else {
                         return Mono.just(existingPassenger);
@@ -134,9 +130,6 @@ public class PassengerServiceImpl implements PassengerService {
     private Mono<Passenger> getPassenger(String passengerId) {
         return passengerRepository.findById(passengerId)
                 .filter(Passenger::isActive)
-                .switchIfEmpty(Mono.error(() -> {
-                    log.error("Passenger with id {} not found", passengerId);
-                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
-                }));
+                .switchIfEmpty(Mono.error(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId))));
     }
 }

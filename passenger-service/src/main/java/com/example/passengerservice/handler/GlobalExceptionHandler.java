@@ -23,6 +23,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PassengerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Mono<ExceptionResponse> handlePassengerException(PassengerNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return Mono.just(ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -32,6 +34,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PhoneNumberUniqueException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public Mono<ExceptionResponse> handlePhoneNumberUniqueException(PhoneNumberUniqueException ex) {
+        log.error(ex.getMessage());
+
         return Mono.just(ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())

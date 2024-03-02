@@ -32,10 +32,7 @@ public class DriverRatingServiceImpl implements DriverRatingService {
         log.info("Rating driver with id: {}", driverId);
 
         Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> {
-                    log.error("Driver with id {} not found", driverId);
-                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId));
-                });
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId)));
 
         DriverRating newPassengerRating = DriverRating.builder()
                 .passengerId(driverRatingRequest.getPassengerId())
@@ -83,10 +80,7 @@ public class DriverRatingServiceImpl implements DriverRatingService {
 
     public void validateDriverExists(long driverId) {
         driverRepository.findById(driverId)
-                .orElseThrow(() -> {
-                    log.error("Driver with id {} not found", driverId);
-                    return new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId));
-                });
+                .orElseThrow(() -> new DriverNotFoundException(String.format(DRIVER_NOT_FOUND, driverId)));
     }
 
     private DriverRatingResponse mapDriverRatingToDriverRatingResponse(DriverRating driverRating) {

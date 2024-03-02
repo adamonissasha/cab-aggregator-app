@@ -79,10 +79,7 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     private Mono<Passenger> getPassenger(String passengerId) {
         return passengerRepository.findById(passengerId)
                 .filter(Passenger::isActive)
-                .switchIfEmpty(Mono.error(() -> {
-                    log.error("Passenger with id {} not found", passengerId);
-                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
-                }));
+                .switchIfEmpty(Mono.error(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId))));
     }
 
     private PassengerRatingResponse mapPassengerRatingToPassengerRatingResponse(PassengerRating passengerRating, String passengerId) {

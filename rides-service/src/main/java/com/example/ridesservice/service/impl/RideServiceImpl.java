@@ -82,7 +82,6 @@ public class RideServiceImpl implements RideService {
 
         PaymentMethod paymentMethod = getPaymentMethod(createRideRequest.getPaymentMethod());
         if (paymentMethod == PaymentMethod.CARD && createRideRequest.getBankCardId() == null) {
-            log.error("If you have chosen CARD payment method, select the card for payment");
             throw new PaymentMethodException(CARD_PAYMENT_METHOD);
         }
 
@@ -229,7 +228,6 @@ public class RideServiceImpl implements RideService {
                 RideStatus.CANCELED)
         );
         if (ride.getStatus() != RideStatus.STARTED) {
-            log.error("The ride with id {} hasn't started", ride.getId());
             throw new RideStatusException(String.format(RIDE_NOT_STARTED, ride.getId()));
         }
 
@@ -276,7 +274,6 @@ public class RideServiceImpl implements RideService {
     private RatingMessage makeRideRatingMessage(Long id, RatingRequest ratingRequest) {
         Ride ride = getExistingRide(id);
         if (ride.getStatus() != RideStatus.COMPLETED) {
-            log.error("The ride with id {} hasn't completed", ride.getId());
             throw new RideStatusException(String.format(RIDE_NOT_COMPLETED, ride.getId()));
         }
         return RatingMessage.builder()
@@ -305,7 +302,6 @@ public class RideServiceImpl implements RideService {
 
     private PaymentMethod getPaymentMethod(String paymentMethod) {
         if (!PaymentMethod.isValidPaymentMethod(paymentMethod)) {
-            log.error("{} - incorrect payment method", paymentMethod);
             throw new IncorrectPaymentMethodException(String.format(INCORRECT_PAYMENT_METHOD, paymentMethod));
         }
         return PaymentMethod.valueOf(paymentMethod);
@@ -317,7 +313,6 @@ public class RideServiceImpl implements RideService {
                 .filter(ride -> ride.getPassengerId().equals(passengerId))
                 .anyMatch(ride -> ride.getStatus() == RideStatus.CREATED ||
                         ride.getStatus() == RideStatus.STARTED)) {
-            log.error("Passenger with id {} has already book a ride", passengerId);
             throw new PassengerException(String.format(PASSENGER_RIDE_EXCEPTION, passengerId));
         }
     }
@@ -327,7 +322,6 @@ public class RideServiceImpl implements RideService {
         String driverResponseJson = jedis.lpop(REDIS_FREE_DRIVER_LIST_NAME);
 
         if (driverResponseJson == null) {
-            log.error("Free driver not found");
             throw new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND);
         }
 
@@ -341,16 +335,12 @@ public class RideServiceImpl implements RideService {
 
     private Ride getExistingRide(long rideId) {
         return rideRepository.findById(rideId)
-                .orElseThrow(() -> {
-                    log.error("Ride with id {} not found", rideId);
-                    return new RideNotFoundException(String.format(RIDE_NOT_FOUND, rideId));
-                });
+                .orElseThrow(() -> new RideNotFoundException(String.format(RIDE_NOT_FOUND, rideId)));
     }
 
     private void checkRideStatusNotEquals(Ride ride, List<RideStatus> rideStatusList) {
         for (RideStatus status : rideStatusList) {
             if (ride.getStatus().equals(status)) {
-                log.error(String.format(status.getStatusErrorMessage(), ride.getId()));
                 throw new RideStatusException(String.format(status.getStatusErrorMessage(), ride.getId()));
             }
         }
