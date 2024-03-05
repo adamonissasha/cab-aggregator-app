@@ -35,6 +35,7 @@ import com.example.ridesservice.webClient.PassengerWebClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -52,6 +53,7 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RideServiceImpl implements RideService {
     private static final String INCORRECT_PAYMENT_METHOD = "'%s' - incorrect payment method";
     private static final String RIDE_NOT_FOUND = "Ride with id '%s' not found";
@@ -76,8 +78,11 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public PassengerRideResponse createRide(CreateRideRequest createRideRequest) {
+        log.info("Creating ride: {}", createRideRequest);
+
         PaymentMethod paymentMethod = getPaymentMethod(createRideRequest.getPaymentMethod());
         if (paymentMethod == PaymentMethod.CARD && createRideRequest.getBankCardId() == null) {
+            log.error("If you have chosen CARD payment method, select the card for payment");
             throw new PaymentMethodException(CARD_PAYMENT_METHOD);
         }
 
@@ -108,6 +113,8 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public PassengerRideResponse editRide(Long rideId, EditRideRequest editRideRequest) {
+        log.info("Editing ride with id {}: {}", rideId, editRideRequest);
+
         Ride existingRide = getExistingRide(rideId);
 
         checkRideStatusNotEquals(existingRide, Arrays.asList(
@@ -145,6 +152,8 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public RideResponse getRideByRideId(Long rideId) {
+        log.info("Retrieving ride by id {}", rideId);
+
         Ride ride = getExistingRide(rideId);
         return rideMapper.mapRideToRideResponse(ride,
                 stopService.getRideStops(ride).getStops());
@@ -152,7 +161,10 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public PassengerRidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy) {
+        log.info("Retrieving passenger with id {} rides (page={}, size={}, sortBy={})", passengerId, page, size, sortBy);
+
         fieldValidator.checkSortField(Ride.class, sortBy);
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Ride> ridesPage = rideRepository.findAllByPassengerId(passengerId, pageable);
         return rideMapper.mapRidesPageToPassengerRidesPageResponse(ridesPage);
@@ -160,6 +172,8 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public RidesPageResponse getDriverRides(Long driverId, int page, int size, String sortBy) {
+        log.info("Retrieving driver with id {} rides (page={}, size={}, sortBy={})", driverId, page, size, sortBy);
+
         fieldValidator.checkSortField(Ride.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Ride> ridesPage = rideRepository.findAllByDriverId(driverId, pageable);
@@ -168,6 +182,8 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public RideResponse cancelRide(Long rideId) {
+        log.info("Canceling ride with id {}", rideId);
+
         Ride existingRide = getExistingRide(rideId);
 
         checkRideStatusNotEquals(existingRide, Arrays.asList(
@@ -184,6 +200,8 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public RideResponse startRide(Long rideId) {
+        log.info("Starting ride with id {}", rideId);
+
         Ride ride = getExistingRide(rideId);
 
         checkRideStatusNotEquals(ride, Arrays.asList(
@@ -202,6 +220,8 @@ public class RideServiceImpl implements RideService {
     @Override
     @Transactional
     public RideResponse completeRide(Long rideId) {
+        log.info("Completing ride with id {}", rideId);
+
         Ride ride = getExistingRide(rideId);
 
         checkRideStatusNotEquals(ride, Arrays.asList(
@@ -209,6 +229,7 @@ public class RideServiceImpl implements RideService {
                 RideStatus.CANCELED)
         );
         if (ride.getStatus() != RideStatus.STARTED) {
+            log.error("The ride with id {} hasn't started", ride.getId());
             throw new RideStatusException(String.format(RIDE_NOT_STARTED, ride.getId()));
         }
 
@@ -237,12 +258,16 @@ public class RideServiceImpl implements RideService {
 
     @Override
     public void ratePassenger(Long id, RatingRequest ratingRequest) {
+        log.info("Rating passenger after ride id {}: {}", id, ratingRequest);
+
         RatingMessage ratingMessage = makeRideRatingMessage(id, ratingRequest);
         kafkaSendRatingGateway.sendPassengerRating(ratingMessage);
     }
 
     @Override
     public void rateDriver(Long id, RatingRequest ratingRequest) {
+        log.info("Rating driver after ride id {}: {}", id, ratingRequest);
+
         RatingMessage ratingMessage = makeRideRatingMessage(id, ratingRequest);
         kafkaSendRatingGateway.sendDriverRating(ratingMessage);
     }
@@ -251,6 +276,7 @@ public class RideServiceImpl implements RideService {
     private RatingMessage makeRideRatingMessage(Long id, RatingRequest ratingRequest) {
         Ride ride = getExistingRide(id);
         if (ride.getStatus() != RideStatus.COMPLETED) {
+            log.error("The ride with id {} hasn't completed", ride.getId());
             throw new RideStatusException(String.format(RIDE_NOT_COMPLETED, ride.getId()));
         }
         return RatingMessage.builder()
@@ -279,6 +305,7 @@ public class RideServiceImpl implements RideService {
 
     private PaymentMethod getPaymentMethod(String paymentMethod) {
         if (!PaymentMethod.isValidPaymentMethod(paymentMethod)) {
+            log.error("{} - incorrect payment method", paymentMethod);
             throw new IncorrectPaymentMethodException(String.format(INCORRECT_PAYMENT_METHOD, paymentMethod));
         }
         return PaymentMethod.valueOf(paymentMethod);
@@ -290,6 +317,7 @@ public class RideServiceImpl implements RideService {
                 .filter(ride -> ride.getPassengerId().equals(passengerId))
                 .anyMatch(ride -> ride.getStatus() == RideStatus.CREATED ||
                         ride.getStatus() == RideStatus.STARTED)) {
+            log.error("Passenger with id {} has already book a ride", passengerId);
             throw new PassengerException(String.format(PASSENGER_RIDE_EXCEPTION, passengerId));
         }
     }
@@ -299,6 +327,7 @@ public class RideServiceImpl implements RideService {
         String driverResponseJson = jedis.lpop(REDIS_FREE_DRIVER_LIST_NAME);
 
         if (driverResponseJson == null) {
+            log.error("Free driver not found");
             throw new FreeDriverNotFoundException(FREE_DRIVER_NOT_FOUND);
         }
 
@@ -312,12 +341,16 @@ public class RideServiceImpl implements RideService {
 
     private Ride getExistingRide(long rideId) {
         return rideRepository.findById(rideId)
-                .orElseThrow(() -> new RideNotFoundException(String.format(RIDE_NOT_FOUND, rideId)));
+                .orElseThrow(() -> {
+                    log.error("Ride with id {} not found", rideId);
+                    return new RideNotFoundException(String.format(RIDE_NOT_FOUND, rideId));
+                });
     }
 
     private void checkRideStatusNotEquals(Ride ride, List<RideStatus> rideStatusList) {
         for (RideStatus status : rideStatusList) {
             if (ride.getStatus().equals(status)) {
+                log.error(String.format(status.getStatusErrorMessage(), ride.getId()));
                 throw new RideStatusException(String.format(status.getStatusErrorMessage(), ride.getId()));
             }
         }

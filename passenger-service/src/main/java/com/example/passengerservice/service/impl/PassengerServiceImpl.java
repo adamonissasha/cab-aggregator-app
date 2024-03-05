@@ -12,6 +12,7 @@ import com.example.passengerservice.service.PassengerService;
 import com.example.passengerservice.util.FieldValidator;
 import com.example.passengerservice.webClient.BankWebClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PassengerServiceImpl implements PassengerService {
     private static final String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
     private static final String PHONE_NUMBER_EXIST = "Passenger with phone number '%s' already exist";
@@ -35,9 +37,11 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public PassengerResponse createPassenger(PassengerRequest passengerRequest) {
+        log.info("Creating passenger: {}", passengerRequest);
         String phoneNumber = passengerRequest.getPhoneNumber();
         passengerRepository.findPassengerByPhoneNumber(phoneNumber)
                 .ifPresent(passenger -> {
+                    log.error("Passenger with phone number {} already exist", phoneNumber);
                     throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                 });
         Passenger newPassenger = mapPassengerRequestToPassenger(passengerRequest);
@@ -48,11 +52,16 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     public PassengerResponse editPassenger(long id, PassengerRequest passengerRequest) {
         Passenger existingPassenger = passengerRepository.findById(id)
-                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Passenger with id {} not found", id);
+                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id));
+                });
         String phoneNumber = passengerRequest.getPhoneNumber();
+        log.info("Updating passenger with id {}: {}", id, passengerRequest);
         passengerRepository.findPassengerByPhoneNumber(phoneNumber)
                 .ifPresent(passenger -> {
                     if (passenger.getId() != id) {
+                        log.error("Passenger with phone number {} already exist", phoneNumber);
                         throw new PhoneNumberUniqueException(String.format(PHONE_NUMBER_EXIST, phoneNumber));
                     }
                 });
@@ -64,13 +73,20 @@ public class PassengerServiceImpl implements PassengerService {
 
     @Override
     public PassengerResponse getPassengerById(long id) {
+        log.info("Retrieving passenger by id: {}", id);
+
         return passengerRepository.findById(id)
                 .map(this::mapPassengerToPassengerResponse)
-                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Passenger with id {} not found", id);
+                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id));
+                });
     }
 
     @Override
     public PassengerPageResponse getAllPassengers(int page, int size, String sortBy) {
+        log.info("Retrieving all passengers with pagination: page={}, size={}, sortBy={}", page, size, sortBy);
+
         fieldValidator.checkSortField(Passenger.class, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
         Page<Passenger> passengerPage = passengerRepository.findAll(pageable);
@@ -91,8 +107,13 @@ public class PassengerServiceImpl implements PassengerService {
     @Override
     @Transactional
     public void deletePassengerById(long id) {
+        log.info("Deleting passenger by id: {}", id);
+
         Passenger passenger = passengerRepository.findById(id)
-                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id)));
+                .orElseThrow(() -> {
+                    log.error("Passenger with id {} not found", id);
+                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, id));
+                });
         passenger.setActive(false);
         passengerRepository.save(passenger);
 

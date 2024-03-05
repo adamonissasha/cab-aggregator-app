@@ -6,7 +6,6 @@ import com.example.bankservice.dto.request.WithdrawalRequest;
 import com.example.bankservice.dto.response.BalanceResponse;
 import com.example.bankservice.dto.response.BankAccountPageResponse;
 import com.example.bankservice.dto.response.BankAccountResponse;
-import com.example.bankservice.dto.response.BankCardPageResponse;
 import com.example.bankservice.dto.response.BankCardResponse;
 import com.example.bankservice.dto.response.BankUserResponse;
 import com.example.bankservice.exception.AccountNumberUniqueException;

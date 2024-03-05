@@ -6,7 +6,7 @@ spring:
     name: bank-service
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/bank_service_db
+    url: jdbc:postgresql://localhost:5432/bank_db
     username: postgres
     password: postgres
 
@@ -23,3 +23,38 @@ driver-service:
 
 passenger-service:
   url: ${PASSENGER_SERVICE_URI:http://localhost:8080/passenger}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${REGISTRY_SERVICE_URI:http://localhost:8761/eureka/}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      passenger-service:
+        register-health-indicator: true
+        permitted-number-of-calls-in-half-open-state: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        record-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        automatic-transition-from-open-to-half-open-enabled: true
+      driver-service:
+        register-health-indicator: true
+        permitted-number-of-calls-in-half-open-state: 5
+        wait-duration-in-open-state: 10s
+        record-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        automatic-transition-from-open-to-half-open-enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    tags:
+      application: bank-service

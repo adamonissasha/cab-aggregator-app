@@ -11,6 +11,7 @@ import com.example.passengerservice.repository.PassengerRatingRepository;
 import com.example.passengerservice.repository.PassengerRepository;
 import com.example.passengerservice.service.PassengerRatingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PassengerRatingServiceImpl implements PassengerRatingService {
     private final PassengerRatingRepository passengerRatingRepository;
     private final PassengerRepository passengerRepository;
@@ -27,9 +29,13 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     @Override
     public void ratePassenger(PassengerRatingRequest passengerRatingRequest) {
         Long passengerId = passengerRatingRequest.getPassengerId();
+        log.info("Rating passenger with id {}: {}", passengerId, passengerRatingRequest);
 
         Passenger passenger = passengerRepository.findById(passengerId)
-                .orElseThrow(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId)));
+                .orElseThrow(() -> {
+                    log.error("Passenger with id {} not found", passengerId);
+                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
+                });
 
         PassengerRating newPassengerRating = PassengerRating.builder()
                 .driverId(passengerRatingRequest.getDriverId())
@@ -43,6 +49,8 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
 
     @Override
     public AllPassengerRatingsResponse getRatingsByPassengerId(long passengerId) {
+        log.info("Retrieving ratings for passenger with id: {}", passengerId);
+
         validatePassengerExists(passengerId);
         List<PassengerRatingResponse> passengerRatings =
                 passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId)
@@ -56,6 +64,8 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
 
     @Override
     public AveragePassengerRatingResponse getAveragePassengerRating(long passengerId) {
+        log.info("Retrieving average rating for passenger with id: {}", passengerId);
+
         validatePassengerExists(passengerId);
         List<PassengerRating> passengerRatings = passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId);
         double averageRating = passengerRatings.stream()
@@ -71,6 +81,7 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
 
     public void validatePassengerExists(long passengerId) {
         if (!passengerRepository.existsById(passengerId)) {
+            log.error("Passenger with id {} not found", passengerId);
             throw new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
         }
     }

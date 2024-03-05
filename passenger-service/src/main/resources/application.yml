@@ -7,7 +7,7 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/passenger_service_db
+    url: jdbc:postgresql://localhost:5432/passenger_db
     username: postgres
     password: postgres
 
@@ -30,7 +30,7 @@ spring:
       kafka:
         binder:
           brokers:
-            - localhost:9092
+            - ${KAFKA_URI:localhost:9093}
           key:
             serializer: org.apache.kafka.common.serialization.StringSerializer
           value:
@@ -38,3 +38,17 @@ spring:
 
 bank-service:
   url: ${BANK_SERVICE_URI:http://localhost:8083/bank}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${REGISTRY_SERVICE_URI:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    tags:
+      application: passenger-service

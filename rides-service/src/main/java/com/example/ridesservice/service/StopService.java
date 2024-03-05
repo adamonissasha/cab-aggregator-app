@@ -1,7 +1,6 @@
 package com.example.ridesservice.service;
 
 import com.example.ridesservice.dto.request.StopRequest;
-import com.example.ridesservice.dto.response.StopResponse;
 import com.example.ridesservice.dto.response.StopsResponse;
 import com.example.ridesservice.model.Ride;
 

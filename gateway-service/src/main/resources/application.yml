@@ -3,11 +3,41 @@ server:
 
 spring:
   application:
-    name: api-gateway
+    name: gateway-service
 
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
+      routes:
+        - id: passenger-service
+          uri: lb://passenger-service
+          predicates:
+            - Path=/passenger/**
+
+        - id: driver-service
+          uri: lb://driver-service
+          predicates:
+            - Path=/driver/**
+
+        - id: rides-service
+          uri: lb://rides-service
+          predicates:
+            - Path=/ride/**
+
+        - id: bank-service
+          uri: lb://bank-service
+          predicates:
+            - Path=/bank/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${REGISTRY_SERVICE_URI:http://localhost:8761/eureka/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+  metrics:
+    tags:
+      application: gateway-service
