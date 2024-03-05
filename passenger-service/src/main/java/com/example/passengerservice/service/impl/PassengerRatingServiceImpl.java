@@ -14,8 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -27,66 +26,65 @@ public class PassengerRatingServiceImpl implements PassengerRatingService {
     private static final String PASSENGER_NOT_FOUND = "Passenger with id '%s' not found";
 
     @Override
-    public void ratePassenger(PassengerRatingRequest passengerRatingRequest) {
-        Long passengerId = passengerRatingRequest.getPassengerId();
+    public Mono<Void> ratePassenger(PassengerRatingRequest passengerRatingRequest) {
+        String passengerId = passengerRatingRequest.getPassengerId();
         log.info("Rating passenger with id {}: {}", passengerId, passengerRatingRequest);
 
-        Passenger passenger = passengerRepository.findById(passengerId)
-                .orElseThrow(() -> {
-                    log.error("Passenger with id {} not found", passengerId);
-                    return new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
-                });
-
-        PassengerRating newPassengerRating = PassengerRating.builder()
-                .driverId(passengerRatingRequest.getDriverId())
-                .rating(passengerRatingRequest.getRating())
-                .rideId(passengerRatingRequest.getRideId())
-                .passenger(passenger)
-                .build();
-
-        passengerRatingRepository.save(newPassengerRating);
+        return getPassenger(passengerId)
+                .flatMap(passenger -> {
+                    PassengerRating newPassengerRating = PassengerRating.builder()
+                            .driverId(passengerRatingRequest.getDriverId())
+                            .rating(passengerRatingRequest.getRating())
+                            .rideId(passengerRatingRequest.getRideId())
+                            .passenger(passenger)
+                            .build();
+                    return passengerRatingRepository.save(newPassengerRating);
+                })
+                .then();
     }
 
     @Override
-    public AllPassengerRatingsResponse getRatingsByPassengerId(long passengerId) {
+    public Mono<AllPassengerRatingsResponse> getRatingsByPassengerId(String passengerId) {
         log.info("Retrieving ratings for passenger with id: {}", passengerId);
 
-        validatePassengerExists(passengerId);
-        List<PassengerRatingResponse> passengerRatings =
-                passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId)
-                        .stream()
-                        .map(this::mapPassengerRatingToPassengerRatingResponse)
-                        .toList();
-        return AllPassengerRatingsResponse.builder()
-                .passengerRatings(passengerRatings)
-                .build();
+        return getPassenger(passengerId)
+                .flatMapMany(passenger -> passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId))
+                .map(passengerRating -> mapPassengerRatingToPassengerRatingResponse(passengerRating, passengerId))
+                .collectList()
+                .map(passengerRatingResponses -> AllPassengerRatingsResponse.builder()
+                        .passengerRatings(passengerRatingResponses)
+                        .build());
     }
 
     @Override
-    public AveragePassengerRatingResponse getAveragePassengerRating(long passengerId) {
+    public Mono<AveragePassengerRatingResponse> getAveragePassengerRating(String passengerId) {
         log.info("Retrieving average rating for passenger with id: {}", passengerId);
 
-        validatePassengerExists(passengerId);
-        List<PassengerRating> passengerRatings = passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId);
-        double averageRating = passengerRatings.stream()
-                .mapToDouble(PassengerRating::getRating)
-                .average()
-                .orElse(0.0);
-        return AveragePassengerRatingResponse.builder()
-                .averageRating(Math.round(averageRating * 100.0) / 100.0)
-                .passengerId(passengerId)
-                .build();
+        return getPassenger(passengerId)
+                .flatMapMany(passenger -> passengerRatingRepository.getPassengerRatingsByPassengerId(passengerId))
+                .collectList()
+                .map(passengerRatings -> {
+                    double averageRating = passengerRatings.stream()
+                            .mapToDouble(PassengerRating::getRating)
+                            .average()
+                            .orElse(0.0);
+                    return AveragePassengerRatingResponse.builder()
+                            .averageRating(Math.round(averageRating * 100.0) / 100.0)
+                            .passengerId(passengerId)
+                            .build();
+                });
     }
 
 
-    public void validatePassengerExists(long passengerId) {
-        if (!passengerRepository.existsById(passengerId)) {
-            log.error("Passenger with id {} not found", passengerId);
-            throw new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId));
-        }
+    private Mono<Passenger> getPassenger(String passengerId) {
+        return passengerRepository.findById(passengerId)
+                .filter(Passenger::isActive)
+                .switchIfEmpty(Mono.error(() -> new PassengerNotFoundException(String.format(PASSENGER_NOT_FOUND, passengerId))));
     }
 
-    private PassengerRatingResponse mapPassengerRatingToPassengerRatingResponse(PassengerRating passengerRating) {
-        return modelMapper.map(passengerRating, PassengerRatingResponse.class);
+    private PassengerRatingResponse mapPassengerRatingToPassengerRatingResponse(PassengerRating passengerRating, String passengerId) {
+        PassengerRatingResponse passengerRatingResponse = modelMapper.map(passengerRating, PassengerRatingResponse.class);
+        passengerRatingResponse.setPassengerId(passengerId);
+        return passengerRatingResponse;
     }
 }

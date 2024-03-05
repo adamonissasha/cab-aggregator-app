@@ -325,9 +325,9 @@ public class BankAccountServiceTest {
         BankUserResponse bankUserResponse = TestBankAccountUtil.getFirstBankUserResponse();
         BankAccountResponse expected = TestBankAccountUtil.getFirstBankAccountResponse();
 
-        when(bankAccountRepository.findByDriverId(refillRequest.getBankUserId()))
+        when(bankAccountRepository.findByDriverId(Long.parseLong(refillRequest.getBankUserId())))
                 .thenReturn(Optional.of(bankAccount));
-        when(driverWebClient.getDriver(refillRequest.getBankUserId()))
+        when(driverWebClient.getDriver(Long.parseLong(refillRequest.getBankUserId())))
                 .thenReturn(bankUserResponse);
         when(bankAccountRepository.save(bankAccount))
                 .thenReturn(bankAccount);
@@ -341,9 +341,9 @@ public class BankAccountServiceTest {
         verify(bankAccountRepository, times(1))
                 .save(bankAccount);
         verify(bankAccountRepository, times(1))
-                .findByDriverId(refillRequest.getBankUserId());
+                .findByDriverId(Long.parseLong(refillRequest.getBankUserId()));
         verify(driverWebClient, times(1))
-                .getDriver(refillRequest.getBankUserId());
+                .getDriver(Long.parseLong(refillRequest.getBankUserId()));
         verify(bankAccountHistoryService, times(1))
                 .createBankAccountHistoryRecord(eq(bankAccount.getId()), any());
     }
@@ -352,13 +352,13 @@ public class BankAccountServiceTest {
     void testRefillBankAccount_WhenBankAccountNotFound_ShouldThrowBankAccountNotFoundException() {
         RefillRequest refillRequest = TestBankAccountUtil.getRefillRequest();
 
-        when(bankAccountRepository.findByDriverId(refillRequest.getBankUserId()))
+        when(bankAccountRepository.findByDriverId(Long.parseLong(refillRequest.getBankUserId())))
                 .thenReturn(Optional.empty());
 
         assertThrows(BankAccountNotFoundException.class, () -> bankAccountService.refillBankAccount(refillRequest));
 
         verify(bankAccountRepository, times(1))
-                .findByDriverId(refillRequest.getBankUserId());
+                .findByDriverId(Long.parseLong(refillRequest.getBankUserId()));
     }
 
     @Test
@@ -400,7 +400,7 @@ public class BankAccountServiceTest {
         BankAccountResponse expected = TestBankAccountUtil.getFirstBankAccountResponse();
         BankCardResponse defaultBankCard = TestBankCardUtil.getFirstBankCardResponse();
         RefillRequest refillRequest = RefillRequest.builder()
-                .bankUserId(bankAccount.getDriverId())
+                .bankUserId(bankAccount.getDriverId().toString())
                 .sum(withdrawalRequest.getSum())
                 .build();
 
@@ -414,7 +414,7 @@ public class BankAccountServiceTest {
                 .thenReturn(bankAccount);
         when(bankAccountMapper.mapBankAccountToBankAccountResponse(bankAccount, bankUserResponse))
                 .thenReturn(expected);
-        when(bankCardService.getDefaultBankCard(bankAccount.getDriverId(), BankUser.DRIVER))
+        when(bankCardService.getDefaultBankCard(bankAccount.getDriverId().toString(), BankUser.DRIVER))
                 .thenReturn(defaultBankCard);
 
         BankAccountResponse actual = bankAccountService.withdrawalFromBankAccount(bankAccountId, withdrawalRequest);

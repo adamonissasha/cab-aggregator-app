@@ -5,20 +5,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@Builder
-@ToString
+@Data
 public class PassengerRequest {
     private static final String PASSENGER_PHONE_NUMBER_FORMAT = "^\\+375\\d{9}$";
-    private static final String PASSENGER_PASSWORD_FORMAT =  "^(?=.*\\d).{8,}$";
+    private static final String PASSENGER_PASSWORD_FORMAT = "^(?=.*\\d).{8,}$";
 
     @NotBlank(message = "{passenger.first-name.required}")
     private String firstName;

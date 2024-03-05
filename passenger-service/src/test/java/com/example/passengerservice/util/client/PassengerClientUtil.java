@@ -63,7 +63,7 @@ public class PassengerClientUtil {
 
     public PassengerResponse editPassengerWhenValidDataRequest(int port,
                                                                PassengerRequest passengerRequest,
-                                                               Long passengerId) {
+                                                               String passengerId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -79,7 +79,7 @@ public class PassengerClientUtil {
 
     public ValidationErrorResponse editPassengerWhenInvalidDataRequest(int port,
                                                                        PassengerRequest passengerRequest,
-                                                                       Long passengerId) {
+                                                                       String passengerId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -95,7 +95,7 @@ public class PassengerClientUtil {
 
     public ExceptionResponse editPassengerWhenPassengerNotFoundRequest(int port,
                                                                        PassengerRequest passengerRequest,
-                                                                       Long invalidPassengerId) {
+                                                                       String invalidPassengerId) {
         return given()
                 .port(port)
                 .contentType(ContentType.JSON)
@@ -109,7 +109,7 @@ public class PassengerClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public PassengerResponse getPassengerByIdWhenPassengerExistsRequest(int port, Long existingPassengerId) {
+    public PassengerResponse getPassengerByIdWhenPassengerExistsRequest(int port, String existingPassengerId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingPassengerId)
@@ -121,7 +121,7 @@ public class PassengerClientUtil {
                 .as(PassengerResponse.class);
     }
 
-    public ExceptionResponse getPassengerByIdWhenPassengerNotExistsRequest(int port, Long invalidPassengerId) {
+    public ExceptionResponse getPassengerByIdWhenPassengerNotExistsRequest(int port, String invalidPassengerId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidPassengerId)
@@ -164,7 +164,7 @@ public class PassengerClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public void deletePassengerWhenPassengerExistsRequest(int port, Long existingPassengerId) {
+    public void deletePassengerWhenPassengerExistsRequest(int port, String existingPassengerId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, existingPassengerId)
@@ -174,7 +174,7 @@ public class PassengerClientUtil {
                 .statusCode(HttpStatus.OK.value());
     }
 
-    public void deletePassengerWhenPassengerNotExistsRequest(int port, Long invalidPassengerId) {
+    public void deletePassengerWhenPassengerNotExistsRequest(int port, String invalidPassengerId) {
         given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidPassengerId)

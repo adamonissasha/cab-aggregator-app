@@ -21,7 +21,7 @@ public interface RideService {
 
     RideResponse getRideByRideId(Long rideId);
 
-    PassengerRidesPageResponse getPassengerRides(Long passengerId, int page, int size, String sortBy);
+    PassengerRidesPageResponse getPassengerRides(String passengerId, int page, int size, String sortBy);
 
     RidesPageResponse getDriverRides(Long driverId, int page, int size, String sortBy);
 

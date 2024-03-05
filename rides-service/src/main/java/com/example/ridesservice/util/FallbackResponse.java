@@ -29,7 +29,7 @@ public class FallbackResponse {
 
     public PassengerResponse getPassengerResponse() {
         return PassengerResponse.builder()
-                .id(-1)
+                .id("FallbackId")
                 .firstName("FallbackFirstName")
                 .phoneNumber("FallbackPhoneNumber")
                 .rating(0)

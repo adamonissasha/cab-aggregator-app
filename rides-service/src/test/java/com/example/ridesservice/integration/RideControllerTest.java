@@ -501,7 +501,7 @@ public class RideControllerTest {
         int page = TestRideUtil.getPageNumber();
         int size = TestRideUtil.getPageSize();
         String sortBy = TestRideUtil.getCorrectSortField();
-        Long passengerId = TestRideUtil.getFirstPassengerId();
+        String passengerId = TestRideUtil.getFirstPassengerId();
         PassengerRidesPageResponse expected = TestRideUtil.getPassengerRidesPageResponse();
         DriverResponse driverResponse = TestRideUtil.getDriverResponse();
         CarResponse carResponse = driverResponse.getCar();
@@ -536,7 +536,7 @@ public class RideControllerTest {
         int page = TestRideUtil.getPageNumber();
         int size = TestRideUtil.getPageSize();
         String sortBy = TestRideUtil.getIncorrectSortField();
-        Long passengerId = TestRideUtil.getFirstPassengerId();
+        String passengerId = TestRideUtil.getFirstPassengerId();
         ExceptionResponse expected = TestRideUtil.getIncorrectFieldExceptionResponse();
 
         ExceptionResponse actual =

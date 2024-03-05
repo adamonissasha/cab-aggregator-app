@@ -39,8 +39,8 @@ public class TestRideUtil {
     private final String SECOND_START_ADDRESS = "Sovetskaya 12";
     private final String FIRST_END_ADDRESS = "Masherova 113";
     private final String SECOND_END_ADDRESS = "Lenina 89";
-    private final Long NEW_PASSENGER_ID = 3L;
-    private final Long FIRST_PASSENGER_ID = 13L;
+    private final String NEW_PASSENGER_ID = "65cbbb08e399fa178470785d";
+    private final String FIRST_PASSENGER_ID = "65cbc3c1a85b366e0ef0564c";
     private final PaymentMethod FIRST_PAYMENT_METHOD = PaymentMethod.CARD;
     private final PaymentMethod SECOND_PAYMENT_METHOD = PaymentMethod.CASH;
     private final Long FIRST_BANK_CARD_ID = 1L;
@@ -97,7 +97,7 @@ public class TestRideUtil {
         return INVALID_RIDE_ID;
     }
 
-    public Long getFirstPassengerId() {
+    public String getFirstPassengerId() {
         return FIRST_PASSENGER_ID;
     }
 

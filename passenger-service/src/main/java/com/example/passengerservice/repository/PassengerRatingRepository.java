@@ -1,10 +1,9 @@
 package com.example.passengerservice.repository;
 
 import com.example.passengerservice.model.PassengerRating;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import reactor.core.publisher.Flux;
 
-import java.util.List;
-
-public interface PassengerRatingRepository extends JpaRepository<PassengerRating, Long> {
-    List<PassengerRating> getPassengerRatingsByPassengerId(long id);
+public interface PassengerRatingRepository extends ReactiveMongoRepository<PassengerRating, String> {
+    Flux<PassengerRating> getPassengerRatingsByPassengerId(String passengerId);
 }

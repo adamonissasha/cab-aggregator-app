@@ -18,17 +18,17 @@ public interface BankCardService {
 
     BankCardResponse getBankCardById(Long id);
 
-    BankCardPageResponse getBankCardsByBankUser(Long bankUserId, BankUser bankUser, int page, int size, String sortBy);
+    BankCardPageResponse getBankCardsByBankUser(String bankUserId, BankUser bankUser, int page, int size, String sortBy);
 
     BankCardResponse makeBankCardDefault(Long id);
 
-    BankCardResponse getDefaultBankCard(Long bankUserId, BankUser bankUser);
+    BankCardResponse getDefaultBankCard(String bankUserId, BankUser bankUser);
 
     BankCardResponse refillBankCard(Long id, RefillRequest refillRequest);
 
     BalanceResponse getBankCardBalance(Long id);
 
-    void deleteBankUserCards(Long bankUserId, BankUser bankUser);
+    void deleteBankUserCards(String bankUserId, BankUser bankUser);
 
     BankCardResponse withdrawalPaymentFromBankCard(Long id, WithdrawalRequest withdrawalRequest);
 }

@@ -13,7 +13,7 @@ public class PassengerRatingClientUtil {
     private final String PASSENGER_RATING_SERVICE_URL = "passenger/{id}/rating";
     private final String ID_PARAMETER_NAME = "id";
 
-    public AllPassengerRatingsResponse getAllPassengerRatingsWhenPassengerExistsRequest(int port, Long passengerId) {
+    public AllPassengerRatingsResponse getAllPassengerRatingsWhenPassengerExistsRequest(int port, String passengerId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, passengerId)
@@ -25,7 +25,7 @@ public class PassengerRatingClientUtil {
                 .as(AllPassengerRatingsResponse.class);
     }
 
-    public ExceptionResponse getPassengerRatingsWhenPassengerNotExistsRequest(int port, Long invalidId) {
+    public ExceptionResponse getPassengerRatingsWhenPassengerNotExistsRequest(int port, String invalidId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidId)
@@ -37,7 +37,7 @@ public class PassengerRatingClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public AveragePassengerRatingResponse getAveragePassengerRatingWhenPassengerExistsRequest(int port, Long passengerId) {
+    public AveragePassengerRatingResponse getAveragePassengerRatingWhenPassengerExistsRequest(int port, String passengerId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, passengerId)
@@ -49,7 +49,7 @@ public class PassengerRatingClientUtil {
                 .as(AveragePassengerRatingResponse.class);
     }
 
-    public ExceptionResponse getAveragePassengerRatingWhenPassengerNotExistsRequest(int port, Long invalidId) {
+    public ExceptionResponse getAveragePassengerRatingWhenPassengerNotExistsRequest(int port, String invalidId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, invalidId)

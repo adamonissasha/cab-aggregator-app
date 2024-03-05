@@ -38,7 +38,6 @@ public class CarServiceImpl implements CarService {
         String carNumber = carRequest.getNumber();
         carRepository.findCarByNumber(carNumber)
                 .ifPresent(car -> {
-                    log.error("Car with number {} already exist", carNumber);
                     throw new CarNumberUniqueException(String.format(CAR_NUMBER_EXIST, carNumber));
                 });
 
@@ -52,15 +51,11 @@ public class CarServiceImpl implements CarService {
         log.info("Updating car with id {}: {}", id, carRequest);
 
         Car existingCar = carRepository.findById(id)
-                .orElseThrow(() -> {
-                    log.error("Car with id {} not found", id);
-                    return new CarNotFoundException(String.format(CAR_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new CarNotFoundException(String.format(CAR_NOT_FOUND, id)));
 
         String carNumber = carRequest.getNumber();
         Optional<Car> optionalCar = carRepository.findCarByNumber(carNumber);
         if (optionalCar.isPresent() && optionalCar.get().getId() != id) {
-            log.error("Car with number {} already exist", carNumber);
             throw new CarNumberUniqueException(String.format(CAR_NUMBER_EXIST, carNumber));
         }
 
@@ -76,10 +71,7 @@ public class CarServiceImpl implements CarService {
 
         return carRepository.findById(id)
                 .map(this::mapCarToCarResponse)
-                .orElseThrow(() -> {
-                    log.error("Car with id {} not found", id);
-                    return new CarNotFoundException(String.format(CAR_NOT_FOUND, id));
-                });
+                .orElseThrow(() -> new CarNotFoundException(String.format(CAR_NOT_FOUND, id)));
     }
 
     @Override

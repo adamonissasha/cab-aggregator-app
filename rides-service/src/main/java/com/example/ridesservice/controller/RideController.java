@@ -61,7 +61,7 @@ public class RideController {
     }
 
     @GetMapping("/passenger/{passengerId}")
-    public PassengerRidesPageResponse getPassengerRides(@PathVariable("passengerId") Long passengerId,
+    public PassengerRidesPageResponse getPassengerRides(@PathVariable("passengerId") String passengerId,
                                                         @RequestParam(defaultValue = "0") @Min(0) int page,
                                                         @RequestParam(defaultValue = "10") @Min(1) int size,
                                                         @RequestParam(defaultValue = "id") String sortBy) {

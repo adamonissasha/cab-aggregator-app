@@ -196,7 +196,7 @@ public class BankCardControllerTest {
 
     @Test
     void getAllBankCards_ShouldReturnBankCardPageResponse() throws JsonProcessingException {
-        Long bankUserId = 3L;
+        String bankUserId = "65dc582a0bac76266ffe3c1d";
         int page = TestBankCardUtil.getPageNumber();
         int size = TestBankCardUtil.getPageSize();
         String sortBy = TestBankCardUtil.getCorrectSortField();
@@ -279,7 +279,7 @@ public class BankCardControllerTest {
 
     @Test
     void getDefaultBankCard_WhenDefaultBankCardExists_ShouldReturnBankCardResponse() throws JsonProcessingException {
-        Long bankUserId = 3L;
+        String bankUserId = "65dc582a0bac76266ffe3c1d";
         BankCardResponse expected = TestBankCardUtil.getFirstBankCardResponse();
         BankUserResponse bankUserResponse = expected.getBankUser();
 

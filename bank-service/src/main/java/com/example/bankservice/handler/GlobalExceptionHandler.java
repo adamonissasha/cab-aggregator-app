@@ -14,6 +14,7 @@ import com.example.bankservice.exception.PassengerNotFoundException;
 import com.example.bankservice.exception.WithdrawalException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -25,10 +26,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = CardNumberUniqueException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handleCardNumberUniqueException(CardNumberUniqueException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -38,6 +42,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = DriverNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleDriverNotFoundException(DriverNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -47,6 +53,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = BankCardBalanceException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handleBankCardBalanceException(BankCardBalanceException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -56,6 +64,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PassengerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handlePassengerNotFoundException(PassengerNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -65,6 +75,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = BankCardNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleBankCardNotFoundException(BankCardNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -83,6 +95,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = AccountNumberUniqueException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handleAccountNumberUniqueException(AccountNumberUniqueException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -92,6 +106,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = BankAccountNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleBankAccountNotFoundException(BankAccountNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -101,6 +117,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = DriverBankAccountException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handleDriverBankAccountException(DriverBankAccountException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -110,6 +128,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = WithdrawalException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handleWithdrawalException(WithdrawalException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())

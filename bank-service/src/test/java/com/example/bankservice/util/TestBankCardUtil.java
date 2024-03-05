@@ -37,7 +37,7 @@ public class TestBankCardUtil {
     private final String INVALID_CARD_CVV = "cd3";
     private final BigDecimal FIRST_CARD_BALANCE = BigDecimal.valueOf(349.2);
     private final BigDecimal SECOND_CARD_BALANCE = BigDecimal.valueOf(136.7);
-    private final Long FIRST_BANK_USER_ID = 3L;
+    private final String FIRST_BANK_USER_ID = "65dc582a0bac76266ffe3c1d";
     private final BankUser BANK_USER = BankUser.PASSENGER;
     private final String BANK_USER_FIRST_NAME = "Egor";
     private final String BANK_USER_LAST_NAME = "Adamonis";
@@ -68,6 +68,10 @@ public class TestBankCardUtil {
 
     public Long getInvalidBankCardId() {
         return INVALID_BANK_CARD_ID;
+    }
+
+    public String getBankUserId() {
+        return FIRST_BANK_USER_ID;
     }
 
     public BankCard getFirstBankCard() {
@@ -171,7 +175,7 @@ public class TestBankCardUtil {
 
     public BankCardResponse getNewBankCardResponse() {
         return BankCardResponse.builder()
-                .id(FIRST_BANK_USER_ID)
+                .id(FIRST_BANK_CARD_ID)
                 .number(UNIQUE_CARD_NUMBER)
                 .expiryDate(FIRST_CARD_EXPIRY_DATE)
                 .balance(FIRST_CARD_BALANCE)

@@ -272,7 +272,7 @@ public class RideClientUtil {
     }
 
     public PassengerRidesPageResponse getAllPassengerRidesRequest(int port, int page, int size,
-                                                                  String sortBy, Long passengerId) {
+                                                                  String sortBy, String passengerId) {
         return given()
                 .port(port)
                 .pathParam(PASSENGER_ID_PARAMETER_NAME, passengerId)
@@ -288,7 +288,7 @@ public class RideClientUtil {
     }
 
     public ExceptionResponse getAllPassengerRidesWhenIncorrectFieldRequest(int port, int page, int size,
-                                                                           String sortBy, Long passengerId) {
+                                                                           String sortBy, String passengerId) {
         return given()
                 .port(port)
                 .pathParam(PASSENGER_ID_PARAMETER_NAME, passengerId)

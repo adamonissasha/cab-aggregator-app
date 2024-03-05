@@ -143,7 +143,7 @@ public class BankCardClientUtil {
                                                        int page,
                                                        int size,
                                                        String sortBy,
-                                                       Long bankUserId) {
+                                                       String bankUserId) {
         return given()
                 .port(port)
                 .param(PAGE_PARAMETER_NAME, page)
@@ -234,7 +234,7 @@ public class BankCardClientUtil {
                 .as(ExceptionResponse.class);
     }
 
-    public BankCardResponse getDefaultBankCardWhenDefaultBankCardExistsRequest(int port, Long bankUserId) {
+    public BankCardResponse getDefaultBankCardWhenDefaultBankCardExistsRequest(int port, String bankUserId) {
         return given()
                 .port(port)
                 .pathParam(ID_PARAMETER_NAME, bankUserId)

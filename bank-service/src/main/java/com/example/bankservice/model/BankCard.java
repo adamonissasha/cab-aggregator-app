@@ -40,7 +40,7 @@ public class BankCard {
 
     private Boolean isDefault;
 
-    private Long bankUserId;
+    private String bankUserId;
 
     @Enumerated(value = EnumType.STRING)
     private BankUser bankUser;

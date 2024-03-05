@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: change-passenger-id-type
+      author: Sasha
+      changes:
+        - modifyDataType:
+            tableName: ride
+            columnName: passenger_id
+            newDataType: varchar(255)

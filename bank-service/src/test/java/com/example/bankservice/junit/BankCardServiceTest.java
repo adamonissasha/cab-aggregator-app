@@ -203,7 +203,7 @@ public class BankCardServiceTest {
 
     @Test
     void testDeleteBankUserCards_ShouldDeleteBankUserCards() {
-        Long bankUserId = TestBankCardUtil.getBankCardId();
+        String bankUserId = TestBankCardUtil.getBankUserId();
         BankUser bankUser = BankUser.PASSENGER;
 
         bankCardService.deleteBankUserCards(bankUserId, bankUser);
@@ -340,7 +340,7 @@ public class BankCardServiceTest {
         BankCard defaultBankCard = TestBankCardUtil.getFirstBankCard();
         BankUserResponse bankUserResponse = TestBankCardUtil.getBankUserResponse();
         BankCardResponse expected = TestBankCardUtil.getFirstBankCardResponse();
-        Long bankUserId = defaultBankCard.getBankUserId();
+        String bankUserId = defaultBankCard.getBankUserId();
         BankUser bankUser = defaultBankCard.getBankUser();
 
         when(passengerWebClient.getPassenger(bankUserId))
@@ -360,7 +360,7 @@ public class BankCardServiceTest {
 
     @Test
     void testGetDefaultBankCard_WhenNoDefaultBankCard_ShouldThrowException() {
-        Long bankUserId = 1L;
+        String bankUserId = TestBankCardUtil.getBankUserId();
         BankUser bankUser = TestBankCardUtil.getFirstBankCard().getBankUser();
 
         when(bankCardRepository.findByBankUserIdAndBankUserAndIsDefaultTrue(bankUserId, bankUser))
@@ -393,7 +393,7 @@ public class BankCardServiceTest {
     @Test
     void testRefillBankCard_WithIdProvided_ShouldRefillBankCard() {
         Long bankCardId = TestBankCardUtil.getBankCardId();
-        long bankUserId = 3L;
+        String bankUserId = TestBankCardUtil.getBankUserId();
         RefillRequest refillRequest = TestBankCardUtil.getRefillRequest();
         BankCard bankCard = TestBankCardUtil.getFirstBankCard();
         BankUserResponse bankUserResponse = TestBankCardUtil.getBankUserResponse();
@@ -420,7 +420,7 @@ public class BankCardServiceTest {
 
     @Test
     void testRefillBankCard_WithoutIdProvided_ShouldRefillDefaultBankCard() {
-        long bankUserId = 3L;
+        String bankUserId = TestBankCardUtil.getBankUserId();
         RefillRequest refillRequest = TestBankCardUtil.getRefillRequest();
         BankCard defaultBankCard = TestBankCardUtil.getFirstBankCard();
         BankUserResponse bankUserResponse = TestBankCardUtil.getBankUserResponse();

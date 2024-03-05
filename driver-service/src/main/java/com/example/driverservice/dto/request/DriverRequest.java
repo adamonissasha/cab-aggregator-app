@@ -6,17 +6,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@Builder
-@ToString
+@Data
 public class DriverRequest {
     private static final String DRIVER_PHONE_NUMBER_FORMAT = "^\\+375\\d{9}$";
     private static final String DRIVER_PASSWORD_FORMAT = "^(?=.*\\d).{8,}$";

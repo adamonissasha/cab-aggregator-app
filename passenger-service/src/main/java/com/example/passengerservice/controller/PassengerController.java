@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,39 +19,41 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/passenger")
 @RequiredArgsConstructor
+@Validated
 public class PassengerController {
     private final PassengerService passengerService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public PassengerResponse createPassenger(@Valid @RequestBody PassengerRequest passengerRequest) {
+    public Mono<PassengerResponse> createPassenger(@Valid @RequestBody PassengerRequest passengerRequest) {
         return passengerService.createPassenger(passengerRequest);
     }
 
     @PutMapping("/{id}")
-    public PassengerResponse editPassenger(@Valid @RequestBody PassengerRequest passengerRequest,
-                                           @PathVariable("id") long id) {
+    public Mono<PassengerResponse> editPassenger(@Valid @RequestBody PassengerRequest passengerRequest,
+                                                 @PathVariable("id") String id) {
         return passengerService.editPassenger(id, passengerRequest);
     }
 
     @GetMapping("/{id}")
-    public PassengerResponse getPassengerById(@PathVariable("id") long id) {
+    public Mono<PassengerResponse> getPassengerById(@PathVariable("id") String id) {
         return passengerService.getPassengerById(id);
     }
 
     @GetMapping
-    public PassengerPageResponse getAllPassengers(@RequestParam(defaultValue = "0") @Min(0) int page,
-                                                  @RequestParam(defaultValue = "10") @Min(1) int size,
-                                                  @RequestParam(defaultValue = "id") String sortBy) {
+    public Mono<PassengerPageResponse> getAllPassengers(@RequestParam(defaultValue = "0") @Min(0) int page,
+                                                        @RequestParam(defaultValue = "10") @Min(1) int size,
+                                                        @RequestParam(defaultValue = "id") String sortBy) {
         return passengerService.getAllPassengers(page, size, sortBy);
     }
 
     @DeleteMapping("/{id}")
-    public void deletePassengerById(@PathVariable("id") long id) {
-        passengerService.deletePassengerById(id);
+    public Mono<Void> deletePassengerById(@PathVariable("id") String id) {
+        return passengerService.deletePassengerById(id);
     }
 }

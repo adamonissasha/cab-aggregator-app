@@ -13,7 +13,6 @@ import com.example.passengerservice.service.PassengerRatingService;
 import com.example.passengerservice.service.impl.PassengerServiceImpl;
 import com.example.passengerservice.util.FieldValidator;
 import com.example.passengerservice.util.TestPassengerUtil;
-import com.example.passengerservice.webClient.BankWebClient;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.junit.jupiter.api.Test;
@@ -22,24 +21,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,8 +48,6 @@ public class PassengerServiceTest {
     FieldValidator fieldValidator;
     @Mock
     PassengerRatingService passengerRatingService;
-    @Mock
-    BankWebClient bankWebClient;
     @InjectMocks
     PassengerServiceImpl passengerService;
 
@@ -69,26 +59,26 @@ public class PassengerServiceTest {
         AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getFirstPassengerRating();
 
         when(passengerRepository.findPassengerByPhoneNumber(passengerRequest.getPhoneNumber()))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
         when(modelMapper.map(any(PassengerRequest.class), eq(Passenger.class)))
                 .thenReturn(newPassenger);
         when(passengerRepository.save(any(Passenger.class)))
-                .thenReturn(TestPassengerUtil.getFirstPassenger());
-        when(passengerRatingService.getAveragePassengerRating(anyLong()))
-                .thenReturn(passengerRating);
+                .thenReturn(Mono.just(newPassenger));
+        when(passengerRatingService.getAveragePassengerRating(anyString()))
+                .thenReturn(Mono.just(passengerRating));
         when(modelMapper.map(any(Passenger.class), eq(PassengerResponse.class)))
                 .thenReturn(expected);
 
-        PassengerResponse actual = passengerService.createPassenger(passengerRequest);
-
-        assertEquals(expected, actual);
+        StepVerifier.create(passengerService.createPassenger(passengerRequest))
+                .expectNext(expected)
+                .verifyComplete();
 
         verify(passengerRepository, times(1))
                 .save(any(Passenger.class));
         verify(passengerRepository, times(1))
                 .findPassengerByPhoneNumber(anyString());
         verify(passengerRatingService, times(1))
-                .getAveragePassengerRating(anyLong());
+                .getAveragePassengerRating(anyString());
     }
 
     @Test
@@ -98,9 +88,11 @@ public class PassengerServiceTest {
         String existingPassengerPhoneNumber = TestPassengerUtil.getFirstPassengerPhoneNumber();
 
         when(passengerRepository.findPassengerByPhoneNumber(existingPassengerPhoneNumber))
-                .thenReturn(Optional.of(existingPassenger));
+                .thenReturn(Mono.just(existingPassenger));
 
-        assertThrows(PhoneNumberUniqueException.class, () -> passengerService.createPassenger(passengerRequest));
+        StepVerifier.create(passengerService.createPassenger(passengerRequest))
+                .expectError(PhoneNumberUniqueException.class)
+                .verify();
 
         verify(passengerRepository, times(1))
                 .findPassengerByPhoneNumber(passengerRequest.getPhoneNumber());
@@ -108,7 +100,7 @@ public class PassengerServiceTest {
 
     @Test
     public void testEditPassenger_WhenPassengerExistsAndPassengerPhoneNumberUnique_ShouldEditPassenger() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
         PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequest();
         Passenger updatedPassenger = TestPassengerUtil.getFirstPassenger();
         Passenger existingPassenger = TestPassengerUtil.getSecondPassenger();
@@ -116,21 +108,21 @@ public class PassengerServiceTest {
         AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getFirstPassengerRating();
 
         when(passengerRepository.findById(passengerId))
-                .thenReturn(Optional.of(existingPassenger));
+                .thenReturn(Mono.just(existingPassenger));
         when(passengerRepository.findPassengerByPhoneNumber(passengerRequest.getPhoneNumber()))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
         when(modelMapper.map(passengerRequest, Passenger.class))
                 .thenReturn(updatedPassenger);
         when(passengerRepository.save(updatedPassenger))
-                .thenReturn(updatedPassenger);
-        when(passengerRatingService.getAveragePassengerRating(anyLong()))
-                .thenReturn(passengerRating);
+                .thenReturn(Mono.just(updatedPassenger));
+        when(passengerRatingService.getAveragePassengerRating(anyString()))
+                .thenReturn(Mono.just(passengerRating));
         when(modelMapper.map(updatedPassenger, PassengerResponse.class))
                 .thenReturn(expected);
 
-        PassengerResponse actual = passengerService.editPassenger(passengerId, passengerRequest);
-
-        assertEquals(expected, actual);
+        StepVerifier.create(passengerService.editPassenger(passengerId, passengerRequest))
+                .expectNext(expected)
+                .verifyComplete();
 
         verify(passengerRepository, times(1))
                 .findById(passengerId);
@@ -139,22 +131,25 @@ public class PassengerServiceTest {
         verify(passengerRepository, times(1))
                 .save(updatedPassenger);
         verify(passengerRatingService, times(1))
-                .getAveragePassengerRating(anyLong());
+                .getAveragePassengerRating(anyString());
     }
 
     @Test
     public void testEditPassenger_WhenPassengerPhoneNumberAlreadyExists_ShouldThrowPhoneNumberUniqueException() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
-        PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequest();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
         Passenger updatedPassenger = TestPassengerUtil.getFirstPassenger();
         Passenger existingPassenger = TestPassengerUtil.getSecondPassenger();
+        PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequest();
+        passengerRequest.setPhoneNumber(existingPassenger.getPhoneNumber());
 
         when(passengerRepository.findById(passengerId))
-                .thenReturn(Optional.of(updatedPassenger));
+                .thenReturn(Mono.just(updatedPassenger));
         when(passengerRepository.findPassengerByPhoneNumber(passengerRequest.getPhoneNumber()))
-                .thenReturn(Optional.of(existingPassenger));
+                .thenReturn(Mono.just(existingPassenger));
 
-        assertThrows(PhoneNumberUniqueException.class, () -> passengerService.editPassenger(passengerId, passengerRequest));
+        StepVerifier.create(passengerService.editPassenger(passengerId, passengerRequest))
+                .expectError(PhoneNumberUniqueException.class)
+                .verify();
 
         verify(passengerRepository, times(1))
                 .findById(passengerId);
@@ -164,13 +159,15 @@ public class PassengerServiceTest {
 
     @Test
     public void testEditPassenger_WhenPassengerNotFound_ShouldThrowPassengerNotFoundException() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
         PassengerRequest passengerRequest = TestPassengerUtil.getPassengerRequest();
 
         when(passengerRepository.findById(passengerId))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
 
-        assertThrows(PassengerNotFoundException.class, () -> passengerService.editPassenger(passengerId, passengerRequest));
+        StepVerifier.create(passengerService.editPassenger(passengerId, passengerRequest))
+                .expectError(PassengerNotFoundException.class)
+                .verify();
 
         verify(passengerRepository, times(1))
                 .findById(passengerId);
@@ -178,36 +175,38 @@ public class PassengerServiceTest {
 
     @Test
     void testGetPassengerById_WhenPassengerExists_ShouldReturnPassengerResponse() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
         Passenger existingPassenger = TestPassengerUtil.getFirstPassenger();
         PassengerResponse expected = TestPassengerUtil.getPassengerResponse();
         AveragePassengerRatingResponse passengerRating = TestPassengerUtil.getFirstPassengerRating();
 
         when(passengerRepository.findById(passengerId))
-                .thenReturn(Optional.of(existingPassenger));
-        when(passengerRatingService.getAveragePassengerRating(anyLong()))
-                .thenReturn(passengerRating);
+                .thenReturn(Mono.just(existingPassenger));
+        when(passengerRatingService.getAveragePassengerRating(anyString()))
+                .thenReturn(Mono.just(passengerRating));
         when(modelMapper.map(existingPassenger, PassengerResponse.class))
                 .thenReturn(expected);
 
-        PassengerResponse actual = passengerService.getPassengerById(passengerId);
-
-        assertEquals(expected, actual);
+        StepVerifier.create(passengerService.getPassengerById(passengerId))
+                .expectNext(expected)
+                .verifyComplete();
 
         verify(passengerRepository, times(1))
                 .findById(passengerId);
         verify(passengerRatingService, times(1))
-                .getAveragePassengerRating(anyLong());
+                .getAveragePassengerRating(anyString());
     }
 
     @Test
     public void testGetPassengerById_WhenPassengerNotFound_ShouldThrowPassengerNotFoundException() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
 
         when(passengerRepository.findById(passengerId))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
 
-        assertThrows(PassengerNotFoundException.class, () -> passengerService.getPassengerById(passengerId));
+        StepVerifier.create(passengerService.getPassengerById(passengerId))
+                .expectError(PassengerNotFoundException.class)
+                .verify();
 
         verify(passengerRepository, times(1))
                 .findById(passengerId);
@@ -222,8 +221,7 @@ public class PassengerServiceTest {
         List<Passenger> passengers = TestPassengerUtil.getPassengers();
         List<PassengerResponse> passengerResponses = TestPassengerUtil.getPassengerResponses();
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
-        Page<Passenger> mockPassengerPage = new PageImpl<>(passengers, pageable, passengers.size());
+        Flux<Passenger> mockPassengerFlux = Flux.fromIterable(passengers);
         PassengerPageResponse expected = PassengerPageResponse.builder()
                 .passengers(passengerResponses)
                 .currentPage(page)
@@ -232,26 +230,27 @@ public class PassengerServiceTest {
                 .totalPages(1)
                 .build();
 
-        doNothing()
-                .when(fieldValidator)
-                .checkSortField(any(), eq(sortBy));
-        when(passengerRatingService.getAveragePassengerRating(anyLong()))
-                .thenReturn(passengerRating);
+        when(fieldValidator.checkSortField(eq(Passenger.class), eq(sortBy)))
+                .thenReturn(Mono.empty());
+        when(passengerRepository.countAllByIsActiveTrue())
+                .thenReturn(Mono.just(2L));
+        when(passengerRatingService.getAveragePassengerRating(anyString()))
+                .thenReturn(Mono.just(passengerRating));
         when(modelMapper.map(passengers.get(0), PassengerResponse.class))
                 .thenReturn(passengerResponses.get(0));
         when(modelMapper.map(passengers.get(1), PassengerResponse.class))
                 .thenReturn(passengerResponses.get(1));
-        when(passengerRepository.findAll(any(Pageable.class)))
-                .thenReturn(mockPassengerPage);
+        when(passengerRepository.findAllByIsActiveTrue(any(Pageable.class)))
+                .thenReturn(mockPassengerFlux);
 
-        PassengerPageResponse actual = passengerService.getAllPassengers(page, size, sortBy);
-
-        assertEquals(expected, actual);
+        StepVerifier.create(passengerService.getAllPassengers(page, size, sortBy))
+                .expectNext(expected)
+                .verifyComplete();
 
         verify(passengerRepository, times(1))
-                .findAll(any(Pageable.class));
+                .findAllByIsActiveTrue(any(Pageable.class));
         verify(passengerRatingService, times(2))
-                .getAveragePassengerRating(anyLong());
+                .getAveragePassengerRating(anyString());
     }
 
     @Test
@@ -260,46 +259,52 @@ public class PassengerServiceTest {
         int size = TestPassengerUtil.getPageSize();
         String sortBy = TestPassengerUtil.getIncorrectSortField();
 
-        doThrow(IncorrectFieldNameException.class)
-                .when(fieldValidator)
-                .checkSortField(eq(Passenger.class), eq(sortBy));
+        when(fieldValidator.checkSortField(eq(Passenger.class), eq(sortBy)))
+                .thenReturn(Mono.error(new IncorrectFieldNameException("Invalid sortBy field. Allowed fields: [id, firstName, lastName, email, phoneNumber, password, isActive]")));
 
-        assertThrows(IncorrectFieldNameException.class, () -> passengerService.getAllPassengers(page, size, sortBy));
+        StepVerifier.create(passengerService.getAllPassengers(page, size, sortBy))
+                .expectError(IncorrectFieldNameException.class)
+                .verify();
 
         verify(fieldValidator, times(1))
                 .checkSortField(eq(Passenger.class), eq(sortBy));
         verify(passengerRepository, never())
-                .findAll(any(Pageable.class));
+                .findAllByIsActiveTrue(any(Pageable.class));
     }
 
     @Test
     public void testDeletePassengerById_WhenPassengerExists_ShouldMarkPassengerActiveFalseAndCallBankWebClientMethods() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
         Passenger passenger = TestPassengerUtil.getFirstPassenger();
+        Passenger deletingPassenger = TestPassengerUtil.getFirstPassenger();
+        deletingPassenger.setActive(false);
 
         when(passengerRepository.findById(passengerId))
-                .thenReturn(Optional.of(passenger));
+                .thenReturn(Mono.just(passenger));
+        when(passengerRepository.save(passenger))
+                .thenReturn(Mono.empty());
 
-        passengerService.deletePassengerById(passengerId);
+        StepVerifier.create(passengerService.deletePassengerById(passengerId))
+                .verifyComplete();
 
-        assertFalse(passenger.isActive());
+        assertFalse(deletingPassenger.isActive());
 
         verify(passengerRepository, times(1))
                 .save(passenger);
-        verify(bankWebClient, times(1))
-                .deletePassengerBankCards(passengerId);
         verify(passengerRepository, times(1))
                 .findById(passengerId);
     }
 
     @Test
     public void testDeletePassengerById_WhenPassengerNotFound_ShouldThrowPassengerNotFoundException() {
-        Long passengerId = TestPassengerUtil.getFirstPassengerId();
+        String passengerId = TestPassengerUtil.getFirstPassengerId();
 
         when(passengerRepository.findById(passengerId))
-                .thenReturn(Optional.empty());
+                .thenReturn(Mono.empty());
 
-        assertThrows(PassengerNotFoundException.class, () -> passengerService.deletePassengerById(passengerId));
+        StepVerifier.create(passengerService.deletePassengerById(passengerId))
+                .expectError(PassengerNotFoundException.class)
+                .verify();
 
         verify(passengerRepository, times(1))
                 .findById(passengerId);

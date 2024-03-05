@@ -48,7 +48,7 @@ public class BankCardController {
     }
 
     @DeleteMapping("/user/{bankUserId}")
-    public void deleteBankUserCards(@PathVariable("bankUserId") Long bankUserId,
+    public void deleteBankUserCards(@PathVariable("bankUserId") String bankUserId,
                                     @RequestParam BankUser bankUser) {
         bankCardService.deleteBankUserCards(bankUserId, bankUser);
     }
@@ -59,7 +59,7 @@ public class BankCardController {
     }
 
     @GetMapping("/user/{id}")
-    public BankCardPageResponse getBankUserCards(@PathVariable("id") Long bankUserId,
+    public BankCardPageResponse getBankUserCards(@PathVariable("id") String bankUserId,
                                                  @RequestParam BankUser bankUser,
                                                  @RequestParam(defaultValue = "0") @Min(0) int page,
                                                  @RequestParam(defaultValue = "10") @Min(1) int size,
@@ -73,7 +73,7 @@ public class BankCardController {
     }
 
     @GetMapping("/user/{id}/default")
-    public BankCardResponse getDefaultBankCard(@PathVariable("id") Long bankUserId,
+    public BankCardResponse getDefaultBankCard(@PathVariable("id") String bankUserId,
                                                @RequestParam BankUser bankUser) {
         return bankCardService.getDefaultBankCard(bankUserId, bankUser);
     }

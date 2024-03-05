@@ -10,6 +10,7 @@ import com.example.driverservice.exception.IncorrectFieldNameException;
 import com.example.driverservice.exception.PhoneNumberUniqueException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -21,10 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = DriverNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleDriverNotFoundException(DriverNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -34,6 +38,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = DriverStatusException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handleDriverStatusException(DriverStatusException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -43,6 +49,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = CarNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionResponse handleCarNotFoundException(CarNotFoundException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .message(ex.getMessage())
@@ -61,6 +69,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = PhoneNumberUniqueException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handlePhoneNumberUniqueException(PhoneNumberUniqueException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())
@@ -70,6 +80,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = CarNumberUniqueException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionResponse handleCarNumberUniqueException(CarNumberUniqueException ex) {
+        log.error(ex.getMessage());
+
         return ExceptionResponse.builder()
                 .statusCode(HttpStatus.CONFLICT.value())
                 .message(ex.getMessage())

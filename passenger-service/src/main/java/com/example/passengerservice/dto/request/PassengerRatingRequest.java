@@ -2,20 +2,16 @@ package com.example.passengerservice.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@Builder
-@ToString
+@Data
 public class PassengerRatingRequest {
     private Long driverId;
-    private Long passengerId;
+    private String passengerId;
     private Long rideId;
     private Integer rating;
 }

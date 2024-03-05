@@ -5,22 +5,18 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 import java.util.List;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@Builder
-@ToString
+@Data
 public class CreateRideRequest {
     @NotNull(message = "{ride.passenger-id.not-null}")
-    private Long passengerId;
+    private String passengerId;
 
     @NotBlank(message = "{ride.start-address.required}")
     private String startAddress;

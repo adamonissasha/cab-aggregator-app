@@ -2,24 +2,19 @@ package com.example.passengerservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@Builder
-@ToString
-@EqualsAndHashCode
+@Data
 public class PassengerResponse {
-    private long id;
+    private String id;
     private String firstName;
     private String lastName;
     private String email;
     private String phoneNumber;
     private double rating;
+    private boolean isActive;
 }

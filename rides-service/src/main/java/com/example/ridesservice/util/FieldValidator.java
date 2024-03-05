@@ -17,7 +17,6 @@ public class FieldValidator {
         List<String> allowedSortFields = new ArrayList<>();
         getFieldNamesRecursive(myClass, allowedSortFields);
         if (!allowedSortFields.contains(sortBy)) {
-            log.error("Invalid sortBy field. Allowed fields: {}", allowedSortFields);
             throw new IncorrectFieldNameException(INCORRECT_FIELDS + allowedSortFields);
         }
     }
